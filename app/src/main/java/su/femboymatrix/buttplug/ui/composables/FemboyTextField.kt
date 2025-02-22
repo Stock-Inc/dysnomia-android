@@ -17,19 +17,22 @@ import su.femboymatrix.buttplug.ui.theme.FemboyPink
 @Composable
 fun FemboyTextField(
     value: String,
-    onValueChange: () -> Unit,
+    onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
     imeAction: ImeAction = ImeAction.Next,
+    keyboardActions: KeyboardActions = KeyboardActions(),
     leadingIcon: ImageVector? = null
 ) {
     OutlinedTextField(
-        value = "",
-        onValueChange = {},
+        value = value,
+        onValueChange = onValueChange,
         shape = CircleShape,
         keyboardOptions = KeyboardOptions(
             imeAction = imeAction
         ),
+        singleLine = true,
+        keyboardActions = keyboardActions,
         leadingIcon = {
             if (leadingIcon != null) {
                 Icon(

@@ -10,7 +10,7 @@ interface FemboyAppContainer {
 
 class DefaultFemboyAppContainer : FemboyAppContainer {
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("http://10.0.2.2:8080/")
+        .baseUrl("https://api.femboymatrix.su/")
         .addConverterFactory(ScalarsConverterFactory.create())
         .build()
     private val retrofitService: FemboyApiService by lazy {
