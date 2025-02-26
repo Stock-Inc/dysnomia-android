@@ -15,7 +15,7 @@ import su.femboymatrix.buttplug.data.FemboyNetworkRepository
 
 data class ConsoleUiState(
     val text: String = "",
-    val commandHistory: List<String> = emptyList()
+    val commandHistory: List<Map<String, Any>> = emptyList()
 )
 
 class FemboyViewModel(
@@ -29,7 +29,14 @@ class FemboyViewModel(
             viewModelScope.launch {
                 _consoleUiState.update {
                     it.copy(
-                        commandHistory = it.commandHistory + femboyNetworkRepository.sendCommand(_consoleUiState.value.text),
+                        commandHistory = it.commandHistory +
+                                mapOf(
+                                    "id" to it.commandHistory.size,
+                                    "command" to it.text.trim(),
+                                    "result" to femboyNetworkRepository.sendCommand(
+                                        it.text.trim()
+                                    )
+                                ),
                         text = ""
                     )
                 }
