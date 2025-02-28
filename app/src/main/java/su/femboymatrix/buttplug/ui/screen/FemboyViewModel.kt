@@ -1,24 +1,22 @@
 package su.femboymatrix.buttplug.ui.screen
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import su.femboymatrix.buttplug.FemboyApplication
 import su.femboymatrix.buttplug.data.FemboyNetworkRepository
+import javax.inject.Inject
 
 data class ConsoleUiState(
     val text: String = "",
     val commandHistory: List<Map<String, Any>> = emptyList()
 )
 
-class FemboyViewModel(
+@HiltViewModel
+class FemboyViewModel @Inject constructor(
     private val femboyNetworkRepository: FemboyNetworkRepository
 ) : ViewModel() {
     private val _consoleUiState = MutableStateFlow(ConsoleUiState())
@@ -49,15 +47,6 @@ class FemboyViewModel(
             it.copy(
                 text = text
             )
-        }
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application = (this[APPLICATION_KEY] as FemboyApplication)
-                FemboyViewModel(application.container.femboyNetworkRepository)
-            }
         }
     }
 }

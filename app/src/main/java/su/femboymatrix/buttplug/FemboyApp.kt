@@ -18,7 +18,7 @@ enum class Screens {
 
 @Composable
 fun FemboyApp(
-    viewModel: FemboyViewModel = viewModel(factory = FemboyViewModel.Factory)
+    viewModel: FemboyViewModel = viewModel()
 ) {
     NavHost(
         navController = rememberNavController(),
