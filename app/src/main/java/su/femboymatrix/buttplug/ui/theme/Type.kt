@@ -8,7 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import su.femboymatrix.buttplug.R
 
-val Dustimo = FontFamily(
+val Dustismo = FontFamily(
     Font(
         R.font.dustismo,
         FontWeight.Normal
@@ -22,11 +22,16 @@ val Dustimo = FontFamily(
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-        fontFamily = Dustimo,
+        fontFamily = Dustismo,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
+    ),
+    displaySmall = TextStyle(
+        fontSize = 36.sp,
+        fontFamily = Dustismo,
+        fontWeight = FontWeight.Bold
     )
     /* Other default text styles to override
     titleLarge = TextStyle(

@@ -16,7 +16,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,61 +65,58 @@ fun ConsoleScreen(
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
-    Scaffold { contentPadding ->
-        Column(
-            verticalArrangement = Arrangement.Bottom,
-            modifier = modifier
-                .padding(8.dp)
-                .padding(contentPadding)
-                .fillMaxSize()
-        ) {
-            if (historySize != 0) {
-                LaunchedEffect(historySize) {
-                    consoleListState.animateScrollToItem(historySize)
-                }
+    Column(
+        verticalArrangement = Arrangement.Bottom,
+        modifier = modifier
+            .padding(8.dp)
+            .fillMaxSize()
+    ) {
+        if (historySize != 0) {
+            LaunchedEffect(historySize) {
+                consoleListState.animateScrollToItem(historySize)
             }
-            LazyColumn(
-                verticalArrangement = Arrangement.Bottom,
-                state = consoleListState,
-                modifier = Modifier.weight(1f)
-            ) {
-                items(consoleHistory, key = { it.id }) {
-                    ConsoleItem(
-                        text = "> ${it.command}\n${it.result}",
-                        onClick = {
-                            clipboardManager.setText(
-                                AnnotatedString(it.result)
-                            )
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.copied_to_clipboard),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .animateItem(
-                                fadeInSpec = null,
-                                fadeOutSpec = null,
-                                placementSpec = spring(
-                                    stiffness = Spring.StiffnessMediumLow,
-                                    visibilityThreshold = IntOffset.VisibilityThreshold
-                                )
-                            )
-                    )
-                }
-            }
-            FemboyTextField(
-                value = uiState.text,
-                label = stringResource(R.string.enter_command),
-                onValueChange = onTextChange,
-                imeAction = ImeAction.Send,
-                keyboardActions = KeyboardActions(
-                    onSend = { onSendCommand() }
-                ),
-                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
-            )
         }
+        LazyColumn(
+            verticalArrangement = Arrangement.Bottom,
+            state = consoleListState,
+            modifier = Modifier.weight(1f)
+        ) {
+            items(consoleHistory, key = { it.id }) {
+                ConsoleItem(
+                    text = "> ${it.command}\n${it.result}",
+                    onClick = {
+                        clipboardManager.setText(
+                            AnnotatedString(it.result)
+                        )
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.copied_to_clipboard),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .animateItem(
+                            fadeInSpec = null,
+                            fadeOutSpec = null,
+                            placementSpec = spring(
+                                stiffness = Spring.StiffnessMediumLow,
+                                visibilityThreshold = IntOffset.VisibilityThreshold
+                            )
+                        )
+                )
+            }
+        }
+        FemboyTextField(
+            value = uiState.text,
+            label = stringResource(R.string.enter_command),
+            onValueChange = onTextChange,
+            imeAction = ImeAction.Send,
+            keyboardActions = KeyboardActions(
+                onSend = { onSendCommand() }
+            ),
+            leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+        )
     }
 }
 
