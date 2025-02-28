@@ -30,8 +30,10 @@ fun FemboyApp(
 
         composable(route = Screens.Console.name) {
             val consoleUiState = viewModel.consoleUiState.collectAsState().value
+            val consoleHistory = viewModel.consoleHistory.collectAsState(emptyList()).value
             ConsoleScreen(
                 uiState = consoleUiState,
+                consoleHistory = consoleHistory,
                 onTextChange = viewModel::changeConsoleText,
                 onSendCommand = viewModel::sendCommand
             )

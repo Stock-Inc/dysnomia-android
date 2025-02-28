@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import su.femboymatrix.buttplug.R
+import su.femboymatrix.buttplug.data.ConsoleHistoryEntity
 import su.femboymatrix.buttplug.ui.composables.FemboyTextField
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 import su.femboymatrix.buttplug.ui.theme.FemboyPink
@@ -55,12 +56,13 @@ fun ConsoleItem(
 @Composable
 fun ConsoleScreen(
     uiState: ConsoleUiState,
+    consoleHistory: List<ConsoleHistoryEntity>,
     onTextChange: (String) -> Unit,
     onSendCommand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val consoleListState = rememberLazyListState()
-    val historySize = uiState.commandHistory.size
+    val historySize = consoleHistory.size
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
@@ -82,12 +84,12 @@ fun ConsoleScreen(
                 state = consoleListState,
                 modifier = Modifier.weight(1f)
             ) {
-                items(uiState.commandHistory, key = { it["id"]!! }) {
+                items(consoleHistory, key = { it.id }) {
                     ConsoleItem(
-                        text = "> ${it["command"]}\n${it["result"]}",
+                        text = "> ${it.command}\n${it.result}",
                         onClick = {
                             clipboardManager.setText(
-                                AnnotatedString(it["result"].toString())
+                                AnnotatedString(it.result)
                             )
                             Toast.makeText(
                                 context,
@@ -126,14 +128,14 @@ fun ConsoleScreen(
 @Composable
 private fun ConsoleScreenPreview() {
     FemboyMatrixTheme {
-        ConsoleScreen(ConsoleUiState(), {}, {})
+        ConsoleScreen(ConsoleUiState(), emptyList(), {}, {})
     }
 }
 @Preview
 @Composable
 private fun ConsoleScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
-        ConsoleScreen(ConsoleUiState(), {}, {})
+        ConsoleScreen(ConsoleUiState(), emptyList(), {}, {})
     }
 }
 
