@@ -32,6 +32,16 @@ val Typography = Typography(
         fontSize = 36.sp,
         fontFamily = Dustismo,
         fontWeight = FontWeight.Bold
+    ),
+    headlineMedium = TextStyle(
+        fontSize = 28.sp,
+        fontFamily = Dustismo,
+        fontWeight = FontWeight.Bold
+    ),
+    headlineSmall = TextStyle(
+        fontSize = 20.sp,
+        fontFamily = Dustismo,
+        fontWeight = FontWeight.Bold
     )
     /* Other default text styles to override
     titleLarge = TextStyle(
