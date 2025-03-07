@@ -13,13 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import su.femboymatrix.buttplug.FemboyApp
 import su.femboymatrix.buttplug.R
-import su.femboymatrix.buttplug.Screens
 
 @Composable
 fun FemboyBottomNavigationBar(
-    currentScreen: Screens,
-    onClick: (Screens) -> Unit,
+    currentScreen: FemboyApp,
+    onClick: (FemboyApp) -> Unit,
     navigationItemContentList: List<NavigationItemContent>,
     modifier: Modifier = Modifier
 ) {
@@ -43,24 +43,24 @@ fun FemboyBottomNavigationBar(
 }
 
 data class NavigationItemContent(
-    val screenType: Screens,
+    val screenType: FemboyApp,
     val icon: ImageVector,
     @StringRes val text: Int
 )
 
 val navigationItemContentList = listOf(
     NavigationItemContent(
-        screenType = Screens.Home,
+        screenType = FemboyApp.Home,
         icon = Icons.Default.Home,
         text = R.string.land
     ),
     NavigationItemContent(
-        screenType = Screens.Console,
+        screenType = FemboyApp.Console,
         icon = Icons.AutoMirrored.Filled.Send,
         text = R.string.chat
     ),
     NavigationItemContent(
-        screenType = Screens.Login,
+        screenType = FemboyApp.Login,
         icon = Icons.Default.Favorite,
         text = R.string.profile
     )

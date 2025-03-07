@@ -93,7 +93,7 @@ fun LoginScreen(
             color = FemboyPink,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
-            modifier = Modifier.alpha(0.8f)
+            modifier = Modifier.alpha(alpha = 0.8f)
         )
     }
 }

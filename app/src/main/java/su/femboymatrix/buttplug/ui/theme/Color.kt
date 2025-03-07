@@ -1,7 +1,7 @@
 package su.femboymatrix.buttplug.ui.theme
 import androidx.compose.ui.graphics.Color
 
-val MysteriousPurple = Color(0xff6450b1)
+val MysteriousPurple = Color(0xFF6B0772)
 val FemboyPink = Color(0xFFE799AE)
 val FemboyDarkPink = Color(0xff271c1c)
 

@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +32,7 @@ import su.femboymatrix.buttplug.R
 import su.femboymatrix.buttplug.ui.theme.FemboyDarkPink
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 import su.femboymatrix.buttplug.ui.theme.FemboyPink
+import su.femboymatrix.buttplug.ui.theme.MysteriousPurple
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
@@ -47,7 +47,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                     withStyle(
                         SpanStyle(
                             brush = Brush.linearGradient(
-                                colors = listOf(FemboyPink, Color(0xFF6B0772))
+                                colors = listOf(FemboyPink, MysteriousPurple)
                             )
                         )
                     ) {
@@ -69,14 +69,16 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 withStyle(
                     SpanStyle(
                         brush = Brush.linearGradient(
-                            colors = listOf(FemboyPink, Color(0xFF6B0772))
+                            colors = listOf(FemboyPink, MysteriousPurple)
                         )
                     )
                 ) {
                     append("Secret\n")
                 }
-                append("Height: 164 cm\n" +
-                        "Weight: 56 kg",)
+                append(
+                    "Height: 164 cm\n" +
+                        "Weight: 56 kg",
+                )
             }
         )
     }

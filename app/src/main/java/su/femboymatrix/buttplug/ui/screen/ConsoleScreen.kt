@@ -127,6 +127,7 @@ private fun ConsoleScreenPreview() {
         ConsoleScreen(ConsoleUiState(), emptyList(), {}, {})
     }
 }
+
 @Preview
 @Composable
 private fun ConsoleScreenDarkPreview() {

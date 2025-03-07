@@ -21,7 +21,7 @@ import su.femboymatrix.buttplug.ui.screen.HomeScreen
 import su.femboymatrix.buttplug.ui.screen.LoginScreen
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 
-enum class Screens {
+enum class FemboyApp {
     Home, Login, Console
 }
 
@@ -31,8 +31,8 @@ fun FemboyApp(
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = Screens.valueOf(
-        backStackEntry?.destination?.route ?: Screens.Home.name
+    val currentScreen = FemboyApp.valueOf(
+        backStackEntry?.destination?.route ?: FemboyApp.Home.name
     )
 
     Scaffold(
@@ -47,13 +47,13 @@ fun FemboyApp(
     ) { contentPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screens.Home.name,
+            startDestination = FemboyApp.Home.name,
         ) {
-            composable(route = Screens.Home.name) {
+            composable(route = FemboyApp.Home.name) {
                 HomeScreen(modifier = Modifier.padding(contentPadding))
             }
 
-            composable(route = Screens.Console.name) {
+            composable(route = FemboyApp.Console.name) {
                 val consoleUiState = viewModel.consoleUiState.collectAsState().value
                 val consoleHistory = viewModel.consoleHistory.collectAsState(emptyList()).value
                 ConsoleScreen(
@@ -65,7 +65,7 @@ fun FemboyApp(
                 )
             }
 
-            composable(route = Screens.Login.name) {
+            composable(route = FemboyApp.Login.name) {
                 LoginScreen(
                     onLoginClick = {},
                     onRegisterClick = {},
@@ -74,7 +74,6 @@ fun FemboyApp(
             }
         }
     }
-
 }
 
 @Preview

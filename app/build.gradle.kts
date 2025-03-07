@@ -7,6 +7,12 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+detekt {
+    toolVersion = "1.23.8"
+    config.setFrom(file("../config/detekt/detekt.yml"))
+    buildUponDefaultConfig = true
+}
+
 android {
     namespace = "su.femboymatrix.buttplug"
     compileSdk = 35
