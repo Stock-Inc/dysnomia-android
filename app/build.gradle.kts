@@ -13,6 +13,10 @@ detekt {
     buildUponDefaultConfig = true
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 android {
     namespace = "su.femboymatrix.buttplug"
     compileSdk = 35
