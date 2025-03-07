@@ -11,6 +11,7 @@ import su.femboymatrix.buttplug.network.FemboyApiService
 import su.femboymatrix.buttplug.utils.BASE_URL
 import javax.inject.Singleton
 
+@Suppress("unused")
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {

@@ -11,6 +11,7 @@ import su.femboymatrix.buttplug.data.AppDatabase
 import su.femboymatrix.buttplug.data.ConsoleDao
 import javax.inject.Singleton
 
+@Suppress("unused")
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
