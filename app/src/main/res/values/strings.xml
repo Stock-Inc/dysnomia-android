@@ -10,7 +10,7 @@
     <string name="land">Land</string>
     <string name="chat">Chat</string>
     <string name="profile">Profile</string>
-    <string name="you_re_currently_logged_in_as">"You're currently logged in as "</string>
+    <string name="you_re_currently_logged_in_as">"You're currently logged in as \n"</string>
     <string name="logout">Logout</string>
     <string name="your_name">Your Name</string>
     <string name="enter_message">Enter Message</string>
