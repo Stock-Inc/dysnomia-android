@@ -40,13 +40,7 @@ fun FemboyApp(
         backStackEntry?.destination?.route ?: FemboyApp.Home.name
     )
 
-    val chatUiState = chatViewModel.chatUiState.collectAsState().value
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
-
-    val loginUiState = profileViewModel.uiState.collectAsState().value
-    val currentName = profileViewModel.currentName.collectAsState().value
-
-    val homeUiState = homeViewModel.uiState.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -63,6 +57,8 @@ fun FemboyApp(
             startDestination = FemboyApp.Home.name,
         ) {
             composable(route = FemboyApp.Home.name) {
+                val homeUiState = homeViewModel.uiState.collectAsState().value
+
                 HomeScreen(
                     uiState = homeUiState,
                     modifier = Modifier.padding(contentPadding)
@@ -70,6 +66,8 @@ fun FemboyApp(
             }
 
             composable(route = FemboyApp.Chat.name) {
+                val chatUiState = chatViewModel.chatUiState.collectAsState().value
+
                 ChatScreen(
                     uiState = chatUiState,
                     chatHistory = chatHistory,
@@ -80,6 +78,9 @@ fun FemboyApp(
             }
 
             composable(route = FemboyApp.Login.name) {
+                val loginUiState = profileViewModel.uiState.collectAsState().value
+                val currentName = profileViewModel.currentName.collectAsState().value
+
                 if (currentName == "") {
                     LoginScreen(
                         uiState = loginUiState,
