@@ -18,7 +18,8 @@ import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
 import su.femboymatrix.buttplug.ui.screen.ConsoleScreen
 import su.femboymatrix.buttplug.ui.screen.FemboyViewModel
 import su.femboymatrix.buttplug.ui.screen.HomeScreen
-import su.femboymatrix.buttplug.ui.screen.LoginScreen
+import su.femboymatrix.buttplug.ui.screen.login.LoginScreen
+import su.femboymatrix.buttplug.ui.screen.login.LoginViewModel
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 
 enum class FemboyApp {
@@ -27,13 +28,18 @@ enum class FemboyApp {
 
 @Composable
 fun FemboyApp(
-    viewModel: FemboyViewModel = viewModel()
+    femboyViewModel: FemboyViewModel = viewModel(),
+    loginViewModel: LoginViewModel = viewModel()
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentScreen = FemboyApp.valueOf(
         backStackEntry?.destination?.route ?: FemboyApp.Home.name
     )
+
+    val consoleUiState = femboyViewModel.consoleUiState.collectAsState().value
+    val consoleHistory = femboyViewModel.consoleHistory.collectAsState(emptyList()).value
+    val loginUiState = loginViewModel.uiState.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -54,19 +60,20 @@ fun FemboyApp(
             }
 
             composable(route = FemboyApp.Console.name) {
-                val consoleUiState = viewModel.consoleUiState.collectAsState().value
-                val consoleHistory = viewModel.consoleHistory.collectAsState(emptyList()).value
                 ConsoleScreen(
                     uiState = consoleUiState,
                     consoleHistory = consoleHistory,
-                    onTextChange = viewModel::changeConsoleText,
-                    onSendCommand = viewModel::sendCommand,
+                    onTextChange = femboyViewModel::changeConsoleText,
+                    onSendCommand = femboyViewModel::sendCommand,
                     modifier = Modifier.padding(contentPadding)
                 )
             }
 
             composable(route = FemboyApp.Login.name) {
                 LoginScreen(
+                    uiState = loginUiState,
+                    onNameChange = loginViewModel::changeName,
+                    onPasswordChange = loginViewModel::changePassword,
                     onLoginClick = {},
                     onRegisterClick = {},
                     modifier = Modifier.padding(contentPadding)

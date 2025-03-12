@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen
+package su.femboymatrix.buttplug.ui.screen.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,6 +33,9 @@ import su.femboymatrix.buttplug.ui.theme.FemboyPink
 
 @Composable
 fun LoginScreen(
+    uiState: LoginUiState,
+    onNameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -48,8 +51,8 @@ fun LoginScreen(
         Spacer(Modifier.weight(1.0f))
         FemboyLogo(modifier = Modifier.padding(16.dp))
         FemboyTextField(
-            value = "",
-            onValueChange = {},
+            value = uiState.name,
+            onValueChange = onNameChange,
             label = stringResource(R.string.login),
             leadingIcon = Icons.Default.AccountCircle,
             modifier = Modifier.padding(
@@ -58,8 +61,8 @@ fun LoginScreen(
             )
         )
         FemboyTextField(
-            value = "",
-            onValueChange = {},
+            value = uiState.password,
+            onValueChange = onPasswordChange,
             label = stringResource(R.string.password),
             leadingIcon = Icons.Default.Favorite,
             imeAction = ImeAction.Done,
@@ -103,6 +106,9 @@ fun LoginScreen(
 private fun LoginScreenPreview() {
     FemboyMatrixTheme {
         LoginScreen(
+            uiState = LoginUiState(),
+            onNameChange = {},
+            onPasswordChange = {},
             onLoginClick = {},
             onRegisterClick = {}
         )
@@ -114,6 +120,9 @@ private fun LoginScreenPreview() {
 private fun LoginScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
         LoginScreen(
+            uiState = LoginUiState(),
+            onNameChange = {},
+            onPasswordChange = {},
             onLoginClick = {},
             onRegisterClick = {}
         )
