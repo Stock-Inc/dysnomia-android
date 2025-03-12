@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,10 +35,12 @@ import su.femboymatrix.buttplug.ui.theme.FemboyDarkPink
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 import su.femboymatrix.buttplug.ui.theme.FemboyPink
 import su.femboymatrix.buttplug.ui.theme.MysteriousPurple
+import su.femboymatrix.buttplug.utils.grayScale
 
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
+    onChatClicked: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -67,27 +71,49 @@ fun HomeScreen(
             )
         }
         Spacer(Modifier.height(16.dp))
-        FormListItem(
-            name = "Astolfo",
-            image = R.drawable.astolfo,
-            onClick = {},
-            details = buildAnnotatedString {
-                append("Gender: ")
-                withStyle(
-                    SpanStyle(
-                        brush = Brush.linearGradient(
-                            colors = listOf(FemboyPink, MysteriousPurple)
-                        )
-                    )
-                ) {
-                    append("Secret\n")
-                }
-                append(
-                    "Height: 164 cm\n" +
-                        "Weight: 56 kg",
+        LazyColumn {
+            item {
+                FormListItem(
+                    name = "[ Global ] chat",
+                    details = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(FemboyPink, MysteriousPurple)
+                                )
+                            )
+                        ) {
+                            append("Find someone ♡")
+                        }
+                    },
+                    onClick = { onChatClicked(0) },
+                    image = R.drawable.astolfo,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
-        )
+
+            item {
+                FormListItem(
+                    name = "Astolfo [ WIP ]",
+                    image = R.drawable.astolfo,
+                    onClick = { onChatClicked(1) },
+                    details = buildAnnotatedString {
+                        append("Gender: ")
+                        withStyle(
+                            SpanStyle(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(FemboyPink, MysteriousPurple)
+                                )
+                            )
+                        ) {
+                            append("Secret\n")
+                        }
+                        append("Height: 164 cm\nWeight: 56 kg")
+                    },
+                    modifier = Modifier.grayScale()
+                )
+            }
+        }
     }
 }
 
@@ -136,7 +162,12 @@ fun FormListItem(
 @Composable
 private fun HomeScreenPreview() {
     FemboyMatrixTheme {
-        HomeScreen(HomeUiState(name = "Your Name"))
+        Surface {
+            HomeScreen(
+                uiState = HomeUiState(),
+                onChatClicked = {}
+            )
+        }
     }
 }
 
@@ -144,6 +175,11 @@ private fun HomeScreenPreview() {
 @Composable
 private fun HomeScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
-        HomeScreen(HomeUiState(name = "Your Name"))
+        Surface {
+            HomeScreen(
+                uiState = HomeUiState(),
+                onChatClicked = {}
+            )
+        }
     }
 }

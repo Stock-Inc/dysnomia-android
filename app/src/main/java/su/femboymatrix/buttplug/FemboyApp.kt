@@ -61,6 +61,11 @@ fun FemboyApp(
 
                 HomeScreen(
                     uiState = homeUiState,
+                    onChatClicked = {
+                        if (it == 0) {
+                            navController.navigate(FemboyApp.Chat.name)
+                        }
+                    },
                     modifier = Modifier.padding(contentPadding)
                 )
             }
