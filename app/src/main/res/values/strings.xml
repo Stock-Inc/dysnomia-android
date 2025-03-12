@@ -5,12 +5,13 @@
     <string name="sign_in">Sign in</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
-    <string name="enter_command">Enter command</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="welcome">"Welcome, "</string>
+    <string name="welcome">"Welcome \n"</string>
     <string name="land">Land</string>
     <string name="chat">Chat</string>
     <string name="profile">Profile</string>
     <string name="you_re_currently_logged_in_as">"You're currently logged in as "</string>
     <string name="logout">Logout</string>
+    <string name="your_name">Your Name</string>
+    <string name="enter_message">Enter Message</string>
 </resources>

@@ -109,7 +109,7 @@ fun ChatScreen(
         }
         FemboyTextField(
             value = uiState.text,
-            label = stringResource(R.string.enter_command),
+            label = stringResource(R.string.enter_message),
             onValueChange = onTextChange,
             imeAction = ImeAction.Send,
             keyboardActions = KeyboardActions(

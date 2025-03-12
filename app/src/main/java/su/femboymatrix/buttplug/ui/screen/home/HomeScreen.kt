@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen
+package su.femboymatrix.buttplug.ui.screen.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -35,7 +35,10 @@ import su.femboymatrix.buttplug.ui.theme.FemboyPink
 import su.femboymatrix.buttplug.ui.theme.MysteriousPurple
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    uiState: HomeUiState,
+    modifier: Modifier = Modifier
+) {
     Column(
         modifier = modifier
             .padding(8.dp)
@@ -44,6 +47,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         Row {
             Text(
                 text = buildAnnotatedString {
+                    append(stringResource(R.string.welcome))
                     withStyle(
                         SpanStyle(
                             brush = Brush.linearGradient(
@@ -51,9 +55,12 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                             )
                         )
                     ) {
-                        append(stringResource(R.string.welcome))
+                        if (uiState.name != "") {
+                            append("[ ${uiState.name} ]")
+                        } else {
+                            append("[ ${stringResource(R.string.your_name)} ]")
+                        }
                     }
-                    append("\n[Your Name]")
                 },
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.padding(4.dp)
@@ -129,7 +136,7 @@ fun FormListItem(
 @Composable
 private fun HomeScreenPreview() {
     FemboyMatrixTheme {
-        HomeScreen()
+        HomeScreen(HomeUiState(name = "Your Name"))
     }
 }
 
@@ -137,6 +144,6 @@ private fun HomeScreenPreview() {
 @Composable
 private fun HomeScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
-        HomeScreen()
+        HomeScreen(HomeUiState(name = "Your Name"))
     }
 }

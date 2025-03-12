@@ -15,9 +15,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import su.femboymatrix.buttplug.ui.composables.FemboyBottomNavigationBar
 import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
-import su.femboymatrix.buttplug.ui.screen.HomeScreen
 import su.femboymatrix.buttplug.ui.screen.chat.ChatScreen
 import su.femboymatrix.buttplug.ui.screen.chat.ChatViewModel
+import su.femboymatrix.buttplug.ui.screen.home.HomeScreen
+import su.femboymatrix.buttplug.ui.screen.home.HomeViewModel
 import su.femboymatrix.buttplug.ui.screen.profile.LoginScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileViewModel
@@ -30,7 +31,8 @@ enum class FemboyApp {
 @Composable
 fun FemboyApp(
     chatViewModel: ChatViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -43,6 +45,8 @@ fun FemboyApp(
 
     val loginUiState = profileViewModel.uiState.collectAsState().value
     val currentName = profileViewModel.currentName.collectAsState().value
+
+    val homeUiState = homeViewModel.uiState.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -59,7 +63,10 @@ fun FemboyApp(
             startDestination = FemboyApp.Home.name,
         ) {
             composable(route = FemboyApp.Home.name) {
-                HomeScreen(modifier = Modifier.padding(contentPadding))
+                HomeScreen(
+                    uiState = homeUiState,
+                    modifier = Modifier.padding(contentPadding)
+                )
             }
 
             composable(route = FemboyApp.Chat.name) {
