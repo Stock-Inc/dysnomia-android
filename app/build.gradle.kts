@@ -85,4 +85,7 @@ dependencies {
 
     // Detekt
     detektPlugins(libs.detekt.formatting)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
 }

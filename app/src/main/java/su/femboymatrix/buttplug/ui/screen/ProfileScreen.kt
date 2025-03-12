@@ -27,6 +27,7 @@ import su.femboymatrix.buttplug.ui.theme.MysteriousPurple
 
 @Composable
 fun ProfileScreen(
+    name: String,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -45,7 +46,7 @@ fun ProfileScreen(
                         )
                     )
                 ) {
-                    append("Your Name")
+                    append(name)
                 }
             },
             style = MaterialTheme.typography.headlineMedium,
@@ -53,7 +54,7 @@ fun ProfileScreen(
         )
         Spacer(Modifier.height(32.dp))
         FemboyButton(
-            text = "Logout",
+            text = stringResource(R.string.logout),
             isOutlined = true,
             onClick = onLogoutClick
         )
@@ -65,7 +66,10 @@ fun ProfileScreen(
 private fun ProfileScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
         Surface {
-            ProfileScreen({})
+            ProfileScreen(
+                name = "Your Name",
+                onLogoutClick = {}
+            )
         }
     }
 }

@@ -18,6 +18,7 @@ import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
 import su.femboymatrix.buttplug.ui.screen.ConsoleScreen
 import su.femboymatrix.buttplug.ui.screen.FemboyViewModel
 import su.femboymatrix.buttplug.ui.screen.HomeScreen
+import su.femboymatrix.buttplug.ui.screen.ProfileScreen
 import su.femboymatrix.buttplug.ui.screen.login.LoginScreen
 import su.femboymatrix.buttplug.ui.screen.login.LoginViewModel
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
@@ -39,7 +40,9 @@ fun FemboyApp(
 
     val consoleUiState = femboyViewModel.consoleUiState.collectAsState().value
     val consoleHistory = femboyViewModel.consoleHistory.collectAsState(emptyList()).value
+
     val loginUiState = loginViewModel.uiState.collectAsState().value
+    val currentName = loginViewModel.currentName.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -70,14 +73,22 @@ fun FemboyApp(
             }
 
             composable(route = FemboyApp.Login.name) {
-                LoginScreen(
-                    uiState = loginUiState,
-                    onNameChange = loginViewModel::changeName,
-                    onPasswordChange = loginViewModel::changePassword,
-                    onLoginClick = {},
-                    onRegisterClick = {},
-                    modifier = Modifier.padding(contentPadding)
-                )
+                if (currentName == "") {
+                    LoginScreen(
+                        uiState = loginUiState,
+                        onNameChange = loginViewModel::changeName,
+                        onPasswordChange = loginViewModel::changePassword,
+                        onLoginClick = loginViewModel::login,
+                        onRegisterClick = loginViewModel::login,
+                        modifier = Modifier.padding(contentPadding)
+                    )
+                } else {
+                    ProfileScreen(
+                        name = currentName,
+                        onLogoutClick = loginViewModel::logout,
+                        modifier = Modifier.padding(contentPadding)
+                    )
+                }
             }
         }
     }
