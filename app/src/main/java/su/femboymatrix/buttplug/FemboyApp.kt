@@ -15,21 +15,21 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import su.femboymatrix.buttplug.ui.composables.FemboyBottomNavigationBar
 import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
-import su.femboymatrix.buttplug.ui.screen.ChatScreen
-import su.femboymatrix.buttplug.ui.screen.FemboyViewModel
 import su.femboymatrix.buttplug.ui.screen.HomeScreen
+import su.femboymatrix.buttplug.ui.screen.chat.ChatScreen
+import su.femboymatrix.buttplug.ui.screen.chat.ChatViewModel
 import su.femboymatrix.buttplug.ui.screen.profile.LoginScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileViewModel
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 
 enum class FemboyApp {
-    Home, Login, Console
+    Home, Login, Chat
 }
 
 @Composable
 fun FemboyApp(
-    femboyViewModel: FemboyViewModel = viewModel(),
+    chatViewModel: ChatViewModel = viewModel(),
     profileViewModel: ProfileViewModel = viewModel()
 ) {
     val navController = rememberNavController()
@@ -38,8 +38,8 @@ fun FemboyApp(
         backStackEntry?.destination?.route ?: FemboyApp.Home.name
     )
 
-    val consoleUiState = femboyViewModel.consoleUiState.collectAsState().value
-    val consoleHistory = femboyViewModel.consoleHistory.collectAsState(emptyList()).value
+    val chatUiState = chatViewModel.chatUiState.collectAsState().value
+    val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
 
     val loginUiState = profileViewModel.uiState.collectAsState().value
     val currentName = profileViewModel.currentName.collectAsState().value
@@ -62,12 +62,12 @@ fun FemboyApp(
                 HomeScreen(modifier = Modifier.padding(contentPadding))
             }
 
-            composable(route = FemboyApp.Console.name) {
+            composable(route = FemboyApp.Chat.name) {
                 ChatScreen(
-                    uiState = consoleUiState,
-                    chatHistory = consoleHistory,
-                    onTextChange = femboyViewModel::changeConsoleText,
-                    onSendCommand = femboyViewModel::sendCommand,
+                    uiState = chatUiState,
+                    chatHistory = chatHistory,
+                    onTextChange = chatViewModel::changeChatText,
+                    onSendCommand = chatViewModel::sendMessage,
                     modifier = Modifier.padding(contentPadding)
                 )
             }

@@ -55,7 +55,7 @@ val navigationItemContentList = listOf(
         text = R.string.land
     ),
     NavigationItemContent(
-        screenType = FemboyApp.Console,
+        screenType = FemboyApp.Chat,
         icon = Icons.AutoMirrored.Filled.Send,
         text = R.string.chat
     ),

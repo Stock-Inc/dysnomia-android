@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen
+package su.femboymatrix.buttplug.ui.screen.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,38 +16,38 @@ import su.femboymatrix.buttplug.data.FemboyOfflineRepository
 import su.femboymatrix.buttplug.utils.TIMEOUT_MILLIS
 import javax.inject.Inject
 
-data class ConsoleUiState(
+data class ChatUiState(
     val text: String = ""
 )
 
 @HiltViewModel
-class FemboyViewModel @Inject constructor(
+class ChatViewModel @Inject constructor(
     private val femboyNetworkRepository: FemboyNetworkRepository,
     private val femboyOfflineRepository: FemboyOfflineRepository
 ) : ViewModel() {
-    private val _consoleUiState = MutableStateFlow(ConsoleUiState())
-    val consoleUiState = _consoleUiState.asStateFlow()
+    private val _chatUiState = MutableStateFlow(ChatUiState())
+    val chatUiState = _chatUiState.asStateFlow()
 
-    val consoleHistory: Flow<List<ChatHistoryEntity>> =
+    val chatHistory: Flow<List<ChatHistoryEntity>> =
         femboyOfflineRepository.getAllHistory().stateIn(
             scope = viewModelScope,
             initialValue = emptyList(),
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS)
         )
 
-    fun sendCommand() {
-        if (_consoleUiState.value.text.isNotEmpty()) {
+    fun sendMessage() {
+        if (_chatUiState.value.text.isNotEmpty()) {
             viewModelScope.launch {
                 femboyOfflineRepository.addToHistory(
                     ChatHistoryEntity(
-                        command = _consoleUiState.value.text.trim(),
+                        command = _chatUiState.value.text.trim(),
                         result = femboyNetworkRepository.sendMessage(
-                            _consoleUiState.value.text.trim()
+                            _chatUiState.value.text.trim()
                         )
                     )
                 )
             }
-            _consoleUiState.update {
+            _chatUiState.update {
                 it.copy(
                     text = ""
                 )
@@ -55,8 +55,8 @@ class FemboyViewModel @Inject constructor(
         }
     }
 
-    fun changeConsoleText(text: String) {
-        _consoleUiState.update {
+    fun changeChatText(text: String) {
+        _chatUiState.update {
             it.copy(
                 text = text
             )

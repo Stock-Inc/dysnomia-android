@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen
+package su.femboymatrix.buttplug.ui.screen.chat
 
 import android.widget.Toast
 import androidx.compose.animation.core.Spring
@@ -54,7 +54,7 @@ fun ChatItem(
 
 @Composable
 fun ChatScreen(
-    uiState: ConsoleUiState,
+    uiState: ChatUiState,
     chatHistory: List<ChatHistoryEntity>,
     onTextChange: (String) -> Unit,
     onSendCommand: () -> Unit,
@@ -124,7 +124,7 @@ fun ChatScreen(
 @Composable
 private fun ChatScreenPreview() {
     FemboyMatrixTheme {
-        ChatScreen(ConsoleUiState(), emptyList(), {}, {})
+        ChatScreen(ChatUiState(), emptyList(), {}, {})
     }
 }
 
@@ -132,7 +132,7 @@ private fun ChatScreenPreview() {
 @Composable
 private fun ChatScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
-        ChatScreen(ConsoleUiState(), emptyList(), {}, {})
+        ChatScreen(ChatUiState(), emptyList(), {}, {})
     }
 }
 
