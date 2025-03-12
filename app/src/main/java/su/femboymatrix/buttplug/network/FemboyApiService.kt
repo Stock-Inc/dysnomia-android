@@ -5,7 +5,7 @@ import retrofit2.http.Query
 
 interface FemboyApiService {
     @GET("console")
-    suspend fun sendCommand(
-        @Query("command") command: String
+    suspend fun sendMessage(
+        @Query("command") message: String
     ): String
 }

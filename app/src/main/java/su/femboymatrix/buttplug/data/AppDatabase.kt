@@ -3,7 +3,7 @@ package su.femboymatrix.buttplug.data
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [ConsoleHistoryEntity::class], version = 1)
+@Database(entities = [ChatHistoryEntity::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun consoleDao(): ConsoleDao
+    abstract fun chatDao(): ChatDao
 }

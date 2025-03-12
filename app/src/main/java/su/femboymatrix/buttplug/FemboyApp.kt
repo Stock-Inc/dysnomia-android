@@ -15,12 +15,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import su.femboymatrix.buttplug.ui.composables.FemboyBottomNavigationBar
 import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
-import su.femboymatrix.buttplug.ui.screen.ConsoleScreen
+import su.femboymatrix.buttplug.ui.screen.ChatScreen
 import su.femboymatrix.buttplug.ui.screen.FemboyViewModel
 import su.femboymatrix.buttplug.ui.screen.HomeScreen
-import su.femboymatrix.buttplug.ui.screen.ProfileScreen
-import su.femboymatrix.buttplug.ui.screen.login.LoginScreen
-import su.femboymatrix.buttplug.ui.screen.login.LoginViewModel
+import su.femboymatrix.buttplug.ui.screen.profile.LoginScreen
+import su.femboymatrix.buttplug.ui.screen.profile.ProfileScreen
+import su.femboymatrix.buttplug.ui.screen.profile.ProfileViewModel
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 
 enum class FemboyApp {
@@ -30,7 +30,7 @@ enum class FemboyApp {
 @Composable
 fun FemboyApp(
     femboyViewModel: FemboyViewModel = viewModel(),
-    loginViewModel: LoginViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -41,8 +41,8 @@ fun FemboyApp(
     val consoleUiState = femboyViewModel.consoleUiState.collectAsState().value
     val consoleHistory = femboyViewModel.consoleHistory.collectAsState(emptyList()).value
 
-    val loginUiState = loginViewModel.uiState.collectAsState().value
-    val currentName = loginViewModel.currentName.collectAsState().value
+    val loginUiState = profileViewModel.uiState.collectAsState().value
+    val currentName = profileViewModel.currentName.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -63,9 +63,9 @@ fun FemboyApp(
             }
 
             composable(route = FemboyApp.Console.name) {
-                ConsoleScreen(
+                ChatScreen(
                     uiState = consoleUiState,
-                    consoleHistory = consoleHistory,
+                    chatHistory = consoleHistory,
                     onTextChange = femboyViewModel::changeConsoleText,
                     onSendCommand = femboyViewModel::sendCommand,
                     modifier = Modifier.padding(contentPadding)
@@ -76,16 +76,16 @@ fun FemboyApp(
                 if (currentName == "") {
                     LoginScreen(
                         uiState = loginUiState,
-                        onNameChange = loginViewModel::changeName,
-                        onPasswordChange = loginViewModel::changePassword,
-                        onLoginClick = loginViewModel::login,
-                        onRegisterClick = loginViewModel::login,
+                        onNameChange = profileViewModel::changeName,
+                        onPasswordChange = profileViewModel::changePassword,
+                        onLoginClick = profileViewModel::login,
+                        onRegisterClick = profileViewModel::login,
                         modifier = Modifier.padding(contentPadding)
                     )
                 } else {
                     ProfileScreen(
                         name = currentName,
-                        onLogoutClick = loginViewModel::logout,
+                        onLogoutClick = profileViewModel::logout,
                         modifier = Modifier.padding(contentPadding)
                     )
                 }

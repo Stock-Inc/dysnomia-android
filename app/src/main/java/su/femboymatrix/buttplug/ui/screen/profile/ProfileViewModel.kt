@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen.login
+package su.femboymatrix.buttplug.ui.screen.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,7 +19,7 @@ data class LoginUiState(
 )
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
+class ProfileViewModel @Inject constructor(
     private val userPreferencesRepository: PreferencesRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())

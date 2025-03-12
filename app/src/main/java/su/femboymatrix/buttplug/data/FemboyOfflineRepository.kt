@@ -6,19 +6,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface FemboyDataRepository {
-    suspend fun addToHistory(consoleHistoryEntity: ConsoleHistoryEntity)
+    suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity)
 
-    @Query("SELECT * from console_history")
-    fun getAllHistory(): Flow<List<ConsoleHistoryEntity>>
+    @Query("SELECT * from chat_history")
+    fun getAllHistory(): Flow<List<ChatHistoryEntity>>
 }
 
 @Singleton
 class FemboyOfflineRepository @Inject constructor(
-    private val consoleDao: ConsoleDao
+    private val chatDao: ChatDao
 ) : FemboyDataRepository {
-    override suspend fun addToHistory(consoleHistoryEntity: ConsoleHistoryEntity) =
-        consoleDao.addToHistory(consoleHistoryEntity)
+    override suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity) =
+        chatDao.addToHistory(chatHistoryEntity)
 
-    override fun getAllHistory(): Flow<List<ConsoleHistoryEntity>> =
-        consoleDao.getAllHistory()
+    override fun getAllHistory(): Flow<List<ChatHistoryEntity>> =
+        chatDao.getAllHistory()
 }

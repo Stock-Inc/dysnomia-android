@@ -1,4 +1,4 @@
-package su.femboymatrix.buttplug.ui.screen
+package su.femboymatrix.buttplug.ui.screen.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

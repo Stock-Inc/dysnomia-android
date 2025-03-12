@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import su.femboymatrix.buttplug.data.ConsoleHistoryEntity
+import su.femboymatrix.buttplug.data.ChatHistoryEntity
 import su.femboymatrix.buttplug.data.FemboyNetworkRepository
 import su.femboymatrix.buttplug.data.FemboyOfflineRepository
 import su.femboymatrix.buttplug.utils.TIMEOUT_MILLIS
@@ -28,7 +28,7 @@ class FemboyViewModel @Inject constructor(
     private val _consoleUiState = MutableStateFlow(ConsoleUiState())
     val consoleUiState = _consoleUiState.asStateFlow()
 
-    val consoleHistory: Flow<List<ConsoleHistoryEntity>> =
+    val consoleHistory: Flow<List<ChatHistoryEntity>> =
         femboyOfflineRepository.getAllHistory().stateIn(
             scope = viewModelScope,
             initialValue = emptyList(),
@@ -39,9 +39,9 @@ class FemboyViewModel @Inject constructor(
         if (_consoleUiState.value.text.isNotEmpty()) {
             viewModelScope.launch {
                 femboyOfflineRepository.addToHistory(
-                    ConsoleHistoryEntity(
+                    ChatHistoryEntity(
                         command = _consoleUiState.value.text.trim(),
-                        result = femboyNetworkRepository.sendCommand(
+                        result = femboyNetworkRepository.sendMessage(
                             _consoleUiState.value.text.trim()
                         )
                     )

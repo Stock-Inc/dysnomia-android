@@ -7,10 +7,10 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface ConsoleDao {
+interface ChatDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addToHistory(consoleHistoryEntity: ConsoleHistoryEntity)
+    suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity)
 
-    @Query("SELECT * from console_history")
-    fun getAllHistory(): Flow<List<ConsoleHistoryEntity>>
+    @Query("SELECT * from chat_history")
+    fun getAllHistory(): Flow<List<ChatHistoryEntity>>
 }

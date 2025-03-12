@@ -29,13 +29,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import su.femboymatrix.buttplug.R
-import su.femboymatrix.buttplug.data.ConsoleHistoryEntity
+import su.femboymatrix.buttplug.data.ChatHistoryEntity
 import su.femboymatrix.buttplug.ui.composables.FemboyTextField
 import su.femboymatrix.buttplug.ui.theme.FemboyMatrixTheme
 import su.femboymatrix.buttplug.ui.theme.FemboyPink
 
 @Composable
-fun ConsoleItem(
+fun ChatItem(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -53,15 +53,15 @@ fun ConsoleItem(
 }
 
 @Composable
-fun ConsoleScreen(
+fun ChatScreen(
     uiState: ConsoleUiState,
-    consoleHistory: List<ConsoleHistoryEntity>,
+    chatHistory: List<ChatHistoryEntity>,
     onTextChange: (String) -> Unit,
     onSendCommand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val consoleListState = rememberLazyListState()
-    val historySize = consoleHistory.size
+    val chatListState = rememberLazyListState()
+    val historySize = chatHistory.size
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
@@ -73,16 +73,16 @@ fun ConsoleScreen(
     ) {
         if (historySize != 0) {
             LaunchedEffect(historySize) {
-                consoleListState.animateScrollToItem(historySize)
+                chatListState.animateScrollToItem(historySize)
             }
         }
         LazyColumn(
             verticalArrangement = Arrangement.Bottom,
-            state = consoleListState,
+            state = chatListState,
             modifier = Modifier.weight(1f)
         ) {
-            items(consoleHistory, key = { it.id }) {
-                ConsoleItem(
+            items(chatHistory, key = { it.id }) {
+                ChatItem(
                     text = "> ${it.command}\n${it.result}",
                     onClick = {
                         clipboardManager.setText(
@@ -122,24 +122,24 @@ fun ConsoleScreen(
 
 @Preview
 @Composable
-private fun ConsoleScreenPreview() {
+private fun ChatScreenPreview() {
     FemboyMatrixTheme {
-        ConsoleScreen(ConsoleUiState(), emptyList(), {}, {})
+        ChatScreen(ConsoleUiState(), emptyList(), {}, {})
     }
 }
 
 @Preview
 @Composable
-private fun ConsoleScreenDarkPreview() {
+private fun ChatScreenDarkPreview() {
     FemboyMatrixTheme(darkTheme = true) {
-        ConsoleScreen(ConsoleUiState(), emptyList(), {}, {})
+        ChatScreen(ConsoleUiState(), emptyList(), {}, {})
     }
 }
 
 @Preview
 @Composable
-private fun ConsoleItemPreview() {
+private fun ChatItemPreview() {
     FemboyMatrixTheme {
-        ConsoleItem("some text", {})
+        ChatItem("some text", {})
     }
 }

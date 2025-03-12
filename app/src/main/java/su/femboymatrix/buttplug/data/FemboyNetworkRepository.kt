@@ -5,13 +5,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface FemboyRepository {
-    suspend fun sendCommand(command: String): String
+    suspend fun sendMessage(message: String): String
 }
 
 @Singleton
 class FemboyNetworkRepository @Inject constructor(
     private val femboyApiService: FemboyApiService
 ) : FemboyRepository {
-    override suspend fun sendCommand(command: String): String =
-        femboyApiService.sendCommand(command)
+    override suspend fun sendMessage(message: String): String =
+        femboyApiService.sendMessage(message)
 }

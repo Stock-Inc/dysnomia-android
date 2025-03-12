@@ -8,7 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import su.femboymatrix.buttplug.data.AppDatabase
-import su.femboymatrix.buttplug.data.ConsoleDao
+import su.femboymatrix.buttplug.data.ChatDao
 import javax.inject.Singleton
 
 @Suppress("unused")
@@ -24,7 +24,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providesConsoleDao(@ApplicationContext context: Context): ConsoleDao {
-        return providesDatabase(context).consoleDao()
+    fun providesConsoleDao(@ApplicationContext context: Context): ChatDao {
+        return providesDatabase(context).chatDao()
     }
 }
