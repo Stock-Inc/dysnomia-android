@@ -48,9 +48,9 @@ class LoginViewModel @Inject constructor(
 
     fun login() {
         val name = _uiState.value.name
-        if (name != "") {
+        if (name.trim() != "") {
             viewModelScope.launch {
-                userPreferencesRepository.saveName(name)
+                userPreferencesRepository.saveName(name.trim())
             }
         }
     }
