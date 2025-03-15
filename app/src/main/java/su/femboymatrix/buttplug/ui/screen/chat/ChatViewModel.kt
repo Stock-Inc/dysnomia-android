@@ -37,30 +37,41 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS)
         )
 
-    fun sendMessage() {
-        if (_chatUiState.value.text.isNotEmpty()) {
+    fun sendMessage(
+        currentName: String,
+        message: String
+    ) {
+        if (message.isNotEmpty()) {
             viewModelScope.launch {
                 try {
                     femboyOfflineRepository.addToHistory(
-                        ChatHistoryEntity(
-                            command = _chatUiState.value.text.trim(),
-                            result = femboyNetworkRepository.sendMessage(
-                                _chatUiState.value.text.trim()
+                        if (message.startsWith('/')) {
+                            ChatHistoryEntity(
+                                name = message.drop(1),
+                                message = femboyNetworkRepository.sendMessage(
+                                    message.drop(1)
+                                ),
+                                isCommand = true
                             )
-                        )
+                        } else {
+                            ChatHistoryEntity(
+                                name = currentName,
+                                message = message
+                            )
+                        }
                     )
                 } catch (e: IOException) {
                     femboyOfflineRepository.addToHistory(
                         ChatHistoryEntity(
-                            command = _chatUiState.value.text.trim(),
-                            result = "Error connecting to the server:\n$e"
+                            message = "Error connecting to the server:\n$e",
+                            isCommand = true
                         )
                     )
                 } catch (e: HttpException) {
                     femboyOfflineRepository.addToHistory(
                         ChatHistoryEntity(
-                            command = _chatUiState.value.text.trim(),
-                            result = "Error connecting to the server:\n$e"
+                            message = "Error connecting to the server:\n$e",
+                            isCommand = true
                         )
                     )
                 }

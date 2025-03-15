@@ -39,4 +39,10 @@ class PreferencesRepository(
             preferences[NAME] = name
         }
     }
+
+    suspend fun clearName() {
+        dataStore.edit { preferences ->
+            preferences.remove(NAME)
+        }
+    }
 }

@@ -18,7 +18,7 @@ import su.femboymatrix.buttplug.ui.composables.navigationItemContentList
 import su.femboymatrix.buttplug.ui.screen.chat.ChatScreen
 import su.femboymatrix.buttplug.ui.screen.chat.ChatViewModel
 import su.femboymatrix.buttplug.ui.screen.home.HomeScreen
-import su.femboymatrix.buttplug.ui.screen.home.HomeViewModel
+import su.femboymatrix.buttplug.ui.screen.home.HomeUiState
 import su.femboymatrix.buttplug.ui.screen.profile.LoginScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileScreen
 import su.femboymatrix.buttplug.ui.screen.profile.ProfileViewModel
@@ -32,7 +32,7 @@ enum class FemboyApp {
 fun FemboyApp(
     chatViewModel: ChatViewModel = viewModel(),
     profileViewModel: ProfileViewModel = viewModel(),
-    homeViewModel: HomeViewModel = viewModel()
+//    homeViewModel: HomeViewModel = viewModel()
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -41,6 +41,7 @@ fun FemboyApp(
     )
 
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
+    val currentName = profileViewModel.currentName.collectAsState().value
 
     Scaffold(
         bottomBar = {
@@ -57,7 +58,8 @@ fun FemboyApp(
             startDestination = FemboyApp.Home.name,
         ) {
             composable(route = FemboyApp.Home.name) {
-                val homeUiState = homeViewModel.uiState.collectAsState().value
+//                val homeUiState = homeViewModel.uiState.collectAsState().value
+                val homeUiState = HomeUiState(currentName)
 
                 HomeScreen(
                     uiState = homeUiState,
@@ -76,15 +78,20 @@ fun FemboyApp(
                 ChatScreen(
                     uiState = chatUiState,
                     chatHistory = chatHistory,
+                    currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
-                    onSendCommand = chatViewModel::sendMessage,
+                    onSendCommand = {
+                        chatViewModel.sendMessage(
+                            currentName = currentName,
+                            message = chatUiState.text.trim()
+                        )
+                    },
                     modifier = Modifier.padding(contentPadding)
                 )
             }
 
             composable(route = FemboyApp.Login.name) {
                 val loginUiState = profileViewModel.uiState.collectAsState().value
-                val currentName = profileViewModel.currentName.collectAsState().value
 
                 if (currentName == "") {
                     LoginScreen(

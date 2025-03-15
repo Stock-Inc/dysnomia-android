@@ -6,6 +6,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "chat_history")
 data class ChatHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val command: String,
-    val result: String
+    val name: String = "",
+    val message: String,
+    val isCommand: Boolean = false
 )
