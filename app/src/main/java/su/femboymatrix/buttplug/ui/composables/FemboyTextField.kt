@@ -72,7 +72,8 @@ fun FemboyTextField(
         colors = OutlinedTextFieldDefaults.colors().copy(
             focusedIndicatorColor = FemboyPink,
             focusedLabelColor = FemboyPink,
-            focusedLeadingIconColor = FemboyPink
+            focusedLeadingIconColor = FemboyPink,
+            focusedTrailingIconColor = FemboyPink
         ),
         modifier = modifier.fillMaxWidth()
     )
