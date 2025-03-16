@@ -28,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipboardManager
@@ -131,6 +133,7 @@ fun ChatScreen(
     val historySize = chatHistory.size
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+    val textFieldFocusRequester = FocusRequester()
 
     val isMessageACommand = uiState.messageText.text.startsWith('/')
 
@@ -224,10 +227,12 @@ fun ChatScreen(
                             selection = TextRange(1)
                         )
                     )
+                    textFieldFocusRequester.requestFocus()
                 }
             } else {
                 onSendMessage
-            }
+            },
+            modifier = Modifier.focusRequester(textFieldFocusRequester)
         )
     }
 }
