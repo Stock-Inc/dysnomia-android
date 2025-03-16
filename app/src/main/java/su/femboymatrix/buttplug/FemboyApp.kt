@@ -80,7 +80,7 @@ fun FemboyApp(
                     chatHistory = chatHistory,
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
-                    onSendCommand = {
+                    onSendMessage = {
                         chatViewModel.sendMessage(
                             currentName = currentName,
                             message = chatUiState.text.trim()

@@ -1,5 +1,6 @@
 package su.femboymatrix.buttplug.ui.screen.chat
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
@@ -14,9 +15,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -27,11 +29,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -116,13 +122,15 @@ fun ChatScreen(
     chatHistory: List<ChatHistoryEntity>,
     currentName: String,
     onTextChange: (String) -> Unit,
-    onSendCommand: () -> Unit,
+    onSendMessage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val chatListState = rememberLazyListState()
     val historySize = chatHistory.size
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+
+    val isMessageACommand = uiState.text.startsWith('/')
 
     Column(
         verticalArrangement = Arrangement.Bottom,
@@ -145,14 +153,11 @@ fun ChatScreen(
                     CommandItem(
                         chatHistoryEntity = it,
                         onClick = {
-                            clipboardManager.setText(
-                                AnnotatedString(it.message)
+                            copyToClipboard(
+                                context = context,
+                                clipboardManager = clipboardManager,
+                                textToCopy = it.message
                             )
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.copied_to_clipboard),
-                                Toast.LENGTH_SHORT
-                            ).show()
                         },
                         modifier = Modifier
                             .padding(4.dp)
@@ -169,14 +174,11 @@ fun ChatScreen(
                     ChatItem(
                         chatHistoryEntity = it,
                         onClick = {
-                            clipboardManager.setText(
-                                AnnotatedString(it.message)
+                            copyToClipboard(
+                                context = context,
+                                clipboardManager = clipboardManager,
+                                textToCopy = it.message
                             )
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.copied_to_clipboard),
-                                Toast.LENGTH_SHORT
-                            ).show()
                         },
                         isUserMe = it.name == currentName,
                         modifier = Modifier
@@ -195,15 +197,45 @@ fun ChatScreen(
         }
         FemboyTextField(
             value = uiState.text,
-            label = stringResource(R.string.enter_message),
+            label = if (isMessageACommand) {
+                stringResource(R.string.enter_command)
+            } else {
+                stringResource(R.string.enter_message)
+            },
             onValueChange = onTextChange,
-            imeAction = ImeAction.Send,
-            keyboardActions = KeyboardActions(
-                onSend = { onSendCommand() }
+            maxLines = if (isMessageACommand) 1 else 6,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.None
             ),
-            leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight
+            leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            trailingIcon = if (uiState.text.isEmpty()) {
+                ImageVector.vectorResource(R.drawable.slash)
+            } else {
+                Icons.AutoMirrored.Filled.Send
+            },
+            onTrailingIconClick = if (uiState.text.isEmpty()) {
+                { onTextChange('/' + uiState.text) }
+            } else {
+                onSendMessage
+            }
         )
     }
+}
+
+private fun copyToClipboard(
+    context: Context,
+    clipboardManager: ClipboardManager,
+    textToCopy: String
+) {
+    clipboardManager.setText(
+        AnnotatedString(textToCopy)
+    )
+    Toast.makeText(
+        context,
+        context.getString(R.string.copied_to_clipboard),
+        Toast.LENGTH_SHORT
+    ).show()
 }
 
 @Preview
@@ -215,7 +247,7 @@ private fun ChatScreenPreview() {
             chatHistory = emptyList(),
             currentName = "",
             onTextChange = {},
-            onSendCommand = {}
+            onSendMessage = {}
         )
     }
 }
@@ -229,7 +261,7 @@ private fun ChatScreenDarkPreview() {
             chatHistory = emptyList(),
             currentName = "",
             onTextChange = {},
-            onSendCommand = {}
+            onSendMessage = {}
         )
     }
 }
@@ -253,8 +285,8 @@ private fun ChatItemPreview() {
     FemboyMatrixTheme {
         ChatItem(
             chatHistoryEntity = ChatHistoryEntity(
-                name = "Alnoer",
-                message = "j"
+                name = "Username",
+                message = "some message"
             ),
             isUserMe = true,
             onClick = {}
