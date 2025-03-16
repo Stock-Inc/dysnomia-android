@@ -1,5 +1,6 @@
 package su.femboymatrix.buttplug.ui.screen.chat
 
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,7 @@ import su.femboymatrix.buttplug.utils.TIMEOUT_MILLIS
 import javax.inject.Inject
 
 data class ChatUiState(
-    val text: String = ""
+    val text: TextFieldValue = TextFieldValue()
 )
 
 @HiltViewModel
@@ -77,14 +78,14 @@ class ChatViewModel @Inject constructor(
                 }
                 _chatUiState.update {
                     it.copy(
-                        text = ""
+                        text = TextFieldValue()
                     )
                 }
             }
         }
     }
 
-    fun changeChatText(text: String) {
+    fun changeChatText(text: TextFieldValue) {
         _chatUiState.update {
             it.copy(
                 text = text

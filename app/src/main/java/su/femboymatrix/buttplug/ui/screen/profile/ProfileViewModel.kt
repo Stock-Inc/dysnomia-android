@@ -1,5 +1,6 @@
 package su.femboymatrix.buttplug.ui.screen.profile
 
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,8 +15,8 @@ import su.femboymatrix.buttplug.utils.TIMEOUT_MILLIS
 import javax.inject.Inject
 
 data class LoginUiState(
-    val name: String = "",
-    val password: String = ""
+    val name: TextFieldValue = TextFieldValue(),
+    val password: TextFieldValue = TextFieldValue()
 )
 
 @HiltViewModel
@@ -30,7 +31,7 @@ class ProfileViewModel @Inject constructor(
         initialValue = ""
     )
 
-    fun changeName(name: String) {
+    fun changeName(name: TextFieldValue) {
         _uiState.update {
             it.copy(
                 name = name
@@ -38,7 +39,7 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun changePassword(password: String) {
+    fun changePassword(password: TextFieldValue) {
         _uiState.update {
             it.copy(
                 password = password
@@ -48,9 +49,9 @@ class ProfileViewModel @Inject constructor(
 
     fun login() {
         val name = _uiState.value.name
-        if (name.trim() != "") {
+        if (name.text.trim() != "") {
             viewModelScope.launch {
-                userPreferencesRepository.saveName(name.trim())
+                userPreferencesRepository.saveName(name.text.trim())
             }
         }
     }

@@ -36,8 +36,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -121,7 +123,7 @@ fun ChatScreen(
     uiState: ChatUiState,
     chatHistory: List<ChatHistoryEntity>,
     currentName: String,
-    onTextChange: (String) -> Unit,
+    onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -130,7 +132,7 @@ fun ChatScreen(
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
-    val isMessageACommand = uiState.text.startsWith('/')
+    val isMessageACommand = uiState.text.text.startsWith('/')
 
     Column(
         verticalArrangement = Arrangement.Bottom,
@@ -209,13 +211,20 @@ fun ChatScreen(
                 imeAction = ImeAction.None
             ),
             leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            trailingIcon = if (uiState.text.isEmpty()) {
+            trailingIcon = if (uiState.text.text.isEmpty()) {
                 ImageVector.vectorResource(R.drawable.slash)
             } else {
                 Icons.AutoMirrored.Filled.Send
             },
-            onTrailingIconClick = if (uiState.text.isEmpty()) {
-                { onTextChange('/' + uiState.text) }
+            onTrailingIconClick = if (uiState.text.text.isEmpty()) {
+                {
+                    onTextChange(
+                        TextFieldValue(
+                            text = "/",
+                            selection = TextRange(1)
+                        )
+                    )
+                }
             } else {
                 onSendMessage
             }
