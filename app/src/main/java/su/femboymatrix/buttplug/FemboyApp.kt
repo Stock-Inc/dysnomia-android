@@ -98,8 +98,8 @@ fun FemboyApp(
                         uiState = loginUiState,
                         onNameChange = profileViewModel::changeName,
                         onPasswordChange = profileViewModel::changePassword,
-                        onLoginClick = profileViewModel::login,
-                        onRegisterClick = profileViewModel::login,
+                        onLoginClick = { profileViewModel.login(loginUiState.name.text) },
+                        onRegisterClick = { profileViewModel.login(loginUiState.name.text) },
                         modifier = Modifier.padding(contentPadding)
                     )
                 } else {

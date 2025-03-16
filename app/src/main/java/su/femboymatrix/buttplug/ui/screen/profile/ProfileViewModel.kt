@@ -47,11 +47,15 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun login() {
-        val name = _uiState.value.name
-        if (name.text.trim() != "") {
+    fun login(name: String) {
+        if (name.trim() != "") {
             viewModelScope.launch {
-                userPreferencesRepository.saveName(name.text.trim())
+                userPreferencesRepository.saveName(name.trim())
+                _uiState.update {
+                    it.copy(
+                        password = TextFieldValue()
+                    )
+                }
             }
         }
     }
