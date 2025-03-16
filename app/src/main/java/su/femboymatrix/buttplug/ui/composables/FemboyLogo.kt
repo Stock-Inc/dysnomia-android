@@ -27,7 +27,7 @@ fun FemboyLogo(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.Bold
             )
         ) {
-            append("[ ]")
+            append("[\u00A0]")
         }
     }
     Text(
