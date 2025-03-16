@@ -42,7 +42,7 @@ class ChatViewModel @Inject constructor(
         currentName: String,
         message: String
     ) {
-        if (message.isNotEmpty()) {
+        if (message.isNotEmpty() && message != "/") {
             viewModelScope.launch {
                 try {
                     femboyOfflineRepository.addToHistory(
