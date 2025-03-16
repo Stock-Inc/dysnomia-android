@@ -73,7 +73,7 @@ fun LoginScreen(
             label = stringResource(R.string.password),
             leadingIcon = Icons.Default.Favorite,
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
+                keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
