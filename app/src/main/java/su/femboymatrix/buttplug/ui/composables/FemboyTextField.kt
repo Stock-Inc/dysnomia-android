@@ -13,7 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import su.femboymatrix.buttplug.ui.theme.FemboyPink
 
@@ -44,6 +47,11 @@ fun FemboyTextField(
                     contentDescription = null
                 )
             }
+        },
+        visualTransformation = if (keyboardOptions.keyboardType == KeyboardType.Password) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
         },
         trailingIcon = {
             if (trailingIcon != null) {
