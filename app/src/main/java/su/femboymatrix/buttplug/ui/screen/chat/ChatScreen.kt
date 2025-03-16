@@ -132,7 +132,7 @@ fun ChatScreen(
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
-    val isMessageACommand = uiState.text.text.startsWith('/')
+    val isMessageACommand = uiState.messageText.text.startsWith('/')
 
     Column(
         verticalArrangement = Arrangement.Bottom,
@@ -198,7 +198,7 @@ fun ChatScreen(
             }
         }
         FemboyTextField(
-            value = uiState.text,
+            value = uiState.messageText,
             label = if (isMessageACommand) {
                 stringResource(R.string.enter_command)
             } else {
@@ -211,12 +211,12 @@ fun ChatScreen(
                 imeAction = ImeAction.None
             ),
             leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            trailingIcon = if (uiState.text.text.isEmpty()) {
+            trailingIcon = if (uiState.messageText.text.isEmpty()) {
                 ImageVector.vectorResource(R.drawable.slash)
             } else {
                 Icons.AutoMirrored.Filled.Send
             },
-            onTrailingIconClick = if (uiState.text.text.isEmpty()) {
+            onTrailingIconClick = if (uiState.messageText.text.isEmpty()) {
                 {
                     onTextChange(
                         TextFieldValue(

@@ -83,7 +83,7 @@ fun FemboyApp(
                     onSendMessage = {
                         chatViewModel.sendMessage(
                             currentName = currentName,
-                            message = chatUiState.text.text.trim()
+                            message = chatUiState.messageText.text.trim()
                         )
                     },
                     modifier = Modifier.padding(contentPadding)

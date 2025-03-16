@@ -20,7 +20,7 @@ import su.femboymatrix.buttplug.utils.TIMEOUT_MILLIS
 import javax.inject.Inject
 
 data class ChatUiState(
-    val text: TextFieldValue = TextFieldValue()
+    val messageText: TextFieldValue = TextFieldValue()
 )
 
 @HiltViewModel
@@ -78,17 +78,17 @@ class ChatViewModel @Inject constructor(
                 }
                 _chatUiState.update {
                     it.copy(
-                        text = TextFieldValue()
+                        messageText = TextFieldValue()
                     )
                 }
             }
         }
     }
 
-    fun changeChatText(text: TextFieldValue) {
+    fun changeChatText(messageText: TextFieldValue) {
         _chatUiState.update {
             it.copy(
-                text = text
+                messageText = messageText
             )
         }
     }
