@@ -10,7 +10,7 @@ Free and open-source chat application
 * Room for storing conversations
 * Hilt for dependency injection
 * DataStore Preferences for saving settings
-* Detekt linting
+* Detekt linting config
 
 ## Screenshots
 
