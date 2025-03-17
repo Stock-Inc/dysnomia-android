@@ -18,11 +18,11 @@ ksp {
 }
 
 android {
-    namespace = "su.femboymatrix.buttplug"
+    namespace = "dev.stock.dysnomia"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "su.femboymatrix.buttplug"
+        applicationId = "dev.stock.dysnomia"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

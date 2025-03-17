@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Femboy Matrix"
+rootProject.name = "Dysnomia"
 include(":app")
- 
