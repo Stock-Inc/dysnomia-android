@@ -49,7 +49,7 @@ class ChatViewModel @Inject constructor(
                         if (message.startsWith('/')) {
                             ChatHistoryEntity(
                                 name = message.drop(1),
-                                message = networkRepository.sendMessage(
+                                message = networkRepository.sendCommand(
                                     message.drop(1)
                                 ),
                                 isCommand = true

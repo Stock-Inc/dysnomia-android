@@ -5,13 +5,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface Repository {
-    suspend fun sendMessage(message: String): String
+    suspend fun sendCommand(command: String): String
 }
 
 @Singleton
 class NetworkRepository @Inject constructor(
     private val dysnomiaApiService: DysnomiaApiService
 ) : Repository {
-    override suspend fun sendMessage(message: String): String =
-        dysnomiaApiService.sendMessage(message)
+    override suspend fun sendCommand(command: String): String =
+        dysnomiaApiService.sendCommand(command)
 }

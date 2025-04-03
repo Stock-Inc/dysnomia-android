@@ -5,7 +5,7 @@ import retrofit2.http.Query
 
 interface DysnomiaApiService {
     @GET("console")
-    suspend fun sendMessage(
-        @Query("command") message: String
+    suspend fun sendCommand(
+        @Query("command") command: String
     ): String
 }
