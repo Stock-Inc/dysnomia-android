@@ -7,6 +7,7 @@ Free and open-source chat application
 * MVVM Architecture
 * Navigation with NavHost
 * Retrofit as HTTP client
+* Message serialization with GSON
 * Room for storing conversations
 * Hilt for dependency injection
 * DataStore Preferences for saving settings
