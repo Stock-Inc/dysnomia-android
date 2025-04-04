@@ -153,7 +153,7 @@ fun ChatScreen(
             state = chatListState,
             modifier = Modifier.weight(1f)
         ) {
-            items(chatHistory, key = { it.id }) {
+            items(chatHistory, key = { it.entityId }) {
                 if (it.isCommand) {
                     CommandItem(
                         chatHistoryEntity = it,

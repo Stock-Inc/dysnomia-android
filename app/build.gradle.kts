@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.detekt)
@@ -75,6 +76,8 @@ dependencies {
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.scalars)
+    implementation(libs.converter.gson)
+    implementation(libs.retrofit2.kotlinx.serialization.converter) // Essential for serialization?
 
     // Hilt
     implementation(libs.hilt.android)

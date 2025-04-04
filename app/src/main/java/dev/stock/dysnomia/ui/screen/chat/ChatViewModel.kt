@@ -5,9 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.ChatHistoryEntity
+import dev.stock.dysnomia.data.MessageBody
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
+import dev.stock.dysnomia.utils.MESSAGE_POLLING_TIME
 import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +42,19 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS)
         )
 
+    val messageCollectionJob = Job()
+
+    init {
+        viewModelScope.launch(messageCollectionJob) {
+            while (true) {
+                networkRepository.getMessages().asReversed().forEach {
+                    offlineRepository.addToHistory(it)
+                }
+                delay(MESSAGE_POLLING_TIME)
+            }
+        }
+    }
+
     fun sendMessage(
         currentName: String,
         message: String
@@ -45,8 +62,8 @@ class ChatViewModel @Inject constructor(
         if (message.isNotEmpty() && message != "/") {
             viewModelScope.launch {
                 try {
-                    offlineRepository.addToHistory(
-                        if (message.startsWith('/')) {
+                    if (message.startsWith('/')) {
+                        offlineRepository.addToHistory(
                             ChatHistoryEntity(
                                 name = message.drop(1),
                                 message = networkRepository.sendCommand(
@@ -54,13 +71,15 @@ class ChatViewModel @Inject constructor(
                                 ),
                                 isCommand = true
                             )
-                        } else {
-                            ChatHistoryEntity(
+                        )
+                    } else {
+                        networkRepository.sendMessage(
+                            MessageBody(
                                 name = currentName,
                                 message = message
                             )
-                        }
-                    )
+                        )
+                    }
                 } catch (e: IOException) {
                     offlineRepository.addToHistory(
                         ChatHistoryEntity(

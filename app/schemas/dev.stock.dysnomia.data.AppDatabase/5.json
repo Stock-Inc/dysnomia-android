@@ -1,0 +1,74 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "00cd602319a321c6d841ad54b5688b3c",
+    "entities": [
+      {
+        "tableName": "chat_history",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`entity_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `message_id` INTEGER, `name` TEXT NOT NULL, `message` TEXT NOT NULL, `date` INTEGER NOT NULL, `is_command` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "entityId",
+            "columnName": "entity_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "messageId",
+            "columnName": "message_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCommand",
+            "columnName": "is_command",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "entity_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chat_history_message_id",
+            "unique": true,
+            "columnNames": [
+              "message_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_chat_history_message_id` ON `${TABLE_NAME}` (`message_id`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '00cd602319a321c6d841ad54b5688b3c')"
+    ]
+  }
+}

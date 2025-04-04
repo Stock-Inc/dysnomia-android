@@ -11,7 +11,6 @@ import dev.stock.dysnomia.data.AppDatabase
 import dev.stock.dysnomia.data.ChatDao
 import javax.inject.Singleton
 
-@Suppress("unused")
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
