@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ChatDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity)
+    suspend fun addToHistory(messageEntity: MessageEntity)
 
     @Query("SELECT * from chat_history")
-    fun getAllHistory(): Flow<List<ChatHistoryEntity>>
+    fun getAllHistory(): Flow<List<MessageEntity>>
 }

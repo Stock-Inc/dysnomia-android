@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [ChatHistoryEntity::class],
+    entities = [MessageEntity::class],
     version = 5
 )
 abstract class AppDatabase : RoomDatabase() {

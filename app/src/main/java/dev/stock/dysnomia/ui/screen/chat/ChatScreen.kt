@@ -47,7 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
-import dev.stock.dysnomia.data.ChatHistoryEntity
+import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
@@ -57,7 +57,7 @@ private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.
 
 @Composable
 fun ChatItem(
-    chatHistoryEntity: ChatHistoryEntity,
+    messageEntity: MessageEntity,
     onClick: () -> Unit,
     isUserMe: Boolean,
     modifier: Modifier = Modifier
@@ -67,8 +67,8 @@ fun ChatItem(
         modifier = modifier.fillMaxWidth()
     ) {
         Text(
-            text = if (chatHistoryEntity.name.isNotEmpty()) {
-                chatHistoryEntity.name
+            text = if (messageEntity.name.isNotEmpty()) {
+                messageEntity.name
             } else {
                 "Anonymous"
             },
@@ -83,9 +83,9 @@ fun ChatItem(
             border = CardDefaults.outlinedCardBorder(true)
         ) {
             Text(
-                text = chatHistoryEntity.message,
+                text = messageEntity.message,
                 color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
-                textAlign = if (chatHistoryEntity.message.length < 6) {
+                textAlign = if (messageEntity.message.length < 6) {
                     TextAlign.Center
                 } else {
                     null
@@ -100,7 +100,7 @@ fun ChatItem(
 
 @Composable
 fun CommandItem(
-    chatHistoryEntity: ChatHistoryEntity,
+    messageEntity: MessageEntity,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -109,10 +109,10 @@ fun CommandItem(
         modifier.fillMaxWidth()
     ) {
         Text(
-            text = if (chatHistoryEntity.name != "") {
-                "> ${chatHistoryEntity.name}\n${chatHistoryEntity.message}"
+            text = if (messageEntity.name != "") {
+                "> ${messageEntity.name}\n${messageEntity.message}"
             } else {
-                chatHistoryEntity.message
+                messageEntity.message
             },
             color = DysnomiaPink,
             modifier = Modifier.padding(8.dp)
@@ -123,7 +123,7 @@ fun CommandItem(
 @Composable
 fun ChatScreen(
     uiState: ChatUiState,
-    chatHistory: List<ChatHistoryEntity>,
+    chatHistory: List<MessageEntity>,
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
@@ -156,7 +156,7 @@ fun ChatScreen(
             items(chatHistory, key = { it.entityId }) {
                 if (it.isCommand) {
                     CommandItem(
-                        chatHistoryEntity = it,
+                        messageEntity = it,
                         onClick = {
                             copyToClipboard(
                                 context = context,
@@ -177,7 +177,7 @@ fun ChatScreen(
                     )
                 } else {
                     ChatItem(
-                        chatHistoryEntity = it,
+                        messageEntity = it,
                         onClick = {
                             copyToClipboard(
                                 context = context,
@@ -285,7 +285,7 @@ private fun ChatScreenDarkPreview() {
 private fun CommandItemPreview() {
     DysnomiaTheme {
         CommandItem(
-            chatHistoryEntity = ChatHistoryEntity(
+            messageEntity = MessageEntity(
                 message = "some message"
             ),
             onClick = {}
@@ -298,7 +298,7 @@ private fun CommandItemPreview() {
 private fun ChatItemPreview() {
     DysnomiaTheme {
         ChatItem(
-            chatHistoryEntity = ChatHistoryEntity(
+            messageEntity = MessageEntity(
                 name = "Username",
                 message = "some message"
             ),

@@ -1,6 +1,6 @@
 package dev.stock.dysnomia.network
 
-import dev.stock.dysnomia.data.ChatHistoryEntity
+import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.data.MessageBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -14,10 +14,10 @@ interface DysnomiaApiService {
     ): String
 
     @GET("chat")
-    suspend fun getMessages(): List<ChatHistoryEntity>
+    suspend fun getMessages(): List<MessageEntity>
 
     @POST("chat")
     suspend fun sendMessage(
         @Body messageBody: MessageBody
-    ): ChatHistoryEntity
+    ): MessageEntity
 }

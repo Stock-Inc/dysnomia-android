@@ -14,7 +14,7 @@ import java.lang.System.currentTimeMillis
     indices = [Index(value = ["message_id"], unique = true)]
 )
 @Serializable
-data class ChatHistoryEntity(
+data class MessageEntity(
     @Transient
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "entity_id")

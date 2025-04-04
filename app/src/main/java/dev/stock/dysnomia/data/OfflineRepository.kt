@@ -6,19 +6,19 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface DataRepository {
-    suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity)
+    suspend fun addToHistory(messageEntity: MessageEntity)
 
     @Query("SELECT * from chat_history")
-    fun getAllHistory(): Flow<List<ChatHistoryEntity>>
+    fun getAllHistory(): Flow<List<MessageEntity>>
 }
 
 @Singleton
 class OfflineRepository @Inject constructor(
     private val chatDao: ChatDao
 ) : DataRepository {
-    override suspend fun addToHistory(chatHistoryEntity: ChatHistoryEntity) =
-        chatDao.addToHistory(chatHistoryEntity)
+    override suspend fun addToHistory(messageEntity: MessageEntity) =
+        chatDao.addToHistory(messageEntity)
 
-    override fun getAllHistory(): Flow<List<ChatHistoryEntity>> =
+    override fun getAllHistory(): Flow<List<MessageEntity>> =
         chatDao.getAllHistory()
 }

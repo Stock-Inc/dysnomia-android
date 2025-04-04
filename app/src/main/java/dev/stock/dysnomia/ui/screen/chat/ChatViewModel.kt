@@ -4,7 +4,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.stock.dysnomia.data.ChatHistoryEntity
+import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.data.MessageBody
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
@@ -35,7 +35,7 @@ class ChatViewModel @Inject constructor(
     private val _chatUiState = MutableStateFlow(ChatUiState())
     val chatUiState = _chatUiState.asStateFlow()
 
-    val chatHistory: Flow<List<ChatHistoryEntity>> =
+    val chatHistory: Flow<List<MessageEntity>> =
         offlineRepository.getAllHistory().stateIn(
             scope = viewModelScope,
             initialValue = emptyList(),
@@ -64,7 +64,7 @@ class ChatViewModel @Inject constructor(
                 try {
                     if (message.startsWith('/')) {
                         offlineRepository.addToHistory(
-                            ChatHistoryEntity(
+                            MessageEntity(
                                 name = message.drop(1),
                                 message = networkRepository.sendCommand(
                                     message.drop(1)
@@ -82,14 +82,14 @@ class ChatViewModel @Inject constructor(
                     }
                 } catch (e: IOException) {
                     offlineRepository.addToHistory(
-                        ChatHistoryEntity(
+                        MessageEntity(
                             message = "Error connecting to the server:\n$e",
                             isCommand = true
                         )
                     )
                 } catch (e: HttpException) {
                     offlineRepository.addToHistory(
-                        ChatHistoryEntity(
+                        MessageEntity(
                             message = "Error connecting to the server:\n$e",
                             isCommand = true
                         )
