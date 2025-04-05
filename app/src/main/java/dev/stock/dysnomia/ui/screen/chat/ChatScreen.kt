@@ -3,9 +3,6 @@ package dev.stock.dysnomia.ui.screen.chat
 import android.content.Context
 import android.text.format.DateFormat
 import android.widget.Toast
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,7 +42,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.data.MessageEntity
@@ -175,7 +171,7 @@ fun ChatScreen(
     ) {
         if (historySize != 0) {
             LaunchedEffect(historySize) {
-                chatListState.animateScrollToItem(historySize)
+                chatListState.scrollToItem(historySize)
             }
         }
 
@@ -201,14 +197,7 @@ fun ChatScreen(
                             },
                             modifier = Modifier
                                 .padding(4.dp)
-                                .animateItem(
-                                    fadeInSpec = null,
-                                    fadeOutSpec = null,
-                                    placementSpec = spring(
-                                        stiffness = Spring.StiffnessMediumLow,
-                                        visibilityThreshold = IntOffset.VisibilityThreshold
-                                    )
-                                )
+                                .animateItem()
                         )
                     } else {
                         ChatItem(
@@ -224,14 +213,7 @@ fun ChatScreen(
                             isTheFirstMessageFromAuthor = previousItem?.name != item.name,
                             modifier = Modifier
                                 .padding(4.dp)
-                                .animateItem(
-                                    fadeInSpec = null,
-                                    fadeOutSpec = null,
-                                    placementSpec = spring(
-                                        stiffness = Spring.StiffnessMediumLow,
-                                        visibilityThreshold = IntOffset.VisibilityThreshold
-                                    )
-                                )
+                                .animateItem()
                         )
                     }
                 }
