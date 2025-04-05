@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.ui.screen.chat
 
 import android.content.Context
+import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -51,6 +53,7 @@ import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import java.util.Date
 
 private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
 private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
@@ -62,6 +65,8 @@ fun ChatItem(
     isUserMe: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Column(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
         modifier = modifier.fillMaxWidth()
@@ -82,20 +87,42 @@ fun ChatItem(
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
             border = CardDefaults.outlinedCardBorder(true)
         ) {
-            Text(
-                text = messageEntity.message,
-                color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
-                textAlign = if (messageEntity.message.length < 6) {
-                    TextAlign.Center
-                } else {
-                    null
-                },
-                modifier = Modifier
-                    .padding(8.dp)
-                    .widthIn(min = 32.dp)
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = messageEntity.message,
+                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
+                    textAlign = if (messageEntity.message.length < 6) {
+                        TextAlign.Center
+                    } else {
+                        null
+                    },
+                    modifier = Modifier
+                        .padding(
+                            start = 8.dp,
+                            end = 8.dp,
+                            top = 8.dp
+                        )
+                        .widthIn(min = 32.dp)
+                )
+                Text(
+                    text = getLocalTime(messageEntity.date, context),
+                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
+                    modifier = Modifier
+                        .alpha(0.5f)
+                        .padding(
+                            start = 8.dp,
+                            end = 8.dp,
+                            bottom = 8.dp
+                        )
+                )
+            }
         }
     }
+}
+
+private fun getLocalTime(unixTime: Long, context: Context): String {
+    val formatter = DateFormat.getTimeFormat(context)
+    return formatter.format(Date(unixTime * 1000))
 }
 
 @Composable
