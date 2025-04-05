@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -63,6 +62,7 @@ fun ChatItem(
     messageEntity: MessageEntity,
     onClick: () -> Unit,
     isUserMe: Boolean,
+    isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -71,16 +71,19 @@ fun ChatItem(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
         modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = if (messageEntity.name.isNotEmpty()) {
-                messageEntity.name
-            } else {
-                "Anonymous"
-            },
-            color = DysnomiaPink,
-            textAlign = if (isUserMe) TextAlign.Right else null,
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (isTheFirstMessageFromAuthor) {
+            Text(
+                text = if (messageEntity.name.isNotEmpty()) {
+                    messageEntity.name
+                } else {
+                    "Anonymous"
+                },
+                color = DysnomiaPink,
+                textAlign = if (isUserMe) TextAlign.Right else null,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
         Surface(
             onClick = onClick,
             color = if (isUserMe) MaterialTheme.colorScheme.primary else Color.Transparent,
@@ -175,58 +178,66 @@ fun ChatScreen(
                 chatListState.animateScrollToItem(historySize)
             }
         }
+
         LazyColumn(
             verticalArrangement = Arrangement.Bottom,
             state = chatListState,
             modifier = Modifier.weight(1f)
         ) {
-            items(chatHistory, key = { it.entityId }) {
-                if (it.isCommand) {
-                    CommandItem(
-                        messageEntity = it,
-                        onClick = {
-                            copyToClipboard(
-                                context = context,
-                                clipboardManager = clipboardManager,
-                                textToCopy = it.message
-                            )
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .animateItem(
-                                fadeInSpec = null,
-                                fadeOutSpec = null,
-                                placementSpec = spring(
-                                    stiffness = Spring.StiffnessMediumLow,
-                                    visibilityThreshold = IntOffset.VisibilityThreshold
+            for (index in chatHistory.indices) {
+                val item = chatHistory[index]
+                val previousItem = chatHistory.getOrNull(index - 1)
+
+                item(key = item.entityId) {
+                    if (item.isCommand) {
+                        CommandItem(
+                            messageEntity = item,
+                            onClick = {
+                                copyToClipboard(
+                                    context = context,
+                                    clipboardManager = clipboardManager,
+                                    textToCopy = item.message
                                 )
-                            )
-                    )
-                } else {
-                    ChatItem(
-                        messageEntity = it,
-                        onClick = {
-                            copyToClipboard(
-                                context = context,
-                                clipboardManager = clipboardManager,
-                                textToCopy = it.message
-                            )
-                        },
-                        isUserMe = it.name == currentName,
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .animateItem(
-                                fadeInSpec = null,
-                                fadeOutSpec = null,
-                                placementSpec = spring(
-                                    stiffness = Spring.StiffnessMediumLow,
-                                    visibilityThreshold = IntOffset.VisibilityThreshold
+                            },
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .animateItem(
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null,
+                                    placementSpec = spring(
+                                        stiffness = Spring.StiffnessMediumLow,
+                                        visibilityThreshold = IntOffset.VisibilityThreshold
+                                    )
                                 )
-                            )
-                    )
+                        )
+                    } else {
+                        ChatItem(
+                            messageEntity = item,
+                            onClick = {
+                                copyToClipboard(
+                                    context = context,
+                                    clipboardManager = clipboardManager,
+                                    textToCopy = item.message
+                                )
+                            },
+                            isUserMe = item.name == currentName,
+                            isTheFirstMessageFromAuthor = previousItem?.name != item.name,
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .animateItem(
+                                    fadeInSpec = null,
+                                    fadeOutSpec = null,
+                                    placementSpec = spring(
+                                        stiffness = Spring.StiffnessMediumLow,
+                                        visibilityThreshold = IntOffset.VisibilityThreshold
+                                    )
+                                )
+                        )
+                    }
                 }
             }
         }
+
         DysnomiaTextField(
             value = messageText,
             label = if (isMessageACommand) {
@@ -322,6 +333,22 @@ private fun CommandItemPreview() {
 
 @Preview
 @Composable
+private fun ChatItemFirstMessagePreview() {
+    DysnomiaTheme {
+        ChatItem(
+            messageEntity = MessageEntity(
+                name = "Username",
+                message = "some message"
+            ),
+            isUserMe = true,
+            isTheFirstMessageFromAuthor = true,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
 private fun ChatItemPreview() {
     DysnomiaTheme {
         ChatItem(
@@ -330,6 +357,7 @@ private fun ChatItemPreview() {
                 message = "some message"
             ),
             isUserMe = true,
+            isTheFirstMessageFromAuthor = false,
             onClick = {}
         )
     }
