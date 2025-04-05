@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.composables.navigationItemContentList
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
+import dev.stock.dysnomia.ui.screen.chat.ChatUiState
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.home.HomeUiState
@@ -49,14 +51,40 @@ fun DysnomiaApp(
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
 
-    val chatUiState = chatViewModel.chatUiState.collectAsState().value
+    val chatUiState = chatViewModel.chatUiState
 
-    if (chatUiState.isError) {
-        LaunchedEffect(true) {
-            snackbarHostState.showSnackbar(
-                message = "No connection with the server (╥﹏╥)",
-                actionLabel = "Retry"
-            )
+    when (chatUiState) {
+        is ChatUiState.Success -> {
+            if (chatUiState.afterReconnecting) {
+                LaunchedEffect(true) {
+                    snackbarHostState.showSnackbar(
+                        message = "Connection established ( ˶ˆᗜˆ˵ )",
+                        withDismissAction = true
+                    )
+                }
+            }
+        }
+        is ChatUiState.Loading -> {
+            if (chatUiState.afterReconnecting) {
+                LaunchedEffect(true) {
+                    snackbarHostState.showSnackbar(
+                        message = "Loading messages (・_・ヾ",
+                        withDismissAction = true
+                    )
+                }
+            }
+        }
+        ChatUiState.Error -> {
+            LaunchedEffect(true) {
+                val result = snackbarHostState.showSnackbar(
+                    message = "No connection with the server (╥﹏╥)",
+                    actionLabel = "Retry",
+                    withDismissAction = true
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    chatViewModel.connect(afterReconnecting = true)
+                }
+            }
         }
     }
 
@@ -92,14 +120,14 @@ fun DysnomiaApp(
 
             composable(route = DysnomiaApp.Chat.name) {
                 ChatScreen(
-                    uiState = chatUiState,
                     chatHistory = chatHistory,
+                    messageText = chatViewModel.messageText,
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
                     onSendMessage = {
                         chatViewModel.sendMessage(
                             currentName = currentName,
-                            message = chatUiState.messageText.text.trim()
+                            message = chatViewModel.messageText.text.trim()
                         )
                     },
                     modifier = Modifier.padding(contentPadding)

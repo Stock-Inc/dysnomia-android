@@ -122,8 +122,8 @@ fun CommandItem(
 
 @Composable
 fun ChatScreen(
-    uiState: ChatUiState,
     chatHistory: List<MessageEntity>,
+    messageText: TextFieldValue,
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
@@ -135,7 +135,7 @@ fun ChatScreen(
     val context = LocalContext.current
     val textFieldFocusRequester = FocusRequester()
 
-    val isMessageACommand = uiState.messageText.text.startsWith('/')
+    val isMessageACommand = messageText.text.startsWith('/')
 
     Column(
         verticalArrangement = Arrangement.Bottom,
@@ -201,7 +201,7 @@ fun ChatScreen(
             }
         }
         DysnomiaTextField(
-            value = uiState.messageText,
+            value = messageText,
             label = if (isMessageACommand) {
                 stringResource(R.string.enter_command)
             } else {
@@ -214,12 +214,12 @@ fun ChatScreen(
                 imeAction = ImeAction.None
             ),
             leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            trailingIcon = if (uiState.messageText.text.isEmpty()) {
+            trailingIcon = if (messageText.text.isEmpty()) {
                 ImageVector.vectorResource(R.drawable.slash)
             } else {
                 Icons.AutoMirrored.Filled.Send
             },
-            onTrailingIconClick = if (uiState.messageText.text.isEmpty()) {
+            onTrailingIconClick = if (messageText.text.isEmpty()) {
                 {
                     onTextChange(
                         TextFieldValue(
@@ -257,8 +257,8 @@ private fun copyToClipboard(
 private fun ChatScreenPreview() {
     DysnomiaTheme {
         ChatScreen(
-            uiState = ChatUiState(),
             chatHistory = emptyList(),
+            messageText = TextFieldValue(),
             currentName = "",
             onTextChange = {},
             onSendMessage = {}
@@ -271,8 +271,8 @@ private fun ChatScreenPreview() {
 private fun ChatScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         ChatScreen(
-            uiState = ChatUiState(),
             chatHistory = emptyList(),
+            messageText = TextFieldValue(),
             currentName = "",
             onTextChange = {},
             onSendMessage = {}

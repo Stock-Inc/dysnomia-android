@@ -1,6 +1,9 @@
 package dev.stock.dysnomia.ui.screen.chat
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,28 +18,29 @@ import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
 import javax.inject.Inject
 
-data class ChatUiState(
-    val messageText: TextFieldValue = TextFieldValue(),
-    val isError: Boolean = false
-)
+sealed interface ChatUiState {
+    data class Success(val afterReconnecting: Boolean = false) : ChatUiState
+    data class Loading(val afterReconnecting: Boolean = false) : ChatUiState
+    data object Error : ChatUiState
+}
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val networkRepository: NetworkRepository,
     private val offlineRepository: OfflineRepository
 ) : ViewModel() {
-    private val _chatUiState = MutableStateFlow(ChatUiState())
-    val chatUiState = _chatUiState.asStateFlow()
+    var chatUiState: ChatUiState by mutableStateOf(ChatUiState.Loading())
+        private set
+
+    var messageText: TextFieldValue by mutableStateOf(TextFieldValue())
+        private set
 
     val chatHistory: Flow<List<MessageEntity>> =
         offlineRepository.getAllHistory().stateIn(
@@ -45,37 +49,33 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS)
         )
 
-    val messageCollectionJob = Job()
+    var messageCollectionJob: Job? = null
 
     init {
-        viewModelScope.launch(messageCollectionJob) {
+        connect()
+    }
+
+    fun connect(afterReconnecting: Boolean = false) {
+        var afterReconnecting = afterReconnecting
+        messageCollectionJob?.cancel()
+        messageCollectionJob = viewModelScope.launch {
             while (true) {
                 try {
+                    chatUiState = ChatUiState.Loading(afterReconnecting)
                     networkRepository.getMessages().asReversed().forEach {
                         offlineRepository.addToHistory(it)
                     }
-                    if (_chatUiState.value.isError) {
-                        _chatUiState.update {
-                            it.copy(
-                                isError = false
-                            )
-                        }
+                    if (chatUiState !is ChatUiState.Success) {
+                        chatUiState = ChatUiState.Success(afterReconnecting)
                     }
+                    afterReconnecting = false
                     delay(MESSAGE_POLLING_TIME)
                 } catch (e: HttpException) {
-                    _chatUiState.update {
-                        it.copy(
-                            isError = true
-                        )
-                    }
+                    chatUiState = ChatUiState.Error
                     Log.e(TAG, e.toString())
                     delay(RECONNECTION_TIME)
                 } catch (e: IOException) {
-                    _chatUiState.update {
-                        it.copy(
-                            isError = true
-                        )
-                    }
+                    chatUiState = ChatUiState.Error
                     Log.e(TAG, e.toString())
                     delay(RECONNECTION_TIME)
                 }
@@ -123,21 +123,13 @@ class ChatViewModel @Inject constructor(
                         )
                     )
                 }
-                _chatUiState.update {
-                    it.copy(
-                        messageText = TextFieldValue()
-                    )
-                }
+                messageText = TextFieldValue()
             }
         }
     }
 
     fun changeChatText(messageText: TextFieldValue) {
-        _chatUiState.update {
-            it.copy(
-                messageText = messageText
-            )
-        }
+        this.messageText = messageText
     }
 
     companion object {
