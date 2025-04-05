@@ -15,4 +15,5 @@
     <string name="your_name">Your Name</string>
     <string name="enter_message">Enter Message</string>
     <string name="enter_command">Enter Command</string>
+    <string name="no_connection_with_the_server">No connection with the server (╥﹏╥)</string>
 </resources>

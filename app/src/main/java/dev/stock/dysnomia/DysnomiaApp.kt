@@ -3,9 +3,13 @@ package dev.stock.dysnomia
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,10 +44,24 @@ fun DysnomiaApp(
         backStackEntry?.destination?.route ?: DysnomiaApp.Home.name
     )
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
 
+    val chatUiState = chatViewModel.chatUiState.collectAsState().value
+
+    if (chatUiState.isError) {
+        LaunchedEffect(true) {
+            snackbarHostState.showSnackbar(
+                message = "No connection with the server (╥﹏╥)",
+                actionLabel = "Retry"
+            )
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             DysnomiaBottomNavigationBar(
                 currentScreen = currentScreen,
@@ -73,8 +91,6 @@ fun DysnomiaApp(
             }
 
             composable(route = DysnomiaApp.Chat.name) {
-                val chatUiState = chatViewModel.chatUiState.collectAsState().value
-
                 ChatScreen(
                     uiState = chatUiState,
                     chatHistory = chatHistory,

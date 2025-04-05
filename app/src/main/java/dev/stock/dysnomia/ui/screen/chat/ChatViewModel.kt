@@ -1,5 +1,6 @@
 package dev.stock.dysnomia.ui.screen.chat
 
+import android.util.Log
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.utils.MESSAGE_POLLING_TIME
+import dev.stock.dysnomia.utils.RECONNECTION_TIME
 import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +26,8 @@ import retrofit2.HttpException
 import javax.inject.Inject
 
 data class ChatUiState(
-    val messageText: TextFieldValue = TextFieldValue()
+    val messageText: TextFieldValue = TextFieldValue(),
+    val isError: Boolean = false
 )
 
 @HiltViewModel
@@ -47,10 +50,35 @@ class ChatViewModel @Inject constructor(
     init {
         viewModelScope.launch(messageCollectionJob) {
             while (true) {
-                networkRepository.getMessages().asReversed().forEach {
-                    offlineRepository.addToHistory(it)
+                try {
+                    networkRepository.getMessages().asReversed().forEach {
+                        offlineRepository.addToHistory(it)
+                    }
+                    if (_chatUiState.value.isError) {
+                        _chatUiState.update {
+                            it.copy(
+                                isError = false
+                            )
+                        }
+                    }
+                    delay(MESSAGE_POLLING_TIME)
+                } catch (e: HttpException) {
+                    _chatUiState.update {
+                        it.copy(
+                            isError = true
+                        )
+                    }
+                    Log.e(TAG, e.toString())
+                    delay(RECONNECTION_TIME)
+                } catch (e: IOException) {
+                    _chatUiState.update {
+                        it.copy(
+                            isError = true
+                        )
+                    }
+                    Log.e(TAG, e.toString())
+                    delay(RECONNECTION_TIME)
                 }
-                delay(MESSAGE_POLLING_TIME)
             }
         }
     }
@@ -110,5 +138,9 @@ class ChatViewModel @Inject constructor(
                 messageText = messageText
             )
         }
+    }
+
+    companion object {
+        const val TAG = "ChatViewModel"
     }
 }
