@@ -12,7 +12,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,7 +27,6 @@ import dev.stock.dysnomia.ui.screen.home.HomeUiState
 import dev.stock.dysnomia.ui.screen.profile.LoginScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
-import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 enum class DysnomiaApp {
     Home, Login, Chat
@@ -155,13 +153,5 @@ fun DysnomiaApp(
                 }
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun DysnomiaAppPreview() {
-    DysnomiaTheme(darkTheme = true) {
-        DysnomiaApp()
     }
 }

@@ -160,8 +160,8 @@ fun FormListItem(
 
 @Preview
 @Composable
-private fun HomeScreenPreview() {
-    DysnomiaTheme {
+private fun HomeScreenLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
         Surface {
             HomeScreen(
                 uiState = HomeUiState(),
@@ -179,6 +179,31 @@ private fun HomeScreenDarkPreview() {
             HomeScreen(
                 uiState = HomeUiState(),
                 onChatClicked = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun FormListItemDarkPreview() {
+    DysnomiaTheme(darkTheme = true) {
+        Surface {
+            FormListItem(
+                name = "[ Global ] chat",
+                details = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            brush = Brush.linearGradient(
+                                colors = listOf(DysnomiaPink, MysteriousPurple)
+                            )
+                        )
+                    ) {
+                        append("Find someone ♡")
+                    }
+                },
+                onClick = { },
+                image = R.drawable.astolfo
             )
         }
     }

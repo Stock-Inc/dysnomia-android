@@ -5,10 +5,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,8 +21,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
+import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
 fun DysnomiaTextField(
@@ -77,4 +83,20 @@ fun DysnomiaTextField(
         ),
         modifier = modifier.fillMaxWidth()
     )
+}
+
+@Preview
+@Composable
+private fun DysnomiaTextFieldPreview() {
+    DysnomiaTheme {
+        Surface {
+            DysnomiaTextField(
+                value = TextFieldValue(),
+                label = "Enter Message",
+                onValueChange = { },
+                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                trailingIcon = Icons.AutoMirrored.Filled.Send
+            )
+        }
+    }
 }

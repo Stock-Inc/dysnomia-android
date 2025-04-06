@@ -274,15 +274,17 @@ private fun copyToClipboard(
 
 @Preview
 @Composable
-private fun ChatScreenPreview() {
-    DysnomiaTheme {
-        ChatScreen(
-            chatHistory = emptyList(),
-            messageText = TextFieldValue(),
-            currentName = "",
-            onTextChange = {},
-            onSendMessage = {}
-        )
+private fun ChatScreenLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
+        Surface {
+            ChatScreen(
+                chatHistory = emptyList(),
+                messageText = TextFieldValue(),
+                currentName = "",
+                onTextChange = {},
+                onSendMessage = {}
+            )
+        }
     }
 }
 
@@ -290,13 +292,15 @@ private fun ChatScreenPreview() {
 @Composable
 private fun ChatScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
-        ChatScreen(
-            chatHistory = emptyList(),
-            messageText = TextFieldValue(),
-            currentName = "",
-            onTextChange = {},
-            onSendMessage = {}
-        )
+        Surface {
+            ChatScreen(
+                chatHistory = emptyList(),
+                messageText = TextFieldValue(),
+                currentName = "",
+                onTextChange = {},
+                onSendMessage = {}
+            )
+        }
     }
 }
 
@@ -306,7 +310,8 @@ private fun CommandItemPreview() {
     DysnomiaTheme {
         CommandItem(
             messageEntity = MessageEntity(
-                message = "some message"
+                name = "help",
+                message = "Some helpful message"
             ),
             onClick = {}
         )
@@ -315,7 +320,20 @@ private fun CommandItemPreview() {
 
 @Preview
 @Composable
-private fun ChatItemFirstMessagePreview() {
+private fun ErrorItemPreview() {
+    DysnomiaTheme {
+        CommandItem(
+            messageEntity = MessageEntity(
+                message = "Error connecting to the server:\njava.lang.Exception keystrokes"
+            ),
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessagePreview() {
     DysnomiaTheme {
         ChatItem(
             messageEntity = MessageEntity(
@@ -331,7 +349,7 @@ private fun ChatItemFirstMessagePreview() {
 
 @Preview
 @Composable
-private fun ChatItemPreview() {
+private fun ChatItemYoursPreview() {
     DysnomiaTheme {
         ChatItem(
             messageEntity = MessageEntity(
@@ -339,6 +357,38 @@ private fun ChatItemPreview() {
                 message = "some message"
             ),
             isUserMe = true,
+            isTheFirstMessageFromAuthor = false,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemOthersFirstMessagePreview() {
+    DysnomiaTheme {
+        ChatItem(
+            messageEntity = MessageEntity(
+                name = "Username",
+                message = "some message"
+            ),
+            isUserMe = false,
+            isTheFirstMessageFromAuthor = true,
+            onClick = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemOthersPreview() {
+    DysnomiaTheme {
+        ChatItem(
+            messageEntity = MessageEntity(
+                name = "Username",
+                message = "some message"
+            ),
+            isUserMe = false,
             isTheFirstMessageFromAuthor = false,
             onClick = {}
         )

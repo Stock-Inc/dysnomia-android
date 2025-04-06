@@ -73,3 +73,16 @@ private fun ProfileScreenDarkPreview() {
         }
     }
 }
+
+@Preview
+@Composable
+private fun ProfileScreenLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
+        Surface {
+            ProfileScreen(
+                name = "Your Name",
+                onLogoutClick = {}
+            )
+        }
+    }
+}

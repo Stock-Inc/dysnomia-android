@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -117,15 +118,17 @@ fun LoginScreen(
 
 @Preview
 @Composable
-private fun LoginScreenPreview() {
-    DysnomiaTheme {
-        LoginScreen(
-            uiState = LoginUiState(),
-            onNameChange = {},
-            onPasswordChange = {},
-            onLoginClick = {},
-            onRegisterClick = {}
-        )
+private fun LoginScreenLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
+        Surface {
+            LoginScreen(
+                uiState = LoginUiState(),
+                onNameChange = {},
+                onPasswordChange = {},
+                onLoginClick = {},
+                onRegisterClick = {}
+            )
+        }
     }
 }
 
@@ -133,12 +136,14 @@ private fun LoginScreenPreview() {
 @Composable
 private fun LoginScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
-        LoginScreen(
-            uiState = LoginUiState(),
-            onNameChange = {},
-            onPasswordChange = {},
-            onLoginClick = {},
-            onRegisterClick = {}
-        )
+        Surface {
+            LoginScreen(
+                uiState = LoginUiState(),
+                onNameChange = {},
+                onPasswordChange = {},
+                onLoginClick = {},
+                onRegisterClick = {}
+            )
+        }
     }
 }

@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import dev.stock.dysnomia.DysnomiaApp
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
 fun DysnomiaBottomNavigationBar(
@@ -65,3 +67,27 @@ val navigationItemContentList = listOf(
         text = R.string.profile
     )
 )
+
+@Preview
+@Composable
+private fun DysnomiaBottomNavigationBarDarkPreview() {
+    DysnomiaTheme(darkTheme = true) {
+        DysnomiaBottomNavigationBar(
+            currentScreen = DysnomiaApp.Home,
+            navigationItemContentList = navigationItemContentList,
+            onClick = { }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun DysnomiaBottomNavigationBarLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
+        DysnomiaBottomNavigationBar(
+            currentScreen = DysnomiaApp.Home,
+            navigationItemContentList = navigationItemContentList,
+            onClick = { }
+        )
+    }
+}
