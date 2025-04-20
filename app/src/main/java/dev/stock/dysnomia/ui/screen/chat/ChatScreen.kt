@@ -69,9 +69,7 @@ fun ChatItem(
     ) {
         if (isTheFirstMessageFromAuthor) {
             Text(
-                text = if (messageEntity.name.isNotEmpty()) {
-                    messageEntity.name
-                } else {
+                text = messageEntity.name.ifEmpty {
                     "Anonymous"
                 },
                 color = DysnomiaPink,

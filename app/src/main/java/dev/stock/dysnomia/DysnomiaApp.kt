@@ -17,6 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.stock.dysnomia.data.SignInBody
+import dev.stock.dysnomia.data.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.composables.navigationItemContentList
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
@@ -138,8 +140,23 @@ fun DysnomiaApp(
                         uiState = loginUiState,
                         onNameChange = profileViewModel::changeName,
                         onPasswordChange = profileViewModel::changePassword,
-                        onLoginClick = { profileViewModel.login(loginUiState.name.text) },
-                        onRegisterClick = { profileViewModel.login(loginUiState.name.text) },
+                        onLoginClick = {
+                            profileViewModel.signIn(
+                                SignInBody(
+                                    username = loginUiState.name.text,
+                                    password = loginUiState.password.text
+                                )
+                            )
+                        },
+                        onRegisterClick = {
+                            profileViewModel.signUp(
+                                SignUpBody(
+                                    username = loginUiState.name.text,
+                                    email = "${loginUiState.name.text.trim()}@femboymatrix.su",
+                                    password = loginUiState.password.text
+                                )
+                            )
+                        },
                         modifier = Modifier.padding(contentPadding)
                     )
                 } else {

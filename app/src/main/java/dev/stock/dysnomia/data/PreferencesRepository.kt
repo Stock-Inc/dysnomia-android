@@ -18,6 +18,7 @@ class PreferencesRepository(
 ) {
     private companion object {
         val NAME = stringPreferencesKey("name")
+        val TOKEN = stringPreferencesKey("token")
         const val TAG = "PreferencesRepository"
     }
 
@@ -34,15 +35,30 @@ class PreferencesRepository(
             preferences[NAME] ?: ""
         }
 
-    suspend fun saveName(name: String) {
+    val token: Flow<String> = dataStore.data
+        .catch {
+            if (it is IOException) {
+                Log.e(TAG, "Error reading user preferences.", it)
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[TOKEN] ?: ""
+        }
+
+    suspend fun saveAccount(name: String, token: String) {
         dataStore.edit { preferences ->
             preferences[NAME] = name
+            preferences[TOKEN] = token
         }
     }
 
-    suspend fun clearName() {
+    suspend fun clearAccount() {
         dataStore.edit { preferences ->
             preferences.remove(NAME)
+            preferences.remove(TOKEN)
         }
     }
 }

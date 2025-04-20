@@ -14,7 +14,6 @@ import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
-@Suppress("unused")
 @Module
 @InstallIn(SingletonComponent::class)
 object PreferencesModule {

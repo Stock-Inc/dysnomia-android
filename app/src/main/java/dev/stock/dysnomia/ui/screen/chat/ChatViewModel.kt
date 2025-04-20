@@ -49,7 +49,7 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS)
         )
 
-    var messageCollectionJob: Job? = null
+    private var messageCollectionJob: Job? = null
 
     init {
         connect()
@@ -58,6 +58,7 @@ class ChatViewModel @Inject constructor(
     fun connect(afterReconnecting: Boolean = false) {
         var afterReconnecting = afterReconnecting
         messageCollectionJob?.cancel()
+
         messageCollectionJob = viewModelScope.launch {
             while (true) {
                 try {
