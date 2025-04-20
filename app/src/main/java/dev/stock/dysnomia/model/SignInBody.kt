@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.data
+package dev.stock.dysnomia.model
 
 data class SignInBody(
     val username: String,

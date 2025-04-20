@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.data
+package dev.stock.dysnomia.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -9,8 +9,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.PreferencesRepository
-import dev.stock.dysnomia.data.SignInBody
-import dev.stock.dysnomia.data.SignUpBody
+import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn

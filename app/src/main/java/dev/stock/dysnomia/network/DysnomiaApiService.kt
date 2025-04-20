@@ -1,10 +1,10 @@
 package dev.stock.dysnomia.network
 
-import dev.stock.dysnomia.data.AuthResponse
-import dev.stock.dysnomia.data.MessageBody
-import dev.stock.dysnomia.data.MessageEntity
-import dev.stock.dysnomia.data.SignInBody
-import dev.stock.dysnomia.data.SignUpBody
+import dev.stock.dysnomia.model.AuthResponse
+import dev.stock.dysnomia.model.MessageBody
+import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignUpBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

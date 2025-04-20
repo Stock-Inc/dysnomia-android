@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.data
 
 import androidx.room.Query
+import dev.stock.dysnomia.model.MessageEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton

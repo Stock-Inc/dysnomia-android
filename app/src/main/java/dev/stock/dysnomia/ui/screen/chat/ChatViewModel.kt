@@ -8,10 +8,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.stock.dysnomia.data.MessageBody
-import dev.stock.dysnomia.data.MessageEntity
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
+import dev.stock.dysnomia.model.MessageBody
+import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.utils.MESSAGE_POLLING_TIME
 import dev.stock.dysnomia.utils.RECONNECTION_TIME
 import dev.stock.dysnomia.utils.TIMEOUT_MILLIS

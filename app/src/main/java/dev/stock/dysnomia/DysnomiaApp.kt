@@ -17,8 +17,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import dev.stock.dysnomia.data.SignInBody
-import dev.stock.dysnomia.data.SignUpBody
+import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.composables.navigationItemContentList
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen

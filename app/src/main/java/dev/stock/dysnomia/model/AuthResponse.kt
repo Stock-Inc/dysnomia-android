@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.data
+package dev.stock.dysnomia.model
 
 data class AuthResponse(
     val token: String

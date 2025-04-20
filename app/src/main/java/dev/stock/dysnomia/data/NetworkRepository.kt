@@ -1,5 +1,10 @@
 package dev.stock.dysnomia.data
 
+import dev.stock.dysnomia.model.AuthResponse
+import dev.stock.dysnomia.model.MessageBody
+import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.network.DysnomiaApiService
 import javax.inject.Inject
 import javax.inject.Singleton
