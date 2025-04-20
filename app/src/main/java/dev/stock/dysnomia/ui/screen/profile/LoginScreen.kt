@@ -33,7 +33,8 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
 fun LoginScreen(
-    uiState: LoginUiState,
+    username: TextFieldValue,
+    password: TextFieldValue,
     onNameChange: (TextFieldValue) -> Unit,
     onPasswordChange: (TextFieldValue) -> Unit,
     onLoginClick: () -> Unit,
@@ -50,7 +51,7 @@ fun LoginScreen(
     ) {
         DysnomiaLogo(modifier = Modifier.padding(16.dp))
         DysnomiaTextField(
-            value = uiState.name,
+            value = username,
             onValueChange = onNameChange,
             label = stringResource(R.string.login),
             leadingIcon = Icons.Default.AccountCircle,
@@ -64,7 +65,7 @@ fun LoginScreen(
             )
         )
         DysnomiaTextField(
-            value = uiState.password,
+            value = password,
             onValueChange = onPasswordChange,
             label = stringResource(R.string.password),
             leadingIcon = Icons.Default.Favorite,
@@ -108,7 +109,8 @@ private fun LoginScreenLightPreview() {
     DysnomiaTheme(darkTheme = false) {
         Surface {
             LoginScreen(
-                uiState = LoginUiState(),
+                username = TextFieldValue("username"),
+                password = TextFieldValue("password"),
                 onNameChange = {},
                 onPasswordChange = {},
                 onLoginClick = {},
@@ -124,7 +126,8 @@ private fun LoginScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         Surface {
             LoginScreen(
-                uiState = LoginUiState(),
+                username = TextFieldValue("username"),
+                password = TextFieldValue("password"),
                 onNameChange = {},
                 onPasswordChange = {},
                 onLoginClick = {},

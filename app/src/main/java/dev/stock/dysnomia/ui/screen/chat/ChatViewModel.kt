@@ -56,20 +56,20 @@ class ChatViewModel @Inject constructor(
     }
 
     fun connect(afterReconnecting: Boolean = false) {
-        var afterReconnecting = afterReconnecting
+        var afterReconnectingLocal = afterReconnecting
         messageCollectionJob?.cancel()
 
         messageCollectionJob = viewModelScope.launch {
             while (true) {
                 try {
-                    chatUiState = ChatUiState.Loading(afterReconnecting)
+                    chatUiState = ChatUiState.Loading(afterReconnectingLocal)
                     networkRepository.getMessages().asReversed().forEach {
                         offlineRepository.addToHistory(it)
                     }
                     if (chatUiState !is ChatUiState.Success) {
-                        chatUiState = ChatUiState.Success(afterReconnecting)
+                        chatUiState = ChatUiState.Success(afterReconnectingLocal)
                     }
-                    afterReconnecting = false
+                    afterReconnectingLocal = false
                     delay(MESSAGE_POLLING_TIME)
                 } catch (e: HttpException) {
                     chatUiState = ChatUiState.Error

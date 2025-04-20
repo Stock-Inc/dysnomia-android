@@ -26,12 +26,14 @@ import dev.stock.dysnomia.ui.screen.chat.ChatUiState
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.home.HomeUiState
+import dev.stock.dysnomia.ui.screen.profile.LoadingScreen
 import dev.stock.dysnomia.ui.screen.profile.LoginScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
+import dev.stock.dysnomia.ui.screen.profile.ProfileUiState
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
 
 enum class DysnomiaApp {
-    Home, Login, Chat
+    Home, Chat, Profile
 }
 
 @Composable
@@ -132,33 +134,51 @@ fun DysnomiaApp(
                 )
             }
 
-            composable(route = DysnomiaApp.Login.name) {
-                val loginUiState = profileViewModel.uiState.collectAsState().value
+            composable(route = DysnomiaApp.Profile.name) {
+                val profileUiState = profileViewModel.uiState
+                val username = profileViewModel.username
+                val password = profileViewModel.password
 
                 if (currentName == "") {
-                    LoginScreen(
-                        uiState = loginUiState,
-                        onNameChange = profileViewModel::changeName,
-                        onPasswordChange = profileViewModel::changePassword,
-                        onLoginClick = {
-                            profileViewModel.signIn(
-                                SignInBody(
-                                    username = loginUiState.name.text,
-                                    password = loginUiState.password.text
-                                )
+                    if (profileUiState is ProfileUiState.Error) {
+                        LaunchedEffect(true) {
+                            val result = snackbarHostState.showSnackbar(
+                                message = profileUiState.errorMessage,
+                                withDismissAction = true
                             )
-                        },
-                        onRegisterClick = {
-                            profileViewModel.signUp(
-                                SignUpBody(
-                                    username = loginUiState.name.text,
-                                    email = "${loginUiState.name.text.trim()}@femboymatrix.su",
-                                    password = loginUiState.password.text
+                            if (result == SnackbarResult.Dismissed) {
+                                profileViewModel.hideError()
+                            }
+                        }
+                    }
+                    if (profileUiState is ProfileUiState.AuthInProgress) {
+                        LoadingScreen(modifier = Modifier.padding(contentPadding))
+                    } else {
+                        LoginScreen(
+                            username = username,
+                            password = password,
+                            onNameChange = profileViewModel::changeName,
+                            onPasswordChange = profileViewModel::changePassword,
+                            onLoginClick = {
+                                profileViewModel.signIn(
+                                    SignInBody(
+                                        username = username.text,
+                                        password = password.text
+                                    )
                                 )
-                            )
-                        },
-                        modifier = Modifier.padding(contentPadding)
-                    )
+                            },
+                            onRegisterClick = {
+                                profileViewModel.signUp(
+                                    SignUpBody(
+                                        username = username.text,
+                                        email = "${username.text.trim()}@femboymatrix.su",
+                                        password = password.text
+                                    )
+                                )
+                            },
+                            modifier = Modifier.padding(contentPadding)
+                        )
+                    }
                 } else {
                     ProfileScreen(
                         name = currentName,

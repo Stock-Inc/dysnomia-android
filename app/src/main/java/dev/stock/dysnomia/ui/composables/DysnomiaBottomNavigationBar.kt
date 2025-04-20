@@ -62,7 +62,7 @@ val navigationItemContentList = listOf(
         text = R.string.chat
     ),
     NavigationItemContent(
-        screenType = DysnomiaApp.Login,
+        screenType = DysnomiaApp.Profile,
         icon = Icons.Default.Favorite,
         text = R.string.profile
     )
