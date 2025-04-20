@@ -16,24 +16,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.ui.composables.DysnomiaButton
 import dev.stock.dysnomia.ui.composables.DysnomiaLogo
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
-import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
@@ -53,7 +48,6 @@ fun LoginScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.weight(1.0f))
         DysnomiaLogo(modifier = Modifier.padding(16.dp))
         DysnomiaTextField(
             value = uiState.name,
@@ -105,14 +99,6 @@ fun LoginScreen(
                 modifier = Modifier.weight(1.0f)
             )
         }
-        Spacer(Modifier.weight(1.0f))
-        Text(
-            text = stringResource(R.string.powered_by_monster_energy_drink),
-            color = DysnomiaPink,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            modifier = Modifier.alpha(alpha = 0.8f)
-        )
     }
 }
 
