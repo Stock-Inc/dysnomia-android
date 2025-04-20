@@ -130,6 +130,7 @@ class ProfileViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userPreferencesRepository.clearAccount()
+            uiState = ProfileUiState.AuthRequired
         }
     }
 
