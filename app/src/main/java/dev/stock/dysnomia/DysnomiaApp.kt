@@ -45,11 +45,9 @@ fun DysnomiaApp(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-
+    val chatUiState = chatViewModel.chatUiState
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
-
-    val chatUiState = chatViewModel.chatUiState
 
     when (chatUiState) {
         is ChatUiState.Success -> {
