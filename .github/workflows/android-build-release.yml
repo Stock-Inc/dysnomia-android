@@ -36,9 +36,40 @@ jobs:
     - name: Build release with Gradle
       run: ./gradlew assembleRelease
 
+    - name: Sign APK
+      run: |
+          sudo apt update -y || true
+          sudo apt install -y --no-install-recommends coreutils
+          ANDROID_SDK_PATH=$ANDROID_HOME/build-tools/35.0.0/apksigner
+          $ANDROID_SDK_PATH sign \
+            --ks secrets/alnoer.jks \
+            --ks-key-alias ${{ secrets.KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+            --out app-release-signed.apk \
+            app/release/app-release.apk
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-release.apk
-        path: app/build/outputs/apk/release/app-release.apk
+        name: dysnomia.apk
+        path: app-release-signed.apk
         compression-level: 5
+
+  release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dysnomia.apk
+
+      - name: Release 
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dysnomia.apk
+          name: latest
