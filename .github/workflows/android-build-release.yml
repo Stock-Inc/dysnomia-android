@@ -36,6 +36,12 @@ jobs:
     - name: Build release with Gradle
       run: ./gradlew assembleRelease
 
+    - name: Debug
+      run: |
+        pwd
+        ls
+        tree
+
     - name: Sign APK
       run: |
           sudo apt update -y || true
@@ -47,7 +53,7 @@ jobs:
             --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
             --out app-release-signed.apk \
-            app/release/app-release.apk
+            app/build/outputs/apk/release/app-release.apk
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
