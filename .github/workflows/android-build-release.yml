@@ -46,13 +46,13 @@ jobs:
             --ks-key-alias ${{ secrets.KEY_ALIAS }} \
             --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
-            --out app-release-signed.apk \
+            --out dysnomia.apk \
             app/build/outputs/apk/release/app-release-unsigned.apk
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: dysnomia.apk
-        path: app-release-signed.apk
+        name: dysnomia-artifact
+        path: dysnomia.apk
         compression-level: 5
 
   release:
@@ -65,7 +65,7 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dysnomia.apk
+          name: dysnomia-artifact
 
       - name: Release 
         uses: softprops/action-gh-release@v2
