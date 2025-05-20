@@ -11,18 +11,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
+    - name: Debug
+      run: |
+        pwd
+        ls
+        tree
     - name: Checkout secrets
       uses: actions/checkout@v4
       with:
         repository: stock-inc/dysnomia-android-secrets
         token: ${{ secrets.ACCESS_TOKEN }}
         path: secrets
-    - name: Debug
-      run: |
-        pwd
-        ls
-        tree
-    - uses: actions/checkout@v4
     - name: Debug
       run: |
         pwd
