@@ -36,14 +36,6 @@ jobs:
     - name: Build release with Gradle
       run: ./gradlew assembleRelease
 
-    - name: Debug
-      run: |
-        pwd
-        ls
-        tree
-        find . -type f -name "app-release-unsigned.apk"
-        find . -type f -name "app-release.apk"
-
     - name: Sign APK
       run: |
           sudo apt update -y || true
@@ -81,3 +73,4 @@ jobs:
           files: |
             dysnomia.apk
           name: latest
+          tag_name: latest
