@@ -41,6 +41,8 @@ jobs:
         pwd
         ls
         tree
+        find . -type f -name "app-release-unsigned.apk"
+        find . -type f -name "app-release.apk"
 
     - name: Sign APK
       run: |
@@ -53,7 +55,7 @@ jobs:
             --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
             --key-pass pass:${{ secrets.KEY_PASSWORD }} \
             --out app-release-signed.apk \
-            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/release/app-release-unsigned.apk
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
