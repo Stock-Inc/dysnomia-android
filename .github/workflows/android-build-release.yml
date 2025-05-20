@@ -16,6 +16,7 @@ jobs:
       with:
         repository: stock-inc/dysnomia-android-secrets
         token: ${{ secrets.ACCESS_TOKEN }}
+        path: secrets
     - name: Debug
       run: |
         pwd
