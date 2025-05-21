@@ -1,5 +1,8 @@
 package dev.stock.dysnomia.utils
 
+import android.content.Context
+import android.content.res.Configuration
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -24,4 +27,9 @@ fun Modifier.grayScale(): Modifier {
             }
         }
     }
+}
+
+fun Context.isDarkThemeOn(): Boolean {
+    return resources.configuration.uiMode and
+        Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
 }
