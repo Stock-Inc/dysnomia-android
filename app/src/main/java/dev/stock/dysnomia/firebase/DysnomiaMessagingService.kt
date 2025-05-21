@@ -1,5 +1,6 @@
 package dev.stock.dysnomia.firebase
 
+import android.app.ActivityManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -26,7 +27,10 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
             title = "Anonymous"
         }
         val body = remoteMessage.data.getOrElse("body") { "" }
-        sendNotification(title, body)
+
+        if (!isAppInForeground()) {
+            sendNotification(title, body)
+        }
     }
 
     /**
@@ -112,6 +116,12 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
 
         val notificationId = 0
         notificationManager.notify(notificationId, notificationBuilder.build())
+    }
+
+    private fun isAppInForeground(): Boolean {
+        val appProcessInfo = ActivityManager.RunningAppProcessInfo()
+        ActivityManager.getMyMemoryState(appProcessInfo)
+        return appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
     }
 
     companion object {
