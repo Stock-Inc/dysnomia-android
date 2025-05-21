@@ -21,7 +21,10 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
      * @param remoteMessage Object representing the message received from Firebase Cloud Messaging.
      */
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val title = remoteMessage.data.getOrElse("title") { "Dysnomia" }
+        var title = remoteMessage.data.getOrElse("title") { "Dysnomia" }
+        if (title == "") {
+            title = "Anonymous"
+        }
         val body = remoteMessage.data.getOrElse("body") { "" }
         sendNotification(title, body)
     }
