@@ -40,38 +40,7 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
      */
     override fun onNewToken(token: String) {
         Log.d(TAG, "Refreshed token: $token")
-//        sendRegistrationToServer(token)
     }
-
-    /**
-     * Schedule async work using WorkManager.
-     */
-//    private fun scheduleJob() {
-    // [START dispatch_job]
-//        val work = OneTimeWorkRequest.Builder(MyWorker::class.java).build()
-//        WorkManager.getInstance(this).beginWith(work).enqueue()
-    // [END dispatch_job]
-//    }
-
-    /**
-     * Handle time allotted to BroadcastReceivers.
-     */
-//    private fun handleNow() {
-//        Log.d(TAG, "Short lived task is done.")
-//    }
-
-    /**
-     * Persist token to third-party servers.
-     *
-     * Modify this method to associate the user's FCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-//    private fun sendRegistrationToServer(token: String?) {
-//        // TODO: Implement this method to send token to your app server.
-//        Log.d(TAG, "sendRegistrationTokenToServer($token)")
-//    }
 
     /**
      * Create and show a simple notification containing the received FCM message.
