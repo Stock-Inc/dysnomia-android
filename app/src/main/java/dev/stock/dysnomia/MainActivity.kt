@@ -14,12 +14,20 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.AndroidEntryPoint
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import timber.log.Timber.DebugTree
+import timber.log.Timber.Forest.plant
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        if (BuildConfig.DEBUG) {
+            plant(DebugTree())
+        }
+
         enableEdgeToEdge()
 
         val requestPermissionLauncher = registerForActivityResult(
