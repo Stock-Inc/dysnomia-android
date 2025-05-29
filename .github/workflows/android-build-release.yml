@@ -2,9 +2,8 @@ name: Android Build Release
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -69,8 +68,6 @@ jobs:
 
       - name: Release 
         uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
         with:
-          files: |
-            dysnomia.apk
-          name: latest
-          tag_name: latest
+          files: dysnomia.apk
