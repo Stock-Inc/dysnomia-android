@@ -1,6 +1,5 @@
 package dev.stock.dysnomia.data
 
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -9,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import java.io.IOException
 import javax.inject.Singleton
 
@@ -19,13 +19,12 @@ class PreferencesRepository(
     private companion object {
         val NAME = stringPreferencesKey("name")
         val TOKEN = stringPreferencesKey("token")
-        const val TAG = "PreferencesRepository"
     }
 
     val name: Flow<String> = dataStore.data
         .catch {
             if (it is IOException) {
-                Log.e(TAG, "Error reading user preferences.", it)
+                Timber.e(it, "Error reading user preferences.")
                 emit(emptyPreferences())
             } else {
                 throw it
@@ -38,7 +37,7 @@ class PreferencesRepository(
     val token: Flow<String> = dataStore.data
         .catch {
             if (it is IOException) {
-                Log.e(TAG, "Error reading user preferences.", it)
+                Timber.e(it, "Error reading user preferences.")
                 emit(emptyPreferences())
             } else {
                 throw it

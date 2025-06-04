@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.media.RingtoneManager
 import android.os.Build
-import android.util.Log
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.ui.graphics.toArgb
@@ -17,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage
 import dev.stock.dysnomia.MainActivity
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.utils.isDarkThemeOn
+import timber.log.Timber
 
 class DysnomiaMessagingService : FirebaseMessagingService() {
 
@@ -43,7 +43,7 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
      * FCM registration token is initially generated so this is where you would retrieve the token.
      */
     override fun onNewToken(token: String) {
-        Log.d(TAG, "Refreshed token: $token")
+        Timber.d("Refreshed token: $token")
     }
 
     /**
@@ -112,9 +112,5 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
         val appProcessInfo = ActivityManager.RunningAppProcessInfo()
         ActivityManager.getMyMemoryState(appProcessInfo)
         return appProcessInfo.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-    }
-
-    companion object {
-        private const val TAG = "DysnomiaMessagingService"
     }
 }
