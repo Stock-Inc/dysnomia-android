@@ -17,7 +17,6 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
 
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

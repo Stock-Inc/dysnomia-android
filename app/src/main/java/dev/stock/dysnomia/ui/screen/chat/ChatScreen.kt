@@ -284,7 +284,8 @@ private suspend fun copyToClipboard(
     localClipboard.setClipEntry(
         clipEntry = ClipEntry(
             clipData = ClipData.newPlainText(
-                "Message", textToCopy
+                "Message",
+                textToCopy
             )
         )
     )
