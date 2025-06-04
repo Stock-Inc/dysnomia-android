@@ -93,7 +93,11 @@ fun DysnomiaApp(
         bottomBar = {
             DysnomiaBottomNavigationBar(
                 currentScreen = currentScreen,
-                onClick = { navController.navigate(it.name) },
+                onClick = {
+                    navController.navigate(it.name) {
+                        launchSingleTop = true
+                    }
+                },
                 navigationItemContentList = navigationItemContentList,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -111,7 +115,9 @@ fun DysnomiaApp(
                     uiState = homeUiState,
                     onChatClicked = {
                         if (it == 0) {
-                            navController.navigate(DysnomiaApp.Chat.name)
+                            navController.navigate(DysnomiaApp.Chat.name) {
+                                launchSingleTop = true
+                            }
                         }
                     },
                     modifier = Modifier.padding(contentPadding)
