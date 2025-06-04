@@ -1,6 +1,8 @@
 package dev.stock.dysnomia.ui.screen.chat
 
+import android.content.ClipData
 import android.content.Context
+import android.os.Build
 import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -30,12 +33,12 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -48,6 +51,7 @@ import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import kotlinx.coroutines.launch
 import java.util.Date
 
 private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
@@ -157,8 +161,9 @@ fun ChatScreen(
     modifier: Modifier = Modifier
 ) {
     val chatListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     val historySize = chatHistory.size
-    val clipboardManager = LocalClipboardManager.current
+    val localClipboard = LocalClipboard.current
     val context = LocalContext.current
     val textFieldFocusRequester = FocusRequester()
 
@@ -190,11 +195,13 @@ fun ChatScreen(
                         CommandItem(
                             messageEntity = item,
                             onClick = {
-                                copyToClipboard(
-                                    context = context,
-                                    clipboardManager = clipboardManager,
-                                    textToCopy = item.message
-                                )
+                                coroutineScope.launch {
+                                    copyToClipboard(
+                                        context = context,
+                                        localClipboard = localClipboard,
+                                        textToCopy = item.message
+                                    )
+                                }
                             },
                             modifier = Modifier
                                 .padding(4.dp)
@@ -204,11 +211,13 @@ fun ChatScreen(
                         ChatItem(
                             messageEntity = item,
                             onClick = {
-                                copyToClipboard(
-                                    context = context,
-                                    clipboardManager = clipboardManager,
-                                    textToCopy = item.message
-                                )
+                                coroutineScope.launch {
+                                    copyToClipboard(
+                                        context = context,
+                                        localClipboard = localClipboard,
+                                        textToCopy = item.message
+                                    )
+                                }
                             },
                             isUserMe = item.name == currentName,
                             isTheFirstMessageFromAuthor = previousItem?.name != item.name,
@@ -258,19 +267,26 @@ fun ChatScreen(
     }
 }
 
-private fun copyToClipboard(
+private suspend fun copyToClipboard(
     context: Context,
-    clipboardManager: ClipboardManager,
+    localClipboard: Clipboard,
     textToCopy: String
 ) {
-    clipboardManager.setText(
-        AnnotatedString(textToCopy)
+    localClipboard.setClipEntry(
+        clipEntry = ClipEntry(
+            clipData = ClipData.newPlainText(
+                "Message", textToCopy
+            )
+        )
     )
-    Toast.makeText(
-        context,
-        context.getString(R.string.copied_to_clipboard),
-        Toast.LENGTH_SHORT
-    ).show()
+    // Only show a toast for Android 12 and lower.
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.copied_to_clipboard),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 }
 
 @Preview
