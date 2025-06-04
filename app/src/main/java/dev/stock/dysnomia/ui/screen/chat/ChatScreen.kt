@@ -100,6 +100,9 @@ fun ChatItem(
                             top = 8.dp
                         )
                         .widthIn(min = 32.dp)
+                        .align(
+                            if (isUserMe) Alignment.End else Alignment.Start
+                        )
                 )
                 Text(
                     text = getLocalTime(messageEntity.date, context),
