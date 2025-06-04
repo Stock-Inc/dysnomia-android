@@ -7,7 +7,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.platform.LocalContext
+import com.valentinilk.shimmer.LocalShimmerTheme
+import com.valentinilk.shimmer.defaultShimmerTheme
 
 private val lightScheme = lightColorScheme(
     primary = primaryLight,
@@ -102,9 +106,27 @@ fun DysnomiaTheme(
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
+    val shimmerTheme = defaultShimmerTheme.copy(
+        blendMode = BlendMode.SrcIn,
+        shaderColors = listOf(
+            DysnomiaPink.copy(alpha = 0.5f),
+            DysnomiaPink.copy(alpha = 1.00f),
+            DysnomiaPink.copy(alpha = 0.5f),
+        ),
+        shaderColorStops = listOf(
+            0.0f,
+            0.5f,
+            1.0f,
+        ),
     )
+
+    CompositionLocalProvider(
+        LocalShimmerTheme provides shimmerTheme
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
