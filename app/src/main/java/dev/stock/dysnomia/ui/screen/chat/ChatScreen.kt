@@ -248,7 +248,7 @@ fun ChatScreen(
                     textFieldFocusRequester.requestFocus()
                 }
             } else {
-                onSendMessage
+                { onSendMessage() }
             },
             modifier = Modifier.focusRequester(textFieldFocusRequester)
         )
