@@ -1,6 +1,5 @@
 package dev.stock.dysnomia.ui.screen.chat
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
+import timber.log.Timber
 import javax.inject.Inject
 
 sealed interface ChatUiState {
@@ -40,6 +40,9 @@ class ChatViewModel @Inject constructor(
         private set
 
     var messageText: TextFieldValue by mutableStateOf(TextFieldValue())
+        private set
+
+    var isMessagePending: Boolean by mutableStateOf(false)
         private set
 
     val chatHistory: Flow<List<MessageEntity>> =
@@ -73,11 +76,11 @@ class ChatViewModel @Inject constructor(
                     delay(MESSAGE_POLLING_TIME)
                 } catch (e: HttpException) {
                     chatUiState = ChatUiState.Error
-                    Log.e(TAG, e.toString())
+                    Timber.e(e.toString())
                     delay(RECONNECTION_TIME)
                 } catch (e: IOException) {
                     chatUiState = ChatUiState.Error
-                    Log.e(TAG, e.toString())
+                    Timber.e(e.toString())
                     delay(RECONNECTION_TIME)
                 }
             }
@@ -102,12 +105,14 @@ class ChatViewModel @Inject constructor(
                             )
                         )
                     } else {
+                        isMessagePending = true
                         networkRepository.sendMessage(
                             MessageBody(
                                 name = currentName,
                                 message = message
                             )
                         )
+                        isMessagePending = false
                     }
                 } catch (e: IOException) {
                     offlineRepository.addToHistory(
@@ -131,9 +136,5 @@ class ChatViewModel @Inject constructor(
 
     fun changeChatText(messageText: TextFieldValue) {
         this.messageText = messageText
-    }
-
-    companion object {
-        const val TAG = "ChatViewModel"
     }
 }

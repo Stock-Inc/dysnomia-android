@@ -136,7 +136,8 @@ fun DysnomiaApp(
                             message = chatViewModel.messageText.text.trim()
                         )
                     },
-                    modifier = Modifier.padding(contentPadding)
+                    modifier = Modifier.padding(contentPadding),
+                    isMessagePending = chatViewModel.isMessagePending
                 )
             }
 

@@ -33,6 +33,7 @@ fun DysnomiaTextField(
     label: String,
     modifier: Modifier = Modifier,
     maxLines: Int = 1,
+    enabled: Boolean = true,
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
     onTrailingIconClick: () -> Unit = {},
@@ -41,6 +42,7 @@ fun DysnomiaTextField(
 ) {
     OutlinedTextField(
         value = value,
+        enabled = enabled,
         onValueChange = onValueChange,
         shape = CircleShape,
         maxLines = maxLines,
@@ -62,6 +64,7 @@ fun DysnomiaTextField(
         trailingIcon = {
             if (trailingIcon != null) {
                 IconButton(
+                    enabled = enabled,
                     onClick = onTrailingIconClick
                 ) {
                     Icon(

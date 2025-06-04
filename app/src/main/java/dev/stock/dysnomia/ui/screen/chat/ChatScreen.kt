@@ -46,6 +46,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
@@ -158,7 +159,8 @@ fun ChatScreen(
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isMessagePending: Boolean = false
 ) {
     val chatListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -232,6 +234,7 @@ fun ChatScreen(
 
         DysnomiaTextField(
             value = messageText,
+            enabled = !isMessagePending,
             label = if (isMessageACommand) {
                 stringResource(R.string.enter_command)
             } else {
@@ -262,7 +265,13 @@ fun ChatScreen(
             } else {
                 { onSendMessage() }
             },
-            modifier = Modifier.focusRequester(textFieldFocusRequester)
+            modifier = if (isMessagePending) {
+                Modifier
+                    .focusRequester(textFieldFocusRequester)
+                    .shimmer()
+            } else {
+                Modifier.focusRequester(textFieldFocusRequester)
+            }
         )
     }
 }

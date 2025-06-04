@@ -104,4 +104,7 @@ dependencies {
 
     // Logging
     implementation(libs.timber)
+
+    // Shimmer effect
+    implementation(libs.shimmer)
 }
