@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -88,24 +87,17 @@ fun ChatItem(
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
             border = CardDefaults.outlinedCardBorder(true)
         ) {
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start
+            ) {
                 Text(
                     text = messageEntity.message,
                     color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
-                    textAlign = if (messageEntity.message.length < 6) {
-                        TextAlign.Center
-                    } else {
-                        null
-                    },
                     modifier = Modifier
                         .padding(
                             start = 8.dp,
                             end = 8.dp,
                             top = 8.dp
-                        )
-                        .widthIn(min = 32.dp)
-                        .align(
-                            if (isUserMe) Alignment.End else Alignment.Start
                         )
                 )
                 Text(
@@ -118,6 +110,7 @@ fun ChatItem(
                             end = 8.dp,
                             bottom = 8.dp
                         )
+                        .align(alignment = Alignment.End)
                 )
             }
         }
