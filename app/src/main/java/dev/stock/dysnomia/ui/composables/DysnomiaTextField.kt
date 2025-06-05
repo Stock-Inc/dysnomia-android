@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.ui.composables
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -70,7 +71,9 @@ fun DysnomiaTextField(
                     Icon(
                         trailingIcon,
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .size(32.dp)
                     )
                 }
             }

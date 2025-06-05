@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -248,9 +247,9 @@ fun ChatScreen(
             ),
             leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             trailingIcon = if (messageText.text.isEmpty()) {
-                ImageVector.vectorResource(R.drawable.slash)
+                ImageVector.vectorResource(R.drawable.code)
             } else {
-                Icons.AutoMirrored.Filled.Send
+                ImageVector.vectorResource(R.drawable.send)
             },
             onTrailingIconClick = if (messageText.text.isEmpty()) {
                 {
@@ -322,7 +321,7 @@ private fun ChatScreenDarkPreview() {
         Surface {
             ChatScreen(
                 chatHistory = emptyList(),
-                messageText = TextFieldValue(),
+                messageText = TextFieldValue("Some message"),
                 currentName = "",
                 onTextChange = {},
                 onSendMessage = {}

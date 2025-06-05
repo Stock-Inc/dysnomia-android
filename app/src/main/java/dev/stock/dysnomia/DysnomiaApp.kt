@@ -20,7 +20,6 @@ import androidx.navigation.compose.rememberNavController
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
-import dev.stock.dysnomia.ui.composables.navigationItemContentList
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
 import dev.stock.dysnomia.ui.screen.chat.ChatUiState
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
@@ -98,7 +97,6 @@ fun DysnomiaApp(
                         launchSingleTop = true
                     }
                 },
-                navigationItemContentList = navigationItemContentList,
                 modifier = Modifier.fillMaxWidth()
             )
         }
