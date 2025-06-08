@@ -78,9 +78,11 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
+
+    // Converters and serialization
     implementation(libs.converter.scalars)
-//    implementation(libs.converter.gson)
-    implementation(libs.retrofit2.kotlinx.serialization.converter) // Essential for serialization?
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.kotlinx.serialization.json)
 
     // Hilt
     implementation(libs.hilt.android)
@@ -108,12 +110,10 @@ dependencies {
     // Shimmer effect
     implementation(libs.shimmer)
 
-    // Flows
+    // Asynchronism
     implementation(libs.rxjava)
     implementation(libs.rxandroid)
 
     // Stomp over websockets
     implementation(libs.stompprotocolandroid)
-    implementation(libs.kotlinx.serialization.json)
-
 }

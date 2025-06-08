@@ -55,7 +55,7 @@ fun DysnomiaApp(
     when (chatUiState) {
         is ChatUiState.Success -> {}
         is ChatUiState.Loading -> {
-            LaunchedEffect(true) {
+            LaunchedEffect(chatUiState) {
                 snackbarHostState.showSnackbar(
                     message = "Loading messages (・_・ヾ",
                     withDismissAction = true
@@ -63,7 +63,7 @@ fun DysnomiaApp(
             }
         }
         ChatUiState.Error -> {
-            LaunchedEffect(true) {
+            LaunchedEffect(chatUiState) {
                 snackbarHostState.showSnackbar(
                     message = "No connection with the server (╥﹏╥)",
                     withDismissAction = true

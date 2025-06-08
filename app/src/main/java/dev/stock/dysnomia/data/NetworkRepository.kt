@@ -15,7 +15,6 @@ import io.reactivex.Flowable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import ua.naiksoftware.stomp.StompClient
 import ua.naiksoftware.stomp.dto.LifecycleEvent
 import javax.inject.Inject
@@ -30,7 +29,7 @@ interface Repository {
     fun observeHistory(): Flowable<List<MessageEntity>>
     fun requestHistory(): Completable
     fun sendMessage(messageBody: MessageBody): Completable
-    fun reconnect()
+    fun connect()
     fun closeConnection()
 }
 
@@ -52,7 +51,6 @@ class NetworkRepository @Inject constructor(
             .subscribeOn(Schedulers.io(), false)
             .observeOn(AndroidSchedulers.mainThread())
             .map { listMessageJson ->
-                Timber.e(listMessageJson.toString())
                 Json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
             }
     }
@@ -85,8 +83,8 @@ class NetworkRepository @Inject constructor(
     override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
         dysnomiaApiService.signUp(signUpBody)
 
-    override fun reconnect() {
-        dysnomiaStompClient.reconnect()
+    override fun connect() {
+        dysnomiaStompClient.connect()
     }
 
     override fun closeConnection() {

@@ -57,8 +57,7 @@ class ChatViewModel @Inject constructor(
 
     init {
         observeWebsocketLifecycle()
-        subscribeToTopics()
-        networkRepository.reconnect()
+        networkRepository.connect()
     }
 
     @SuppressLint("CheckResult")
@@ -77,10 +76,10 @@ class ChatViewModel @Inject constructor(
                     LifecycleEvent.Type.CLOSED -> {
                         reconnectionJob?.cancel()
                         Timber.d("Connection closed, reconnecting in $RECONNECTION_TIME ms")
-                        chatUiState = ChatUiState.Loading
                         reconnectionJob = viewModelScope.launch {
+                            chatUiState = ChatUiState.Loading
                             delay(RECONNECTION_TIME)
-                            networkRepository.reconnect()
+                            networkRepository.connect()
                         }
                     }
 
@@ -141,6 +140,7 @@ class ChatViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     if (message.startsWith('/')) {
+                        isMessagePending = true
                         offlineRepository.addToHistory(
                             MessageEntity(
                                 name = message.drop(1),
@@ -150,6 +150,8 @@ class ChatViewModel @Inject constructor(
                                 isCommand = true
                             )
                         )
+                        isMessagePending = false
+                        messageText = TextFieldValue()
                     } else {
                         isMessagePending = true
                         networkRepository.sendMessage(
@@ -200,6 +202,10 @@ class ChatViewModel @Inject constructor(
                         isCommand = true
                     )
                 )
+                if (isMessagePending) {
+                    isMessagePending = false
+                    messageText = TextFieldValue()
+                }
             }
             else -> {
                 throw e
