@@ -11,6 +11,6 @@ interface ChatDao {
     @Upsert
     suspend fun addToHistory(messageEntity: MessageEntity)
 
-    @Query("SELECT * from chat_history")
+    @Query("SELECT * from chat_history ORDER BY date ASC")
     fun getAllHistory(): Flow<List<MessageEntity>>
 }
