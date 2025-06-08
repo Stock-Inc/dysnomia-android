@@ -233,7 +233,7 @@ fun ChatScreen(
                 stringResource(R.string.enter_message)
             },
             onValueChange = onTextChange,
-            maxLines = if (isMessageACommand) 1 else 6,
+            maxLines = 6,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.None
