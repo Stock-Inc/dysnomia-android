@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.lang.System.currentTimeMillis
@@ -19,7 +19,7 @@ data class MessageEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "entity_id")
     val entityId: Int = 0,
-    @SerializedName("id")
+    @SerialName("id")
     @ColumnInfo(name = "message_id")
     val messageId: Int? = null,
     val name: String = "",

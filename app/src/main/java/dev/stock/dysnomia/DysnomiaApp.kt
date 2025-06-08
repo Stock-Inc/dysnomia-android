@@ -53,36 +53,21 @@ fun DysnomiaApp(
     val currentName = profileViewModel.currentName.collectAsState().value
 
     when (chatUiState) {
-        is ChatUiState.Success -> {
-            if (chatUiState.afterReconnecting) {
-                LaunchedEffect(true) {
-                    snackbarHostState.showSnackbar(
-                        message = "Connection established ( ˶ˆᗜˆ˵ )",
-                        withDismissAction = true
-                    )
-                }
-            }
-        }
+        is ChatUiState.Success -> {}
         is ChatUiState.Loading -> {
-            if (chatUiState.afterReconnecting) {
-                LaunchedEffect(true) {
-                    snackbarHostState.showSnackbar(
-                        message = "Loading messages (・_・ヾ",
-                        withDismissAction = true
-                    )
-                }
+            LaunchedEffect(true) {
+                snackbarHostState.showSnackbar(
+                    message = "Loading messages (・_・ヾ",
+                    withDismissAction = true
+                )
             }
         }
         ChatUiState.Error -> {
             LaunchedEffect(true) {
-                val result = snackbarHostState.showSnackbar(
+                snackbarHostState.showSnackbar(
                     message = "No connection with the server (╥﹏╥)",
-                    actionLabel = "Retry",
                     withDismissAction = true
                 )
-                if (result == SnackbarResult.ActionPerformed) {
-                    chatViewModel.connect(afterReconnecting = true)
-                }
             }
         }
     }
@@ -106,7 +91,6 @@ fun DysnomiaApp(
             startDestination = DysnomiaApp.Home.name,
         ) {
             composable(route = DysnomiaApp.Home.name) {
-//                val homeUiState = homeViewModel.uiState.collectAsState().value
                 val homeUiState = HomeUiState(currentName)
 
                 HomeScreen(

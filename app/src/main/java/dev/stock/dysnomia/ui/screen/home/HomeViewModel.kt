@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.PreferencesRepository
-import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
+import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,7 +27,7 @@ class HomeViewModel @Inject constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+            started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
             initialValue = HomeUiState()
         )
 }

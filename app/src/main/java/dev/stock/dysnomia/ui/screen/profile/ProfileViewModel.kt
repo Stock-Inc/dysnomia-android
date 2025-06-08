@@ -11,7 +11,7 @@ import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.PreferencesRepository
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
-import dev.stock.dysnomia.utils.TIMEOUT_MILLIS
+import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -38,7 +38,7 @@ class ProfileViewModel @Inject constructor(
 
     val currentName = userPreferencesRepository.name.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+        started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
         initialValue = ""
     )
 
