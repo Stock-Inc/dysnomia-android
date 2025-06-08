@@ -78,8 +78,10 @@ fun DysnomiaApp(
             DysnomiaBottomNavigationBar(
                 currentScreen = currentScreen,
                 onClick = {
-                    navController.navigate(it.name) {
-                        launchSingleTop = true
+                    if (it != currentScreen) {
+                        navController.navigate(it.name) {
+                            launchSingleTop = true
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth()
