@@ -21,8 +21,8 @@ import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
-import dev.stock.dysnomia.ui.screen.chat.ChatUiState
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
+import dev.stock.dysnomia.ui.screen.chat.ConnectionState
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.home.HomeUiState
 import dev.stock.dysnomia.ui.screen.profile.LoadingScreen
@@ -48,27 +48,16 @@ fun DysnomiaApp(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val chatUiState = chatViewModel.chatUiState
+    val chatUiState = chatViewModel.chatUiState.collectAsState().value
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
 
-    when (chatUiState) {
-        is ChatUiState.Success -> {}
-        is ChatUiState.Loading -> {
-            LaunchedEffect(chatUiState) {
-                snackbarHostState.showSnackbar(
-                    message = "Loading messages (・_・ヾ",
-                    withDismissAction = true
-                )
-            }
-        }
-        ChatUiState.Error -> {
-            LaunchedEffect(chatUiState) {
-                snackbarHostState.showSnackbar(
-                    message = "No connection with the server (╥﹏╥)",
-                    withDismissAction = true
-                )
-            }
+    if (chatUiState.connectionState == ConnectionState.Loading) {
+        LaunchedEffect(chatUiState) {
+            snackbarHostState.showSnackbar(
+                message = "Loading messages (・_・ヾ",
+                withDismissAction = true
+            )
         }
     }
 
@@ -115,13 +104,13 @@ fun DysnomiaApp(
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
                     onSendMessage = {
-                        chatViewModel.sendMessage(
+                        chatViewModel.sendMessage( // FIXME: Terrible practice
                             currentName = currentName,
                             message = chatViewModel.messageText.text.trim()
                         )
                     },
                     modifier = Modifier.padding(contentPadding),
-                    isMessagePending = chatViewModel.isMessagePending
+                    isMessagePending = chatUiState.isMessagePending
                 )
             }
 

@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
@@ -17,33 +18,37 @@ import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
 import retrofit2.HttpException
 import timber.log.Timber
 import ua.naiksoftware.stomp.dto.LifecycleEvent
+import java.lang.IllegalStateException
 import javax.inject.Inject
 
-sealed interface ChatUiState {
-    data object Success : ChatUiState
-    data object Loading : ChatUiState
-    data object Error : ChatUiState
+enum class ConnectionState {
+    Success, Loading
 }
+
+data class ChatUiState(
+    val connectionState: ConnectionState = ConnectionState.Success,
+    val isMessagePending: Boolean = false
+)
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val networkRepository: NetworkRepository,
     private val offlineRepository: OfflineRepository
 ) : ViewModel() {
-    var chatUiState: ChatUiState by mutableStateOf(ChatUiState.Loading)
-        private set
+    private val _chatUiState = MutableStateFlow(ChatUiState())
+    val chatUiState = _chatUiState.asStateFlow()
 
     var messageText: TextFieldValue by mutableStateOf(TextFieldValue())
-        private set
-
-    var isMessagePending: Boolean by mutableStateOf(false)
         private set
 
     val chatHistory: Flow<List<MessageEntity>> =
@@ -68,24 +73,27 @@ class ChatViewModel @Inject constructor(
                     LifecycleEvent.Type.OPENED -> {
                         reconnectionJob?.cancel()
                         Timber.d("Connection opened")
+
                         subscribeToTopics()
                         networkRepository.requestHistory().subscribe()
-                        chatUiState = ChatUiState.Success
+
+//                        changeConnectionState(ConnectionState.Success)
                     }
 
                     LifecycleEvent.Type.CLOSED -> {
                         reconnectionJob?.cancel()
                         Timber.d("Connection closed, reconnecting in $RECONNECTION_TIME ms")
+
                         reconnectionJob = viewModelScope.launch {
-                            chatUiState = ChatUiState.Loading
                             delay(RECONNECTION_TIME)
+                            // TODO: Exponential backoff
+                            // changeConnectionState(ConnectionState.Loading)
                             networkRepository.connect()
                         }
                     }
 
                     LifecycleEvent.Type.ERROR -> {
                         Timber.e("Connection error")
-                        chatUiState = ChatUiState.Error
                     }
 
                     LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> {
@@ -106,9 +114,6 @@ class ChatViewModel @Inject constructor(
                 viewModelScope.launch {
                     offlineRepository.addToHistory(message)
                 }
-                if (chatUiState !is ChatUiState.Success) {
-                    chatUiState = ChatUiState.Success
-                }
             },
             { e ->
                 websocketErrorHandler(e)
@@ -122,9 +127,6 @@ class ChatViewModel @Inject constructor(
                         offlineRepository.addToHistory(message)
                     }
                 }
-                if (chatUiState !is ChatUiState.Success) {
-                    chatUiState = ChatUiState.Success
-                }
             },
             { e ->
                 websocketErrorHandler(e)
@@ -135,12 +137,16 @@ class ChatViewModel @Inject constructor(
     fun sendMessage(
         currentName: String,
         message: String
-    ) {
+    ) { // TODO: take messageText out of viewmodel
         if (message.isNotEmpty() && message != "/") {
             viewModelScope.launch {
                 try {
+                    _chatUiState.update {
+                        it.copy(
+                            isMessagePending = true
+                        )
+                    }
                     if (message.startsWith('/')) {
-                        isMessagePending = true
                         offlineRepository.addToHistory(
                             MessageEntity(
                                 name = message.drop(1),
@@ -150,10 +156,8 @@ class ChatViewModel @Inject constructor(
                                 isCommand = true
                             )
                         )
-                        isMessagePending = false
-                        messageText = TextFieldValue()
+                        clearPendingState()
                     } else {
-                        isMessagePending = true
                         networkRepository.sendMessage(
                             MessageBody(
                                 name = currentName,
@@ -161,13 +165,11 @@ class ChatViewModel @Inject constructor(
                             )
                         ).subscribe(
                             {
-                                isMessagePending = false
-                                messageText = TextFieldValue()
+                                clearPendingState()
                             },
                             { e ->
                                 websocketErrorHandler(e)
-                                isMessagePending = false
-                                messageText = TextFieldValue()
+                                clearPendingState()
                             }
                         )
                     }
@@ -184,10 +186,31 @@ class ChatViewModel @Inject constructor(
         this.messageText = messageText
     }
 
+//    private fun changeConnectionState(connectionState: ConnectionState) {
+//        if (_chatUiState.value.connectionState != connectionState) {
+//            _chatUiState.update {
+//                it.copy(
+//                    connectionState = connectionState
+//                )
+//            }
+//        }
+//    }
+
+    private fun clearPendingState() {
+        if (_chatUiState.value.isMessagePending) {
+            _chatUiState.update {
+                it.copy(
+                    isMessagePending = false
+                )
+            }
+            messageText = TextFieldValue()
+        }
+    }
+
     private fun websocketErrorHandler(e: Throwable) {
-        if (e is java.lang.IllegalStateException) {
-            chatUiState = ChatUiState.Error
-            Timber.e(e.toString())
+        if (e is IllegalStateException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Timber.e(e)
         } else {
             throw e
         }
@@ -196,16 +219,15 @@ class ChatViewModel @Inject constructor(
     private suspend fun apiErrorHandler(e: Throwable) {
         when (e) {
             is HttpException, is IOException -> {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                Timber.e(e)
                 offlineRepository.addToHistory(
                     MessageEntity(
                         message = "Error connecting to the server:\n$e",
                         isCommand = true
                     )
                 )
-                if (isMessagePending) {
-                    isMessagePending = false
-                    messageText = TextFieldValue()
-                }
+                clearPendingState()
             }
             else -> {
                 throw e
