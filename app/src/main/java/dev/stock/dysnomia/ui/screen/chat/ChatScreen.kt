@@ -151,6 +151,7 @@ fun ChatScreen(
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
+    onSendCommand: () -> Unit,
     modifier: Modifier = Modifier,
     isMessagePending: Boolean = false
 ) {
@@ -254,6 +255,8 @@ fun ChatScreen(
                     )
                     textFieldFocusRequester.requestFocus()
                 }
+            } else if (isMessageACommand) {
+                { onSendCommand() }
             } else {
                 { onSendMessage() }
             },
@@ -301,7 +304,8 @@ private fun ChatScreenLightPreview() {
                 messageText = TextFieldValue(),
                 currentName = "",
                 onTextChange = {},
-                onSendMessage = {}
+                onSendMessage = {},
+                onSendCommand = {}
             )
         }
     }
@@ -317,7 +321,8 @@ private fun ChatScreenDarkPreview() {
                 messageText = TextFieldValue("Some message"),
                 currentName = "",
                 onTextChange = {},
-                onSendMessage = {}
+                onSendMessage = {},
+                onSendCommand = {}
             )
         }
     }

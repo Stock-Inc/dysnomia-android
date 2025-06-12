@@ -104,11 +104,9 @@ fun DysnomiaApp(
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
                     onSendMessage = {
-                        chatViewModel.sendMessage( // FIXME: Terrible practice
-                            currentName = currentName,
-                            message = chatViewModel.messageText.text.trim()
-                        )
+                        chatViewModel.sendMessage(currentName = currentName) // TODO: move currentName
                     },
+                    onSendCommand = chatViewModel::sendCommand,
                     modifier = Modifier.padding(contentPadding),
                     isMessagePending = chatUiState.isMessagePending
                 )

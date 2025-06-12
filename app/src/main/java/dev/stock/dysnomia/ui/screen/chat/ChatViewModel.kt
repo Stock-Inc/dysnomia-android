@@ -134,11 +134,36 @@ class ChatViewModel @Inject constructor(
         )
     }
 
-    fun sendMessage(
-        currentName: String,
-        message: String
-    ) { // TODO: take messageText out of viewmodel
-        if (message.isNotEmpty() && message != "/") {
+    fun sendMessage(currentName: String) {
+        val message = messageText.text.trim()
+        if (message.isNotEmpty()) {
+            viewModelScope.launch {
+                _chatUiState.update {
+                    it.copy(
+                        isMessagePending = true
+                    )
+                }
+                networkRepository.sendMessage(
+                    MessageBody(
+                        name = currentName,
+                        message = message
+                    )
+                ).subscribe(
+                    {
+                        clearPendingState()
+                    },
+                    { e ->
+                        websocketErrorHandler(e)
+                        clearPendingState()
+                    }
+                )
+            }
+        }
+    }
+
+    fun sendCommand() {
+        val command = messageText.text.trim()
+        if (command.startsWith('/')) {
             viewModelScope.launch {
                 try {
                     _chatUiState.update {
@@ -146,37 +171,21 @@ class ChatViewModel @Inject constructor(
                             isMessagePending = true
                         )
                     }
-                    if (message.startsWith('/')) {
-                        offlineRepository.addToHistory(
-                            MessageEntity(
-                                name = message.drop(1),
-                                message = networkRepository.sendCommand(
-                                    message.drop(1)
-                                ),
-                                isCommand = true
-                            )
+                    offlineRepository.addToHistory(
+                        MessageEntity(
+                            name = command.drop(1),
+                            message = networkRepository.sendCommand(
+                                command.drop(1)
+                            ),
+                            isCommand = true
                         )
-                        clearPendingState()
-                    } else {
-                        networkRepository.sendMessage(
-                            MessageBody(
-                                name = currentName,
-                                message = message
-                            )
-                        ).subscribe(
-                            {
-                                clearPendingState()
-                            },
-                            { e ->
-                                websocketErrorHandler(e)
-                                clearPendingState()
-                            }
-                        )
-                    }
+                    )
                 } catch (e: IOException) {
                     apiErrorHandler(e)
                 } catch (e: HttpException) {
                     apiErrorHandler(e)
+                } finally {
+                    clearPendingState()
                 }
             }
         }
@@ -217,22 +226,14 @@ class ChatViewModel @Inject constructor(
     }
 
     private suspend fun apiErrorHandler(e: Throwable) {
-        when (e) {
-            is HttpException, is IOException -> {
-                FirebaseCrashlytics.getInstance().recordException(e)
-                Timber.e(e)
-                offlineRepository.addToHistory(
-                    MessageEntity(
-                        message = "Error connecting to the server:\n$e",
-                        isCommand = true
-                    )
-                )
-                clearPendingState()
-            }
-            else -> {
-                throw e
-            }
-        }
+        FirebaseCrashlytics.getInstance().recordException(e)
+        Timber.e(e)
+        offlineRepository.addToHistory(
+            MessageEntity(
+                message = "Error connecting to the server:\n$e",
+                isCommand = true
+            )
+        )
     }
 
     override fun onCleared() {
