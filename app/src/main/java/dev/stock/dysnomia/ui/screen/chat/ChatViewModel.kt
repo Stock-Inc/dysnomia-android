@@ -13,7 +13,6 @@ import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
-import dev.stock.dysnomia.utils.RECONNECTION_TIME
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -30,9 +29,10 @@ import timber.log.Timber
 import ua.naiksoftware.stomp.dto.LifecycleEvent
 import java.lang.IllegalStateException
 import javax.inject.Inject
+import kotlin.math.pow
 
 enum class ConnectionState {
-    Success, Loading
+    Success, Connecting
 }
 
 data class ChatUiState(
@@ -65,6 +65,22 @@ class ChatViewModel @Inject constructor(
         networkRepository.connect()
     }
 
+    private fun reconnectWithBackoff(
+        maxDelay: Double = 8000.0,
+        maxRetries: Int = Int.MAX_VALUE
+    ) {
+        reconnectionJob?.cancel()
+        reconnectionJob = viewModelScope.launch {
+            repeat(maxRetries) { attempt ->
+                val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
+                delay(delayMillis)
+                Timber.w("Reconnect attempt $attempt after $delayMillis ms")
+                if (attempt > 2) setConnectionState(ConnectionState.Connecting)
+                networkRepository.connect()
+            }
+        }
+    }
+
     @SuppressLint("CheckResult")
     private fun observeWebsocketLifecycle() {
         networkRepository.observeLifecycle().subscribe(
@@ -73,22 +89,15 @@ class ChatViewModel @Inject constructor(
                     LifecycleEvent.Type.OPENED -> {
                         reconnectionJob?.cancel()
                         Timber.d("Connection opened")
+                        setConnectionState(ConnectionState.Success)
 
                         subscribeToTopics()
                         networkRepository.requestHistory().subscribe()
-
-//                        changeConnectionState(ConnectionState.Success)
                     }
 
                     LifecycleEvent.Type.CLOSED -> {
-                        reconnectionJob?.cancel()
-                        Timber.d("Connection closed, reconnecting in $RECONNECTION_TIME ms")
-
-                        reconnectionJob = viewModelScope.launch {
-                            delay(RECONNECTION_TIME)
-                            // TODO: Exponential backoff
-                            // changeConnectionState(ConnectionState.Loading)
-                            networkRepository.connect()
+                        if (reconnectionJob?.isActive != true) {
+                            reconnectWithBackoff()
                         }
                     }
 
@@ -97,7 +106,7 @@ class ChatViewModel @Inject constructor(
                     }
 
                     LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> {
-                        Timber.d("Failed server heartbeat")
+                        Timber.w("Failed server heartbeat")
                     }
                 }
             },
@@ -213,6 +222,14 @@ class ChatViewModel @Inject constructor(
                 )
             }
             messageText = TextFieldValue()
+        }
+    }
+
+    private fun setConnectionState(connectionState: ConnectionState) {
+        _chatUiState.update {
+            it.copy(
+                connectionState = connectionState
+            )
         }
     }
 

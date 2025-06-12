@@ -52,7 +52,7 @@ fun DysnomiaApp(
     val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
 
-    if (chatUiState.connectionState == ConnectionState.Loading) {
+    if (chatUiState.connectionState == ConnectionState.Connecting) {
         LaunchedEffect(chatUiState) {
             snackbarHostState.showSnackbar(
                 message = "Loading messages (・_・ヾ",
