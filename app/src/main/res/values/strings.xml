@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Dysnomia</string>
-    <string name="powered_by_monster_energy_drink">Powered by Monster Energy Drink™</string>
     <string name="take_pink_pill">Take pink pill</string>
     <string name="sign_in">Sign in</string>
     <string name="password">Password</string>
@@ -15,6 +14,5 @@
     <string name="your_name">Your Name</string>
     <string name="enter_message">Enter Message</string>
     <string name="enter_command">Enter Command</string>
-    <string name="no_connection_with_the_server">No connection with the server (╥﹏╥)</string>
     <string name="default_notification_channel_id" translatable="false">default_channel_id</string>
 </resources>
