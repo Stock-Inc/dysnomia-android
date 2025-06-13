@@ -1,6 +1,5 @@
 package dev.stock.dysnomia.data
 
-import androidx.room.Query
 import dev.stock.dysnomia.model.MessageEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -8,9 +7,8 @@ import javax.inject.Singleton
 
 interface DataRepository {
     suspend fun addToHistory(messageEntity: MessageEntity)
-
-    @Query("SELECT * from chat_history")
     fun getAllHistory(): Flow<List<MessageEntity>>
+    suspend fun setDelivered(messageEntity: MessageEntity)
 }
 
 @Singleton
@@ -22,4 +20,14 @@ class OfflineRepository @Inject constructor(
 
     override fun getAllHistory(): Flow<List<MessageEntity>> =
         chatDao.getAllHistory()
+
+    override suspend fun setDelivered(messageEntity: MessageEntity) =
+        chatDao.updateMessage(
+            messageEntity.copy(
+                entityId = chatDao.getEntityIdOfPendingMessage(
+                    name = messageEntity.name,
+                    message = messageEntity.message
+                )
+            )
+        )
 }

@@ -10,6 +10,8 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
+import dev.stock.dysnomia.data.PreferencesRepository
+import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,7 +45,8 @@ data class ChatUiState(
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val networkRepository: NetworkRepository,
-    private val offlineRepository: OfflineRepository
+    private val offlineRepository: OfflineRepository,
+    private val preferencesRepository: PreferencesRepository
 ) : ViewModel() {
     private val _chatUiState = MutableStateFlow(ChatUiState())
     val chatUiState = _chatUiState.asStateFlow()
@@ -122,7 +126,11 @@ class ChatViewModel @Inject constructor(
             networkRepository.observeMessages().subscribe(
                 { message ->
                     viewModelScope.launch {
-                        offlineRepository.addToHistory(message)
+                        if (message.name == preferencesRepository.name.first()) {
+                            offlineRepository.setDelivered(message)
+                        } else {
+                            offlineRepository.addToHistory(message)
+                        }
                     }
                 },
                 { e ->
@@ -148,23 +156,23 @@ class ChatViewModel @Inject constructor(
         val message = messageText.text.trim()
         if (message.isNotEmpty()) {
             viewModelScope.launch {
-                _chatUiState.update {
-                    it.copy(
-                        isMessagePending = true
+                offlineRepository.addToHistory(
+                    MessageEntity(
+                        name = currentName,
+                        message = message,
+                        deliveryStatus = DeliveryStatus.PENDING
                     )
-                }
+                )
+                clearPendingState()
                 networkRepository.sendMessage(
                     MessageBody(
                         name = currentName,
                         message = message
                     )
                 ).subscribe(
-                    {
-                        clearPendingState()
-                    },
+                    {},
                     { e ->
                         websocketErrorHandler(e)
-                        clearPendingState()
                     }
                 )
             }
@@ -206,14 +214,12 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun clearPendingState() {
-        if (_chatUiState.value.isMessagePending) {
-            _chatUiState.update {
-                it.copy(
-                    isMessagePending = false
-                )
-            }
-            messageText = TextFieldValue()
+        _chatUiState.update {
+            it.copy(
+                isMessagePending = false
+            )
         }
+        messageText = TextFieldValue()
     }
 
     private fun setConnectionState(connectionState: ConnectionState) {

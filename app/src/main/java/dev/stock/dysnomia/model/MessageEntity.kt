@@ -27,5 +27,17 @@ data class MessageEntity(
     val date: Long = currentTimeMillis() / 1000,
     @Transient
     @ColumnInfo(name = "is_command")
-    val isCommand: Boolean = false
+    val isCommand: Boolean = false,
+    @Transient
+    @ColumnInfo(
+        name = "delivery_status",
+        defaultValue = "DELIVERED"
+    )
+    val deliveryStatus: DeliveryStatus = DeliveryStatus.DELIVERED
 )
+
+enum class DeliveryStatus {
+    PENDING,
+    DELIVERED,
+    FAILED
+}

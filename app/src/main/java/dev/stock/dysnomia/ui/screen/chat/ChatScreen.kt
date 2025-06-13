@@ -46,6 +46,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
@@ -216,9 +217,16 @@ fun ChatScreen(
                             },
                             isUserMe = item.name == currentName,
                             isTheFirstMessageFromAuthor = previousItem?.name != item.name,
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .animateItem()
+                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
+                                Modifier
+                                    .alpha(0.5f)
+                                    .padding(4.dp)
+                                    .animateItem()
+                            } else {
+                                Modifier
+                                    .padding(4.dp)
+                                    .animateItem()
+                            }
                         )
                     }
                 }
@@ -260,7 +268,7 @@ fun ChatScreen(
             } else {
                 { onSendMessage() }
             },
-            modifier = if (isMessagePending) {
+            modifier = if (isMessagePending) { // TODO: command pending
                 Modifier
                     .focusRequester(textFieldFocusRequester)
                     .shimmer()
