@@ -1,6 +1,5 @@
 package dev.stock.dysnomia.ui.screen.chat
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +13,7 @@ import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
+import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +27,6 @@ import okio.IOException
 import retrofit2.HttpException
 import timber.log.Timber
 import ua.naiksoftware.stomp.dto.LifecycleEvent
-import java.lang.IllegalStateException
 import javax.inject.Inject
 import kotlin.math.pow
 
@@ -59,6 +58,7 @@ class ChatViewModel @Inject constructor(
         )
 
     private var reconnectionJob: Job? = null
+    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     init {
         observeWebsocketLifecycle()
@@ -81,65 +81,66 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    @SuppressLint("CheckResult")
     private fun observeWebsocketLifecycle() {
-        networkRepository.observeLifecycle().subscribe(
-            { lifecycleEvent ->
-                when (lifecycleEvent.type!!) {
-                    LifecycleEvent.Type.OPENED -> {
-                        reconnectionJob?.cancel()
-                        Timber.d("Connection opened")
-                        setConnectionState(ConnectionState.Success)
+        compositeDisposable.add(
+            networkRepository.observeLifecycle().subscribe(
+                { lifecycleEvent ->
+                    when (lifecycleEvent.type!!) {
+                        LifecycleEvent.Type.OPENED -> {
+                            reconnectionJob?.cancel()
+                            Timber.d("Connection opened")
+                            setConnectionState(ConnectionState.Success)
 
-                        subscribeToTopics()
-                        networkRepository.requestHistory().subscribe()
-                    }
+                            subscribeToTopics()
+                            networkRepository.requestHistory().subscribe()
+                        }
 
-                    LifecycleEvent.Type.CLOSED -> {
-                        if (reconnectionJob?.isActive != true) {
-                            reconnectWithBackoff()
+                        LifecycleEvent.Type.CLOSED -> {
+                            if (reconnectionJob?.isActive != true) {
+                                reconnectWithBackoff()
+                            }
+                        }
+
+                        LifecycleEvent.Type.ERROR -> {
+                            Timber.e("Connection error")
+                        }
+
+                        LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> {
+                            Timber.w("Failed server heartbeat")
                         }
                     }
-
-                    LifecycleEvent.Type.ERROR -> {
-                        Timber.e("Connection error")
-                    }
-
-                    LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> {
-                        Timber.w("Failed server heartbeat")
-                    }
+                },
+                { e ->
+                    websocketErrorHandler(e)
                 }
-            },
-            { e ->
-                websocketErrorHandler(e)
-            }
+            )
         )
     }
 
-    @SuppressLint("CheckResult")
     private fun subscribeToTopics() {
-        networkRepository.observeMessages().subscribe(
-            { message ->
-                viewModelScope.launch {
-                    offlineRepository.addToHistory(message)
-                }
-            },
-            { e ->
-                websocketErrorHandler(e)
-            }
-        )
-
-        networkRepository.observeHistory().subscribe(
-            { messagesList ->
-                viewModelScope.launch {
-                    messagesList.asReversed().forEach { message ->
+        compositeDisposable.addAll(
+            networkRepository.observeMessages().subscribe(
+                { message ->
+                    viewModelScope.launch {
                         offlineRepository.addToHistory(message)
                     }
+                },
+                { e ->
+                    websocketErrorHandler(e)
                 }
-            },
-            { e ->
-                websocketErrorHandler(e)
-            }
+            ),
+            networkRepository.observeHistory().subscribe(
+                { messagesList ->
+                    viewModelScope.launch {
+                        messagesList.asReversed().forEach { message ->
+                            offlineRepository.addToHistory(message)
+                        }
+                    }
+                },
+                { e ->
+                    websocketErrorHandler(e)
+                }
+            )
         )
     }
 
@@ -204,16 +205,6 @@ class ChatViewModel @Inject constructor(
         this.messageText = messageText
     }
 
-//    private fun changeConnectionState(connectionState: ConnectionState) {
-//        if (_chatUiState.value.connectionState != connectionState) {
-//            _chatUiState.update {
-//                it.copy(
-//                    connectionState = connectionState
-//                )
-//            }
-//        }
-//    }
-
     private fun clearPendingState() {
         if (_chatUiState.value.isMessagePending) {
             _chatUiState.update {
@@ -256,5 +247,6 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         networkRepository.closeConnection()
+        compositeDisposable.dispose()
     }
 }
