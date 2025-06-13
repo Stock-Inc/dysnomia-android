@@ -49,29 +49,26 @@ class NetworkRepository @Inject constructor(
     override fun observeHistory(): Flowable<List<MessageEntity>> {
         return dysnomiaStompClient.topic(HISTORY_TOPIC)
             .subscribeOn(Schedulers.io(), false)
-            .observeOn(AndroidSchedulers.mainThread())
+            .observeOn(Schedulers.computation())
             .map { listMessageJson ->
                 Json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
             }
+            .observeOn(AndroidSchedulers.mainThread())
     }
 
     override fun observeMessages(): Flowable<MessageEntity> =
         dysnomiaStompClient.topic(MESSAGE_TOPIC)
             .subscribeOn(Schedulers.io(), false)
-            .observeOn(AndroidSchedulers.mainThread())
+            .observeOn(Schedulers.computation())
             .map { messageJson ->
                 Json.decodeFromString<MessageEntity>(messageJson.payload)
             }
+            .observeOn(AndroidSchedulers.mainThread())
 
     override fun sendMessage(messageBody: MessageBody): Completable =
         dysnomiaStompClient.send(
             CHAT_APP,
-            Json.encodeToString(
-                MessageBody(
-                    name = messageBody.name,
-                    message = messageBody.message
-                )
-            )
+            Json.encodeToString(messageBody)
         )
 
     override fun requestHistory(): Completable =
