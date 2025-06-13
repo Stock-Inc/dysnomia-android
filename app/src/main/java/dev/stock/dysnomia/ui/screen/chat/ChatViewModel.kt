@@ -61,6 +61,8 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
         )
 
+    private val currentName: Flow<String> = preferencesRepository.name
+
     private var reconnectionJob: Job? = null
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
@@ -152,13 +154,14 @@ class ChatViewModel @Inject constructor(
         )
     }
 
-    fun sendMessage(currentName: String) {
+    fun sendMessage() {
         val message = messageText.text.trim()
         if (message.isNotEmpty()) {
             viewModelScope.launch {
+                val name = currentName.first()
                 offlineRepository.addToHistory(
                     MessageEntity(
-                        name = currentName,
+                        name = name,
                         message = message,
                         deliveryStatus = DeliveryStatus.PENDING
                     )
@@ -166,7 +169,7 @@ class ChatViewModel @Inject constructor(
                 clearPendingState()
                 networkRepository.sendMessage(
                     MessageBody(
-                        name = currentName,
+                        name = name,
                         message = message
                     )
                 ).subscribe(

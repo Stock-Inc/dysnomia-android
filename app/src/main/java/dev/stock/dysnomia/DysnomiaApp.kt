@@ -48,18 +48,7 @@ fun DysnomiaApp(
     )
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val chatUiState = chatViewModel.chatUiState.collectAsState().value
-    val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
     val currentName = profileViewModel.currentName.collectAsState().value
-
-    if (chatUiState.connectionState == ConnectionState.Connecting) {
-        LaunchedEffect(chatUiState) {
-            snackbarHostState.showSnackbar(
-                message = "Loading messages (・_・ヾ",
-                withDismissAction = true
-            )
-        }
-    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -98,14 +87,24 @@ fun DysnomiaApp(
             }
 
             composable(route = DysnomiaApp.Chat.name) {
+                val chatUiState = chatViewModel.chatUiState.collectAsState().value
+                val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
+
+                LaunchedEffect(chatUiState.connectionState) {
+                    if (chatUiState.connectionState == ConnectionState.Connecting) {
+                        snackbarHostState.showSnackbar(
+                            message = "Loading messages (・_・ヾ",
+                            withDismissAction = true
+                        )
+                    }
+                }
+
                 ChatScreen(
                     chatHistory = chatHistory,
                     messageText = chatViewModel.messageText,
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
-                    onSendMessage = {
-                        chatViewModel.sendMessage(currentName = currentName) // TODO: move currentName
-                    },
+                    onSendMessage = chatViewModel::sendMessage,
                     onSendCommand = chatViewModel::sendCommand,
                     modifier = Modifier.padding(contentPadding),
                     isMessagePending = chatUiState.isMessagePending
