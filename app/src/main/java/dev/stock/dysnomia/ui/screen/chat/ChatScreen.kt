@@ -5,6 +5,11 @@ import android.content.Context
 import android.os.Build
 import android.text.format.DateFormat
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -158,12 +163,17 @@ fun ChatScreen(
 ) {
     val chatListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val historySize = chatHistory.size
     val localClipboard = LocalClipboard.current
     val context = LocalContext.current
     val textFieldFocusRequester = FocusRequester()
 
     val isMessageACommand = messageText.text.startsWith('/')
+
+    LaunchedEffect(chatHistory) {
+        if (chatHistory.isNotEmpty()) {
+            chatListState.animateScrollToItem(0)
+        }
+    }
 
     Column(
         verticalArrangement = Arrangement.Bottom,
@@ -171,63 +181,60 @@ fun ChatScreen(
             .padding(8.dp)
             .fillMaxSize()
     ) {
-        if (historySize != 0) {
-            LaunchedEffect(historySize) {
-                chatListState.scrollToItem(historySize)
-            }
-        }
-
         LazyColumn(
             verticalArrangement = Arrangement.Bottom,
+            reverseLayout = true,
             state = chatListState,
             modifier = Modifier.weight(1f)
         ) {
             for (index in chatHistory.indices) {
                 val item = chatHistory[index]
-                val previousItem = chatHistory.getOrNull(index - 1)
+                val nextItem = chatHistory.getOrNull(index + 1)
 
                 item(key = item.entityId) {
-                    if (item.isCommand) {
-                        CommandItem(
-                            messageEntity = item,
-                            onClick = {
-                                coroutineScope.launch {
-                                    copyToClipboard(
-                                        context = context,
-                                        localClipboard = localClipboard,
-                                        textToCopy = item.message
-                                    )
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically(),
+                        modifier = Modifier.animateItem()
+                    ) {
+                        if (item.isCommand) {
+                            CommandItem(
+                                messageEntity = item,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.padding(4.dp)
+                            )
+                        } else {
+                            ChatItem(
+                                messageEntity = item,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                isUserMe = item.name == currentName,
+                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                                modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
+                                    Modifier
+                                        .alpha(0.5f)
+                                        .padding(4.dp)
+                                } else {
+                                    Modifier.padding(4.dp)
                                 }
-                            },
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .animateItem()
-                        )
-                    } else {
-                        ChatItem(
-                            messageEntity = item,
-                            onClick = {
-                                coroutineScope.launch {
-                                    copyToClipboard(
-                                        context = context,
-                                        localClipboard = localClipboard,
-                                        textToCopy = item.message
-                                    )
-                                }
-                            },
-                            isUserMe = item.name == currentName,
-                            isTheFirstMessageFromAuthor = previousItem?.name != item.name,
-                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                Modifier
-                                    .alpha(0.5f)
-                                    .padding(4.dp)
-                                    .animateItem()
-                            } else {
-                                Modifier
-                                    .padding(4.dp)
-                                    .animateItem()
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
