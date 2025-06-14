@@ -107,7 +107,7 @@ fun DysnomiaApp(
                     onSendMessage = chatViewModel::sendMessage,
                     onSendCommand = chatViewModel::sendCommand,
                     modifier = Modifier.padding(contentPadding),
-                    isMessagePending = chatUiState.isMessagePending
+                    isCommandPending = chatUiState.isCommandPending
                 )
             }
 

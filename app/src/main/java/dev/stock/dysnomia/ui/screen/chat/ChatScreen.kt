@@ -159,7 +159,7 @@ fun ChatScreen(
     onSendMessage: () -> Unit,
     onSendCommand: () -> Unit,
     modifier: Modifier = Modifier,
-    isMessagePending: Boolean = false
+    isCommandPending: Boolean = false
 ) {
     val chatListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -242,7 +242,7 @@ fun ChatScreen(
 
         DysnomiaTextField(
             value = messageText,
-            enabled = !isMessagePending,
+            enabled = !isCommandPending,
             label = if (isMessageACommand) {
                 stringResource(R.string.enter_command)
             } else {
@@ -275,7 +275,7 @@ fun ChatScreen(
             } else {
                 { onSendMessage() }
             },
-            modifier = if (isMessagePending) { // TODO: command pending
+            modifier = if (isCommandPending) {
                 Modifier
                     .focusRequester(textFieldFocusRequester)
                     .shimmer()

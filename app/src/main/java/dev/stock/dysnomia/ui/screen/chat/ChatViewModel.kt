@@ -39,7 +39,7 @@ enum class ConnectionState {
 
 data class ChatUiState(
     val connectionState: ConnectionState = ConnectionState.Success,
-    val isMessagePending: Boolean = false
+    val isCommandPending: Boolean = false
 )
 
 @HiltViewModel
@@ -189,7 +189,7 @@ class ChatViewModel @Inject constructor(
                 try {
                     _chatUiState.update {
                         it.copy(
-                            isMessagePending = true
+                            isCommandPending = true
                         )
                     }
                     offlineRepository.addToHistory(
@@ -219,7 +219,7 @@ class ChatViewModel @Inject constructor(
     private fun clearPendingState() {
         _chatUiState.update {
             it.copy(
-                isMessagePending = false
+                isCommandPending = false
             )
         }
         messageText = TextFieldValue()
