@@ -13,7 +13,7 @@ Free and open-source chat application
 * Room for storing conversations
 * Hilt for dependency injection
 * DataStore Preferences for saving settings
-delete me
+
 ## Screenshots
 
 | <img src="assets/screenshot1.png"> | <img src="assets/screenshot2.png"> |
