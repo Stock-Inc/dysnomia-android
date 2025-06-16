@@ -38,6 +38,8 @@ class NetworkRepository @Inject constructor(
     private val dysnomiaApiService: DysnomiaApiService,
     private val dysnomiaStompClient: StompClient,
 ) : Repository {
+    private val json = Json { ignoreUnknownKeys = true }
+
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
 
@@ -51,7 +53,7 @@ class NetworkRepository @Inject constructor(
             .subscribeOn(Schedulers.io(), false)
             .observeOn(Schedulers.computation())
             .map { listMessageJson ->
-                Json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
+                json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
             }
             .observeOn(AndroidSchedulers.mainThread())
     }
@@ -61,14 +63,14 @@ class NetworkRepository @Inject constructor(
             .subscribeOn(Schedulers.io(), false)
             .observeOn(Schedulers.computation())
             .map { messageJson ->
-                Json.decodeFromString<MessageEntity>(messageJson.payload)
+                json.decodeFromString<MessageEntity>(messageJson.payload)
             }
             .observeOn(AndroidSchedulers.mainThread())
 
     override fun sendMessage(messageBody: MessageBody): Completable =
         dysnomiaStompClient.send(
             CHAT_APP,
-            Json.encodeToString(messageBody)
+            json.encodeToString(messageBody)
         )
 
     override fun requestHistory(): Completable =
