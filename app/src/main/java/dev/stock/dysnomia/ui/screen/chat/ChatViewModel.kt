@@ -98,7 +98,15 @@ class ChatViewModel @Inject constructor(
                             setConnectionState(ConnectionState.Success)
 
                             subscribeToTopics()
-                            networkRepository.requestHistory().subscribe()
+                            compositeDisposable.add(
+                                networkRepository.requestHistory()
+                                    .subscribe(
+                                        {},
+                                        { e ->
+                                            websocketErrorHandler(e)
+                                        }
+                                    )
+                            )
                         }
 
                         LifecycleEvent.Type.CLOSED -> {
@@ -167,16 +175,18 @@ class ChatViewModel @Inject constructor(
                     )
                 )
                 clearPendingState()
-                networkRepository.sendMessage(
-                    MessageBody(
-                        name = name,
-                        message = message
+                compositeDisposable.add(
+                    networkRepository.sendMessage(
+                        MessageBody(
+                            name = name,
+                            message = message
+                        )
+                    ).subscribe(
+                        {},
+                        { e ->
+                            websocketErrorHandler(e)
+                        }
                     )
-                ).subscribe(
-                    {},
-                    { e ->
-                        websocketErrorHandler(e)
-                    }
                 )
             }
         }

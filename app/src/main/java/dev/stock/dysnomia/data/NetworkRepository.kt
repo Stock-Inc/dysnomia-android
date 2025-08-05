@@ -68,13 +68,16 @@ class NetworkRepository @Inject constructor(
             .observeOn(AndroidSchedulers.mainThread())
 
     override fun sendMessage(messageBody: MessageBody): Completable =
-        dysnomiaStompClient.send(
-            CHAT_APP,
-            json.encodeToString(messageBody)
-        )
+        dysnomiaStompClient
+            .send(CHAT_APP, json.encodeToString(messageBody))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
 
     override fun requestHistory(): Completable =
-        dysnomiaStompClient.send(HISTORY_APP, null)
+        dysnomiaStompClient
+            .send(HISTORY_APP, null)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
 
     override suspend fun signIn(signInBody: SignInBody): AuthResponse =
         dysnomiaApiService.signIn(signInBody)
