@@ -63,7 +63,7 @@ private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
 private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
 
 @Composable
-fun ChatItem(
+fun ChatItem( // TODO: rename to MessageItem
     messageEntity: MessageEntity,
     onClick: () -> Unit,
     isUserMe: Boolean,
