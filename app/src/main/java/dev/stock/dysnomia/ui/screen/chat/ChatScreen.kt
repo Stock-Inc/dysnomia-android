@@ -253,7 +253,7 @@ fun ChatScreen(
                 item(key = item.entityId) {
                     AnimatedVisibility(
                         visible = true,
-                        enter = fadeIn() + expandVertically(),
+                        enter = slideInVertically { it } + expandVertically(),
                         exit = fadeOut() + shrinkVertically(),
                         modifier = Modifier.animateItem()
                     ) {
