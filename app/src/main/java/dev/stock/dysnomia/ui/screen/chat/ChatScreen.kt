@@ -224,7 +224,7 @@ fun ChatScreen(
     val coroutineScope = rememberCoroutineScope()
     val localClipboard = LocalClipboard.current
     val context = LocalContext.current
-    val textFieldFocusRequester = FocusRequester()
+    val textFieldFocusRequester = remember { FocusRequester() }
 
     val isMessageACommand = messageText.text.startsWith('/')
 
