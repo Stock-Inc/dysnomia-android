@@ -6,14 +6,23 @@ import android.os.Build
 import android.text.format.DateFormat
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -28,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,10 +46,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
@@ -48,6 +61,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
@@ -58,9 +72,12 @@ import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import kotlinx.coroutines.launch
 import java.util.Date
+import kotlin.math.roundToInt
 
 private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
 private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.dp)
+
+enum class DragValue { Replied, Resting }
 
 @Composable
 fun ChatItem( // TODO: rename to MessageItem
@@ -71,10 +88,52 @@ fun ChatItem( // TODO: rename to MessageItem
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val haptic = LocalHapticFeedback.current
+
+    val anchors = with(density) {
+        DraggableAnchors {
+            DragValue.Replied at -100.dp.toPx()
+            DragValue.Resting at 0f
+        }
+    }
+
+    val state = remember {
+        AnchoredDraggableState(
+            initialValue = DragValue.Resting,
+            anchors = anchors
+        )
+    }
+
+    LaunchedEffect(state.settledValue) {
+        if (state.currentValue == DragValue.Replied) {
+            state.animateTo(DragValue.Resting)
+        }
+    }
+
+    LaunchedEffect(state.currentValue) {
+        if (state.currentValue == DragValue.Replied) {
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+        }
+    }
 
     Column(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .anchoredDraggable(
+                state = state,
+                orientation = Orientation.Horizontal,
+                flingBehavior = AnchoredDraggableDefaults.flingBehavior(
+                    state = state,
+                    positionalThreshold = { distance -> distance * 0.5f },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                )
+            )
+            .offset { IntOffset(x = state.requireOffset().roundToInt(), y = 0) }
+            .fillMaxWidth()
     ) {
         if (isTheFirstMessageFromAuthor) {
             Text(
