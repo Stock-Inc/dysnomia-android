@@ -9,9 +9,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -19,18 +21,30 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
@@ -42,6 +56,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -56,12 +71,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
@@ -83,6 +102,7 @@ enum class DragValue { Replied, Resting }
 fun ChatItem( // TODO: rename to MessageItem
     messageEntity: MessageEntity,
     onClick: () -> Unit,
+    onReply: (MessageEntity) -> Unit,
     isUserMe: Boolean,
     isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier
@@ -93,26 +113,27 @@ fun ChatItem( // TODO: rename to MessageItem
 
     val anchors = with(density) {
         DraggableAnchors {
-            DragValue.Replied at -100.dp.toPx()
+            DragValue.Replied at -50.dp.toPx()
             DragValue.Resting at 0f
         }
     }
 
-    val state = remember {
+    val draggableState = remember {
         AnchoredDraggableState(
             initialValue = DragValue.Resting,
             anchors = anchors
         )
     }
 
-    LaunchedEffect(state.settledValue) {
-        if (state.currentValue == DragValue.Replied) {
-            state.animateTo(DragValue.Resting)
+    LaunchedEffect(draggableState.settledValue) {
+        if (draggableState.currentValue == DragValue.Replied) {
+            onReply(messageEntity)
         }
+        draggableState.animateTo(DragValue.Resting)
     }
 
-    LaunchedEffect(state.currentValue) {
-        if (state.currentValue == DragValue.Replied) {
+    LaunchedEffect(draggableState.currentValue) {
+        if (draggableState.currentValue == DragValue.Replied) {
             haptic.performHapticFeedback(HapticFeedbackType.Confirm)
         }
     }
@@ -121,10 +142,10 @@ fun ChatItem( // TODO: rename to MessageItem
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
         modifier = modifier
             .anchoredDraggable(
-                state = state,
+                state = draggableState,
                 orientation = Orientation.Horizontal,
                 flingBehavior = AnchoredDraggableDefaults.flingBehavior(
-                    state = state,
+                    state = draggableState,
                     positionalThreshold = { distance -> distance * 0.5f },
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioNoBouncy,
@@ -132,7 +153,7 @@ fun ChatItem( // TODO: rename to MessageItem
                     )
                 )
             )
-            .offset { IntOffset(x = state.requireOffset().roundToInt(), y = 0) }
+            .offset { IntOffset(x = draggableState.requireOffset().roundToInt(), y = 0) }
             .fillMaxWidth()
     ) {
         if (isTheFirstMessageFromAuthor) {
@@ -210,15 +231,79 @@ fun CommandItem(
 }
 
 @Composable
+fun ReplyBox(
+    repliedMessage: RepliedMessage?,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LabeledBarRow(
+        barColor = MaterialTheme.colorScheme.primary,
+        modifier = modifier.height(64.dp)
+    ) {
+        Column(modifier = Modifier.weight(1.0f)) {
+            repliedMessage?.let {
+                Text(
+                    text = stringResource(R.string.reply_to, repliedMessage.name),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.primary,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = repliedMessage.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        IconButton(
+            onClick = onCancel
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = null // TODO: content descriptions
+            )
+        }
+    }
+}
+
+@Composable
+fun LabeledBarRow(
+    barColor: Color,
+    modifier: Modifier = Modifier,
+    barWidth: Dp = 4.dp,
+    barCorner: Dp = 8.dp,
+    contentPadding: PaddingValues = PaddingValues(start = 8.dp),
+    content: @Composable RowScope.() -> Unit
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .width(barWidth)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(barCorner))
+                .background(barColor)
+        )
+        Spacer(Modifier.width(contentPadding.calculateStartPadding(LayoutDirection.Ltr)))
+        content()
+    }
+}
+
+@Composable
 fun ChatScreen(
     chatHistory: List<MessageEntity>,
+    chatUiState: ChatUiState,
     messageText: TextFieldValue,
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
     onSendCommand: () -> Unit,
-    modifier: Modifier = Modifier,
-    isCommandPending: Boolean = false
+    onReply: (MessageEntity) -> Unit,
+    onCancelReply: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val chatListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -283,6 +368,7 @@ fun ChatScreen(
                                         )
                                     }
                                 },
+                                onReply = onReply,
                                 isUserMe = item.name == currentName,
                                 isTheFirstMessageFromAuthor = nextItem?.name != item.name,
                                 modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
@@ -299,9 +385,20 @@ fun ChatScreen(
             }
         }
 
+        AnimatedVisibility(
+            visible = chatUiState.repliedMessage != null,
+            enter = slideInVertically { it } + expandVertically(),
+            exit = slideOutVertically { it } + shrinkVertically()
+        ) {
+            ReplyBox(
+                repliedMessage = chatUiState.repliedMessage,
+                onCancel = onCancelReply
+            )
+        }
+
         DysnomiaTextField(
             value = messageText,
-            enabled = !isCommandPending,
+            enabled = !chatUiState.isCommandPending,
             label = if (isMessageACommand) {
                 stringResource(R.string.enter_command)
             } else {
@@ -334,7 +431,7 @@ fun ChatScreen(
             } else {
                 { onSendMessage() }
             },
-            modifier = if (isCommandPending) {
+            modifier = if (chatUiState.isCommandPending) {
                 Modifier
                     .focusRequester(textFieldFocusRequester)
                     .shimmer()
@@ -375,11 +472,20 @@ private fun ChatScreenLightPreview() {
         Surface {
             ChatScreen(
                 chatHistory = emptyList(),
+                chatUiState = ChatUiState(
+                    repliedMessage = RepliedMessage(
+                        id = 0,
+                        name = "Name ".repeat(10),
+                        text = "some message ".repeat(3)
+                    )
+                ),
                 messageText = TextFieldValue(),
                 currentName = "",
                 onTextChange = {},
                 onSendMessage = {},
-                onSendCommand = {}
+                onSendCommand = {},
+                onReply = {},
+                onCancelReply = {}
             )
         }
     }
@@ -392,11 +498,20 @@ private fun ChatScreenDarkPreview() {
         Surface {
             ChatScreen(
                 chatHistory = emptyList(),
+                chatUiState = ChatUiState(
+                    repliedMessage = RepliedMessage(
+                        id = 0,
+                        name = "Name ".repeat(10),
+                        text = "some message ".repeat(3)
+                    )
+                ),
                 messageText = TextFieldValue("Some message"),
                 currentName = "",
                 onTextChange = {},
                 onSendMessage = {},
-                onSendCommand = {}
+                onSendCommand = {},
+                onReply = {},
+                onCancelReply = {}
             )
         }
     }
@@ -440,7 +555,8 @@ private fun ChatItemYoursFirstMessagePreview() {
             ),
             isUserMe = true,
             isTheFirstMessageFromAuthor = true,
-            onClick = {}
+            onClick = {},
+            onReply = {}
         )
     }
 }
@@ -456,7 +572,8 @@ private fun ChatItemYoursPreview() {
             ),
             isUserMe = true,
             isTheFirstMessageFromAuthor = false,
-            onClick = {}
+            onClick = {},
+            onReply = {}
         )
     }
 }
@@ -472,7 +589,8 @@ private fun ChatItemOthersFirstMessagePreview() {
             ),
             isUserMe = false,
             isTheFirstMessageFromAuthor = true,
-            onClick = {}
+            onClick = {},
+            onReply = {}
         )
     }
 }
@@ -488,7 +606,26 @@ private fun ChatItemOthersPreview() {
             ),
             isUserMe = false,
             isTheFirstMessageFromAuthor = false,
-            onClick = {}
+            onClick = {},
+            onReply = {}
         )
+    }
+}
+
+@Preview
+@Composable
+private fun ReplyBoxPreview() {
+    DysnomiaTheme {
+        Surface {
+            ReplyBox(
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name ".repeat(10),
+                    text = "some message ".repeat(3)
+                ),
+                onCancel = {},
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }

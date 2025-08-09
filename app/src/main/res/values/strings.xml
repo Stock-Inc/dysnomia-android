@@ -15,4 +15,5 @@
     <string name="enter_message">Enter Message</string>
     <string name="enter_command">Enter Command</string>
     <string name="default_notification_channel_id" translatable="false">default_channel_id</string>
+    <string name="reply_to">Reply to %1$s</string>
 </resources>

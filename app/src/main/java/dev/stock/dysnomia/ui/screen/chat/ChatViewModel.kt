@@ -37,9 +37,16 @@ enum class ConnectionState {
     Success, Connecting
 }
 
+data class RepliedMessage(
+    val id: Int,
+    val name: String,
+    val text: String
+)
+
 data class ChatUiState(
     val connectionState: ConnectionState = ConnectionState.Success,
-    val isCommandPending: Boolean = false
+    val isCommandPending: Boolean = false,
+    val repliedMessage: RepliedMessage? = null
 )
 
 @HiltViewModel
@@ -219,6 +226,26 @@ class ChatViewModel @Inject constructor(
                     clearPendingState()
                 }
             }
+        }
+    }
+
+    fun replyTo(messageEntity: MessageEntity) {
+        _chatUiState.update {
+            it.copy(
+                repliedMessage = RepliedMessage(
+                    id = messageEntity.messageId!!,
+                    name = messageEntity.name.ifEmpty { "Anonymous" },
+                    text = messageEntity.message
+                )
+            )
+        }
+    }
+
+    fun cancelReply() {
+        _chatUiState.update {
+            it.copy(
+                repliedMessage = null
+            )
         }
     }
 
