@@ -99,7 +99,7 @@ private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.
 enum class DragValue { Replied, Resting }
 
 @Composable
-fun ChatItem( // TODO: rename to MessageItem
+fun MessageItem(
     messageEntity: MessageEntity,
     onClick: () -> Unit,
     onReply: (MessageEntity) -> Unit,
@@ -357,7 +357,7 @@ fun ChatScreen(
                                 modifier = Modifier.padding(4.dp)
                             )
                         } else {
-                            ChatItem(
+                            MessageItem(
                                 messageEntity = item,
                                 onClick = {
                                     coroutineScope.launch {
@@ -548,7 +548,7 @@ private fun ErrorItemPreview() {
 @Composable
 private fun ChatItemYoursFirstMessagePreview() {
     DysnomiaTheme {
-        ChatItem(
+        MessageItem(
             messageEntity = MessageEntity(
                 name = "Username",
                 message = "some message"
@@ -565,7 +565,7 @@ private fun ChatItemYoursFirstMessagePreview() {
 @Composable
 private fun ChatItemYoursPreview() {
     DysnomiaTheme {
-        ChatItem(
+        MessageItem(
             messageEntity = MessageEntity(
                 name = "Username",
                 message = "some message"
@@ -582,7 +582,7 @@ private fun ChatItemYoursPreview() {
 @Composable
 private fun ChatItemOthersFirstMessagePreview() {
     DysnomiaTheme {
-        ChatItem(
+        MessageItem(
             messageEntity = MessageEntity(
                 name = "Username",
                 message = "some message"
@@ -599,7 +599,7 @@ private fun ChatItemOthersFirstMessagePreview() {
 @Composable
 private fun ChatItemOthersPreview() {
     DysnomiaTheme {
-        ChatItem(
+        MessageItem(
             messageEntity = MessageEntity(
                 name = "Username",
                 message = "some message"
