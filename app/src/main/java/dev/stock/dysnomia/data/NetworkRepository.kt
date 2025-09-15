@@ -24,6 +24,7 @@ interface Repository {
     suspend fun sendCommand(command: String): String
     suspend fun signIn(signInBody: SignInBody): AuthResponse
     suspend fun signUp(signUpBody: SignUpBody): AuthResponse
+    suspend fun getMessageByMessageId(messageId: Int): MessageEntity
     fun observeLifecycle(): Flowable<LifecycleEvent>
     fun observeMessages(): Flowable<MessageEntity>
     fun observeHistory(): Flowable<List<MessageEntity>>
@@ -38,8 +39,19 @@ class NetworkRepository @Inject constructor(
     private val dysnomiaApiService: DysnomiaApiService,
     private val dysnomiaStompClient: StompClient,
 ) : Repository {
+    private val json = Json { ignoreUnknownKeys = true }
+
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
+
+    override suspend fun signIn(signInBody: SignInBody): AuthResponse =
+        dysnomiaApiService.signIn(signInBody)
+
+    override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
+        dysnomiaApiService.signUp(signUpBody)
+
+    override suspend fun getMessageByMessageId(messageId: Int): MessageEntity =
+        dysnomiaApiService.getMessageByMessageId(messageId)
 
     override fun observeLifecycle(): Flowable<LifecycleEvent> =
         dysnomiaStompClient.lifecycle()
@@ -51,7 +63,7 @@ class NetworkRepository @Inject constructor(
             .subscribeOn(Schedulers.io(), false)
             .observeOn(Schedulers.computation())
             .map { listMessageJson ->
-                Json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
+                json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
             }
             .observeOn(AndroidSchedulers.mainThread())
     }
@@ -61,24 +73,21 @@ class NetworkRepository @Inject constructor(
             .subscribeOn(Schedulers.io(), false)
             .observeOn(Schedulers.computation())
             .map { messageJson ->
-                Json.decodeFromString<MessageEntity>(messageJson.payload)
+                json.decodeFromString<MessageEntity>(messageJson.payload)
             }
             .observeOn(AndroidSchedulers.mainThread())
 
     override fun sendMessage(messageBody: MessageBody): Completable =
-        dysnomiaStompClient.send(
-            CHAT_APP,
-            Json.encodeToString(messageBody)
-        )
+        dysnomiaStompClient
+            .send(CHAT_APP, json.encodeToString(messageBody))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
 
     override fun requestHistory(): Completable =
-        dysnomiaStompClient.send(HISTORY_APP, null)
-
-    override suspend fun signIn(signInBody: SignInBody): AuthResponse =
-        dysnomiaApiService.signIn(signInBody)
-
-    override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
-        dysnomiaApiService.signUp(signUpBody)
+        dysnomiaStompClient
+            .send(HISTORY_APP, null)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
 
     override fun connect() {
         dysnomiaStompClient.connect()

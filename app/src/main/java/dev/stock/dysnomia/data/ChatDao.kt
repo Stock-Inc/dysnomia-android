@@ -20,6 +20,9 @@ interface ChatDao {
     )
     suspend fun getEntityIdOfPendingMessage(name: String, message: String): Int
 
+    @Query("SELECT * FROM chat_history WHERE message_id = :messageId LIMIT 1")
+    suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
+
     @Update
     suspend fun updateMessage(messageEntity: MessageEntity)
 }

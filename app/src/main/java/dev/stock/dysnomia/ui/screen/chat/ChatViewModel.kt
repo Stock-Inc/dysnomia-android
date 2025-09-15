@@ -14,6 +14,8 @@ import dev.stock.dysnomia.data.PreferencesRepository
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.RepliedMessage
+import dev.stock.dysnomia.model.toRepliedMessage
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Job
@@ -39,7 +41,8 @@ enum class ConnectionState {
 
 data class ChatUiState(
     val connectionState: ConnectionState = ConnectionState.Success,
-    val isCommandPending: Boolean = false
+    val isCommandPending: Boolean = false,
+    val repliedMessage: RepliedMessage? = null
 )
 
 @HiltViewModel
@@ -98,7 +101,15 @@ class ChatViewModel @Inject constructor(
                             setConnectionState(ConnectionState.Success)
 
                             subscribeToTopics()
-                            networkRepository.requestHistory().subscribe()
+                            compositeDisposable.add(
+                                networkRepository.requestHistory()
+                                    .subscribe(
+                                        {},
+                                        { e ->
+                                            websocketErrorHandler(e)
+                                        }
+                                    )
+                            )
                         }
 
                         LifecycleEvent.Type.CLOSED -> {
@@ -159,24 +170,31 @@ class ChatViewModel @Inject constructor(
         if (message.isNotEmpty()) {
             viewModelScope.launch {
                 val name = currentName.first()
+                val repliedMessage = _chatUiState.value.repliedMessage
+
                 offlineRepository.addToHistory(
                     MessageEntity(
                         name = name,
                         message = message,
-                        deliveryStatus = DeliveryStatus.PENDING
+                        deliveryStatus = DeliveryStatus.PENDING,
+                        replyId = repliedMessage?.id ?: 0
                     )
                 )
                 clearPendingState()
-                networkRepository.sendMessage(
-                    MessageBody(
-                        name = name,
-                        message = message
+                cancelReply()
+                compositeDisposable.add(
+                    networkRepository.sendMessage(
+                        MessageBody(
+                            name = name,
+                            message = message,
+                            replyId = repliedMessage?.id ?: 0
+                        )
+                    ).subscribe(
+                        {},
+                        { e ->
+                            websocketErrorHandler(e)
+                        }
                     )
-                ).subscribe(
-                    {},
-                    { e ->
-                        websocketErrorHandler(e)
-                    }
                 )
             }
         }
@@ -209,6 +227,55 @@ class ChatViewModel @Inject constructor(
                     clearPendingState()
                 }
             }
+        }
+    }
+
+    fun getMessageStateFlowByMessageId(messageId: Int): MutableStateFlow<RepliedMessage?> =
+        MutableStateFlow<RepliedMessage?>(null).also { flow ->
+            viewModelScope.launch {
+                val offlineMessage = offlineRepository.getMessageByMessageId(messageId)
+                if (offlineMessage != null) {
+                    flow.value = offlineMessage.toRepliedMessage()
+                }
+
+                try {
+                    val networkMessage = networkRepository.getMessageByMessageId(messageId)
+                    flow.value = networkMessage.toRepliedMessage()
+                } catch (e: IOException) {
+                    Timber.e(e)
+                    flow.value = RepliedMessage(
+                        id = 0,
+                        name = "Error",
+                        message = "Unable to load reply"
+                    )
+                } catch (e: HttpException) {
+                    Timber.e(e)
+                    flow.value = RepliedMessage(
+                        id = 0,
+                        name = "Error",
+                        message = "Unable to load reply"
+                    )
+                }
+            }
+        }
+
+    fun replyTo(messageEntity: MessageEntity) {
+        _chatUiState.update {
+            it.copy(
+                repliedMessage = RepliedMessage(
+                    id = messageEntity.messageId!!,
+                    name = messageEntity.name.ifEmpty { "Anonymous" }, // TODO: Set constant for anon
+                    message = messageEntity.message
+                )
+            )
+        }
+    }
+
+    fun cancelReply() {
+        _chatUiState.update {
+            it.copy(
+                repliedMessage = null
+            )
         }
     }
 

@@ -102,12 +102,15 @@ fun DysnomiaApp(
                 ChatScreen(
                     chatHistory = chatHistory,
                     messageText = chatViewModel.messageText,
+                    chatUiState = chatUiState,
                     currentName = currentName,
                     onTextChange = chatViewModel::changeChatText,
                     onSendMessage = chatViewModel::sendMessage,
                     onSendCommand = chatViewModel::sendCommand,
-                    modifier = Modifier.padding(contentPadding),
-                    isCommandPending = chatUiState.isCommandPending
+                    onReply = chatViewModel::replyTo,
+                    onCancelReply = chatViewModel::cancelReply,
+                    getRepliedMessageStateFlow = chatViewModel::getMessageStateFlowByMessageId,
+                    modifier = Modifier.padding(contentPadding)
                 )
             }
 

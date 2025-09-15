@@ -8,6 +8,7 @@ import javax.inject.Singleton
 interface DataRepository {
     suspend fun addToHistory(messageEntity: MessageEntity)
     fun getAllHistory(): Flow<List<MessageEntity>>
+    suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
     suspend fun setDelivered(messageEntity: MessageEntity)
 }
 
@@ -20,6 +21,9 @@ class OfflineRepository @Inject constructor(
 
     override fun getAllHistory(): Flow<List<MessageEntity>> =
         chatDao.getAllHistory()
+
+    override suspend fun getMessageByMessageId(messageId: Int): MessageEntity? =
+        chatDao.getMessageByMessageId(messageId)
 
     override suspend fun setDelivered(messageEntity: MessageEntity) =
         chatDao.updateMessage(
