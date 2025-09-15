@@ -109,6 +109,7 @@ fun DysnomiaApp(
                     onSendCommand = chatViewModel::sendCommand,
                     onReply = chatViewModel::replyTo,
                     onCancelReply = chatViewModel::cancelReply,
+                    getRepliedMessageStateFlow = chatViewModel::getMessageStateFlowByMessageId,
                     modifier = Modifier.padding(contentPadding)
                 )
             }

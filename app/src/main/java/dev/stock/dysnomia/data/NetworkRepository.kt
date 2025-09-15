@@ -24,6 +24,7 @@ interface Repository {
     suspend fun sendCommand(command: String): String
     suspend fun signIn(signInBody: SignInBody): AuthResponse
     suspend fun signUp(signUpBody: SignUpBody): AuthResponse
+    suspend fun getMessageByMessageId(messageId: Int): MessageEntity
     fun observeLifecycle(): Flowable<LifecycleEvent>
     fun observeMessages(): Flowable<MessageEntity>
     fun observeHistory(): Flowable<List<MessageEntity>>
@@ -42,6 +43,15 @@ class NetworkRepository @Inject constructor(
 
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
+
+    override suspend fun signIn(signInBody: SignInBody): AuthResponse =
+        dysnomiaApiService.signIn(signInBody)
+
+    override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
+        dysnomiaApiService.signUp(signUpBody)
+
+    override suspend fun getMessageByMessageId(messageId: Int): MessageEntity =
+        dysnomiaApiService.getMessageByMessageId(messageId)
 
     override fun observeLifecycle(): Flowable<LifecycleEvent> =
         dysnomiaStompClient.lifecycle()
@@ -78,12 +88,6 @@ class NetworkRepository @Inject constructor(
             .send(HISTORY_APP, null)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-
-    override suspend fun signIn(signInBody: SignInBody): AuthResponse =
-        dysnomiaApiService.signIn(signInBody)
-
-    override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
-        dysnomiaApiService.signUp(signUpBody)
 
     override fun connect() {
         dysnomiaStompClient.connect()

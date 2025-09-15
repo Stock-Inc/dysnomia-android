@@ -25,6 +25,12 @@ data class MessageEntity(
     val name: String = "",
     val message: String,
     val date: Long = currentTimeMillis() / 1000,
+    @SerialName("reply_id")
+    @ColumnInfo(
+        name = "reply_id",
+        defaultValue = "0"
+    )
+    val replyId: Int = 0,
     @Transient
     @ColumnInfo(name = "is_command")
     val isCommand: Boolean = false,
@@ -35,6 +41,13 @@ data class MessageEntity(
     )
     val deliveryStatus: DeliveryStatus = DeliveryStatus.DELIVERED
 )
+
+fun MessageEntity.toRepliedMessage() =
+    RepliedMessage(
+        id = this.messageId!!,
+        name = this.name,
+        message = this.message
+    )
 
 enum class DeliveryStatus {
     PENDING,

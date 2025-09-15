@@ -7,8 +7,11 @@ import dev.stock.dysnomia.model.MessageEntity
 
 @Database(
     entities = [MessageEntity::class],
-    version = 6,
-    autoMigrations = [AutoMigration(from = 5, to = 6)]
+    version = 7,
+    autoMigrations = [
+        AutoMigration(from = 5, to = 6),
+        AutoMigration(from = 6, to = 7)
+    ]
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun chatDao(): ChatDao

@@ -9,7 +9,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -36,6 +35,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -51,6 +51,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -86,9 +87,12 @@ import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 import kotlin.math.roundToInt
@@ -105,7 +109,8 @@ fun MessageItem(
     onReply: (MessageEntity) -> Unit,
     isUserMe: Boolean,
     isTheFirstMessageFromAuthor: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    repliedMessage: RepliedMessage? = null
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -174,33 +179,53 @@ fun MessageItem(
             border = CardDefaults.outlinedCardBorder(true)
         ) {
             Column(
-                horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start
+                horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
+                modifier = Modifier.padding(8.dp)
             ) {
+                repliedMessage?.let {
+                    MessageReplyBox(
+                        isUserMe = isUserMe,
+                        repliedMessage = repliedMessage
+                    )
+                }
+
                 Text(
                     text = messageEntity.message,
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
-                    modifier = Modifier
-                        .padding(
-                            start = 8.dp,
-                            end = 8.dp,
-                            top = 8.dp
-                        )
+                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink
                 )
                 Text(
                     text = getLocalTime(messageEntity.date, context),
                     color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
                     modifier = Modifier
                         .alpha(0.5f)
-                        .padding(
-                            start = 8.dp,
-                            end = 8.dp,
-                            bottom = 8.dp
-                        )
                         .align(alignment = Alignment.End)
                 )
             }
         }
     }
+}
+
+@Composable
+fun MessageItemWithReply(
+    getRepliedMessageStateFlow: (Int) -> StateFlow<RepliedMessage?>,
+    messageEntity: MessageEntity,
+    onClick: () -> Unit,
+    onReply: (MessageEntity) -> Unit,
+    isUserMe: Boolean,
+    isTheFirstMessageFromAuthor: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val repliedMessage = getRepliedMessageStateFlow(messageEntity.replyId).collectAsState(null).value
+
+    MessageItem(
+        messageEntity = messageEntity,
+        onClick = onClick,
+        onReply = onReply,
+        isUserMe = isUserMe,
+        isTheFirstMessageFromAuthor = isTheFirstMessageFromAuthor,
+        modifier = modifier,
+        repliedMessage = repliedMessage
+    )
 }
 
 private fun getLocalTime(unixTime: Long, context: Context): String {
@@ -237,7 +262,7 @@ fun ReplyBox(
     modifier: Modifier = Modifier
 ) {
     LabeledBarRow(
-        barColor = MaterialTheme.colorScheme.primary,
+        isUserMe = false, // TODO: Unreadable kinda, affects bar color
         modifier = modifier.height(64.dp)
     ) {
         Column(modifier = Modifier.weight(1.0f)) {
@@ -250,7 +275,7 @@ fun ReplyBox(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = repliedMessage.text,
+                    text = repliedMessage.message,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -268,8 +293,34 @@ fun ReplyBox(
 }
 
 @Composable
+fun MessageReplyBox(
+    repliedMessage: RepliedMessage,
+    isUserMe: Boolean,
+    modifier: Modifier = Modifier
+) {
+    LabeledBarRow(
+        isUserMe = isUserMe,
+        modifier = modifier.height(64.dp)
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.reply_to, repliedMessage.name),
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = repliedMessage.message,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
 fun LabeledBarRow(
-    barColor: Color,
+    isUserMe: Boolean,
     modifier: Modifier = Modifier,
     barWidth: Dp = 4.dp,
     barCorner: Dp = 8.dp,
@@ -285,7 +336,13 @@ fun LabeledBarRow(
                 .width(barWidth)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(barCorner))
-                .background(barColor)
+                .background(
+                    if (isUserMe) {
+                        MaterialTheme.colorScheme.surface
+                    } else {
+                        MaterialTheme.colorScheme.primary
+                    }
+                )
         )
         Spacer(Modifier.width(contentPadding.calculateStartPadding(LayoutDirection.Ltr)))
         content()
@@ -303,6 +360,7 @@ fun ChatScreen(
     onSendCommand: () -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
+    getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage?>,
     modifier: Modifier = Modifier
 ) {
     val chatListState = rememberLazyListState()
@@ -331,55 +389,82 @@ fun ChatScreen(
             state = chatListState,
             modifier = Modifier.weight(1f)
         ) {
-            for (index in chatHistory.indices) {
-                val item = chatHistory[index]
+            itemsIndexed(
+                items = chatHistory,
+                key = { _, item -> item.entityId }
+            ) { index, item ->
                 val nextItem = chatHistory.getOrNull(index + 1)
 
-                item(key = item.entityId) {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = slideInVertically { it } + expandVertically(),
-                        exit = fadeOut() + shrinkVertically(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        if (item.isCommand) {
-                            CommandItem(
-                                messageEntity = item,
-                                onClick = {
-                                    coroutineScope.launch {
-                                        copyToClipboard(
-                                            context = context,
-                                            localClipboard = localClipboard,
-                                            textToCopy = item.message
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.padding(4.dp)
-                            )
-                        } else {
-                            MessageItem(
-                                messageEntity = item,
-                                onClick = {
-                                    coroutineScope.launch {
-                                        copyToClipboard(
-                                            context = context,
-                                            localClipboard = localClipboard,
-                                            textToCopy = item.message
-                                        )
-                                    }
-                                },
-                                onReply = onReply,
-                                isUserMe = item.name == currentName,
-                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                                modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                    Modifier
-                                        .alpha(0.5f)
-                                        .padding(4.dp)
-                                } else {
-                                    Modifier.padding(4.dp)
+                if (item.isCommand) {
+                    CommandItem(
+                        messageEntity = item,
+                        onClick = {
+                            coroutineScope.launch {
+                                copyToClipboard(
+                                    context = context,
+                                    localClipboard = localClipboard,
+                                    textToCopy = item.message
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .animateItem()
+                    )
+                } else {
+                    if (item.replyId == 0) {
+                        MessageItem(
+                            messageEntity = item,
+                            onClick = {
+                                coroutineScope.launch {
+                                    copyToClipboard(
+                                        context = context,
+                                        localClipboard = localClipboard,
+                                        textToCopy = item.message
+                                    )
                                 }
-                            )
-                        }
+                            },
+                            onReply = onReply,
+                            isUserMe = item.name == currentName,
+                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
+                                Modifier
+                                    .alpha(0.5f)
+                                    .padding(4.dp)
+                                    .animateItem()
+                            } else {
+                                Modifier
+                                    .padding(4.dp)
+                                    .animateItem()
+                            }
+                        )
+                    } else {
+                        MessageItemWithReply(
+                            messageEntity = item,
+                            getRepliedMessageStateFlow = getRepliedMessageStateFlow,
+                            onClick = {
+                                coroutineScope.launch {
+                                    copyToClipboard(
+                                        context = context,
+                                        localClipboard = localClipboard,
+                                        textToCopy = item.message
+                                    )
+                                }
+                            },
+                            onReply = onReply,
+                            isUserMe = item.name == currentName,
+                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
+                                Modifier
+                                    .alpha(0.5f)
+                                    .padding(4.dp)
+                                    .animateItem()
+                            } else {
+                                Modifier
+                                    .padding(4.dp)
+                                    .animateItem()
+                            }
+                        )
                     }
                 }
             }
@@ -476,7 +561,7 @@ private fun ChatScreenLightPreview() {
                     repliedMessage = RepliedMessage(
                         id = 0,
                         name = "Name ".repeat(10),
-                        text = "some message ".repeat(3)
+                        message = "some message ".repeat(3)
                     )
                 ),
                 messageText = TextFieldValue(),
@@ -485,7 +570,8 @@ private fun ChatScreenLightPreview() {
                 onSendMessage = {},
                 onSendCommand = {},
                 onReply = {},
-                onCancelReply = {}
+                onCancelReply = {},
+                getRepliedMessageStateFlow = { MutableStateFlow(null) }
             )
         }
     }
@@ -502,7 +588,7 @@ private fun ChatScreenDarkPreview() {
                     repliedMessage = RepliedMessage(
                         id = 0,
                         name = "Name ".repeat(10),
-                        text = "some message ".repeat(3)
+                        message = "some message ".repeat(3)
                     )
                 ),
                 messageText = TextFieldValue("Some message"),
@@ -511,7 +597,8 @@ private fun ChatScreenDarkPreview() {
                 onSendMessage = {},
                 onSendCommand = {},
                 onReply = {},
-                onCancelReply = {}
+                onCancelReply = {},
+                getRepliedMessageStateFlow = { MutableStateFlow(null) }
             )
         }
     }
@@ -548,16 +635,42 @@ private fun ErrorItemPreview() {
 @Composable
 private fun ChatItemYoursFirstMessagePreview() {
     DysnomiaTheme {
-        MessageItem(
-            messageEntity = MessageEntity(
-                name = "Username",
-                message = "some message"
-            ),
-            isUserMe = true,
-            isTheFirstMessageFromAuthor = true,
-            onClick = {},
-            onReply = {}
-        )
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name ".repeat(10),
+                    message = "some message ".repeat(3)
+                )
+            )
+        }
     }
 }
 
@@ -565,16 +678,18 @@ private fun ChatItemYoursFirstMessagePreview() {
 @Composable
 private fun ChatItemYoursPreview() {
     DysnomiaTheme {
-        MessageItem(
-            messageEntity = MessageEntity(
-                name = "Username",
-                message = "some message"
-            ),
-            isUserMe = true,
-            isTheFirstMessageFromAuthor = false,
-            onClick = {},
-            onReply = {}
-        )
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = false,
+                onClick = {},
+                onReply = {}
+            )
+        }
     }
 }
 
@@ -582,16 +697,42 @@ private fun ChatItemYoursPreview() {
 @Composable
 private fun ChatItemOthersFirstMessagePreview() {
     DysnomiaTheme {
-        MessageItem(
-            messageEntity = MessageEntity(
-                name = "Username",
-                message = "some message"
-            ),
-            isUserMe = false,
-            isTheFirstMessageFromAuthor = true,
-            onClick = {},
-            onReply = {}
-        )
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = false,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {}
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemOthersFirstMessageWithReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = false,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name ".repeat(10),
+                    message = "some message ".repeat(3)
+                )
+            )
+        }
     }
 }
 
@@ -599,16 +740,18 @@ private fun ChatItemOthersFirstMessagePreview() {
 @Composable
 private fun ChatItemOthersPreview() {
     DysnomiaTheme {
-        MessageItem(
-            messageEntity = MessageEntity(
-                name = "Username",
-                message = "some message"
-            ),
-            isUserMe = false,
-            isTheFirstMessageFromAuthor = false,
-            onClick = {},
-            onReply = {}
-        )
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = false,
+                isTheFirstMessageFromAuthor = false,
+                onClick = {},
+                onReply = {}
+            )
+        }
     }
 }
 
@@ -621,7 +764,7 @@ private fun ReplyBoxPreview() {
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name ".repeat(10),
-                    text = "some message ".repeat(3)
+                    message = "some message ".repeat(3)
                 ),
                 onCancel = {},
                 modifier = Modifier.fillMaxWidth()
