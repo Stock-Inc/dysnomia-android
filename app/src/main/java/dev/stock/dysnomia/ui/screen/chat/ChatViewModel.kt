@@ -204,9 +204,10 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun sendCommand() {
-        val command = messageText.text.trim()
-        if (command.startsWith('/')) {
+    fun sendCommand(command: String?) {
+        val trimmedCommand = command?.trim() ?: messageText.text.trim()
+
+        if (trimmedCommand.startsWith('/')) {
             viewModelScope.launch {
                 try {
                     _chatUiState.update {
@@ -216,9 +217,9 @@ class ChatViewModel @Inject constructor(
                     }
                     offlineRepository.addToHistory(
                         MessageEntity(
-                            name = command.drop(1),
+                            name = trimmedCommand.drop(1),
                             message = networkRepository.sendCommand(
-                                command.drop(1)
+                                trimmedCommand.drop(1)
                             ),
                             isCommand = true
                         )

@@ -392,7 +392,7 @@ fun ChatScreen(
     currentName: String,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
-    onSendCommand: () -> Unit,
+    onSendCommand: (String?) -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
     getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage?>,
@@ -549,15 +549,7 @@ fun ChatScreen(
                         CommandSuggestionItem(
                             command = it.command,
                             result = it.result,
-                            onClick = {
-                                onTextChange(
-                                    TextFieldValue(
-                                        text = "/${it.command}",
-                                        selection = TextRange("/${it.command}".length)
-                                    )
-                                )
-                                onSendCommand() // TODO: Should receive message argument
-                            }
+                            onClick = { onSendCommand("/${it.command}") }
                         )
                     }
             }
@@ -593,7 +585,7 @@ fun ChatScreen(
                         textFieldFocusRequester.requestFocus()
                     }
                 } else if (isMessageACommand) {
-                    { onSendCommand() }
+                    { onSendCommand(null) }
                 } else {
                     { onSendMessage() }
                 },
