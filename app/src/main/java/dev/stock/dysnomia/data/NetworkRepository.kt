@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.data
 
 import dev.stock.dysnomia.model.AuthResponse
+import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.SignInBody
@@ -22,6 +23,7 @@ import javax.inject.Singleton
 
 interface Repository {
     suspend fun sendCommand(command: String): String
+    suspend fun getCommandSuggestions(): List<CommandSuggestion>
     suspend fun signIn(signInBody: SignInBody): AuthResponse
     suspend fun signUp(signUpBody: SignUpBody): AuthResponse
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
@@ -43,6 +45,9 @@ class NetworkRepository @Inject constructor(
 
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
+
+    override suspend fun getCommandSuggestions(): List<CommandSuggestion> =
+        dysnomiaApiService.getCommandSuggestions()
 
     override suspend fun signIn(signInBody: SignInBody): AuthResponse =
         dysnomiaApiService.signIn(signInBody)

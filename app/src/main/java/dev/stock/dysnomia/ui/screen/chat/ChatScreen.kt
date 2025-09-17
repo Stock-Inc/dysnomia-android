@@ -13,6 +13,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,6 +55,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -83,8 +88,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
@@ -350,6 +357,35 @@ fun LabeledBarRow(
 }
 
 @Composable
+fun CommandSuggestionItem(
+    command: String,
+    result: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clickable { onClick() }
+            .padding(8.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            text = "/$command",
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.widthIn(max = 128.dp)
+        )
+        Spacer(Modifier.width(16.dp))
+        Text(
+            text = result,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
 fun ChatScreen(
     chatHistory: List<MessageEntity>,
     chatUiState: ChatUiState,
@@ -370,6 +406,24 @@ fun ChatScreen(
     val textFieldFocusRequester = remember { FocusRequester() }
 
     val isMessageACommand = messageText.text.startsWith('/')
+    val filteredSuggestions by remember(
+        chatUiState.commandSuggestionList,
+        messageText.text
+    ) {
+        derivedStateOf {
+            if (isMessageACommand) {
+                chatUiState.commandSuggestionList
+                    .filter { suggestion ->
+                        suggestion.command.contains(
+                            messageText.text.drop(1),
+                            ignoreCase = true
+                        )
+                    }
+            } else {
+                emptyList()
+            }
+        }
+    }
 
     LaunchedEffect(chatHistory) {
         if (chatHistory.isNotEmpty()) {
@@ -481,49 +535,78 @@ fun ChatScreen(
             )
         }
 
-        DysnomiaTextField(
-            value = messageText,
-            enabled = !chatUiState.isCommandPending,
-            label = if (isMessageACommand) {
-                stringResource(R.string.enter_command)
-            } else {
-                stringResource(R.string.enter_message)
-            },
-            onValueChange = onTextChange,
-            maxLines = 6,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.None
-            ),
-            leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            trailingIcon = if (messageText.text.isEmpty()) {
-                ImageVector.vectorResource(R.drawable.code)
-            } else {
-                ImageVector.vectorResource(R.drawable.send)
-            },
-            onTrailingIconClick = if (messageText.text.isEmpty()) {
-                {
-                    onTextChange(
-                        TextFieldValue(
-                            text = "/",
-                            selection = TextRange(1)
+        Box {
+            DropdownMenu(
+                expanded = filteredSuggestions.isNotEmpty(),
+                onDismissRequest = { },
+                properties = PopupProperties(
+                    focusable = false,
+                    dismissOnClickOutside = false
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                filteredSuggestions
+                    .forEach {
+                        CommandSuggestionItem(
+                            command = it.command,
+                            result = it.result,
+                            onClick = {
+                                onTextChange(
+                                    TextFieldValue(
+                                        text = "/${it.command}",
+                                        selection = TextRange("/${it.command}".length)
+                                    )
+                                )
+                                onSendCommand() // TODO: Should receive message argument
+                            }
                         )
-                    )
-                    textFieldFocusRequester.requestFocus()
-                }
-            } else if (isMessageACommand) {
-                { onSendCommand() }
-            } else {
-                { onSendMessage() }
-            },
-            modifier = if (chatUiState.isCommandPending) {
-                Modifier
-                    .focusRequester(textFieldFocusRequester)
-                    .shimmer()
-            } else {
-                Modifier.focusRequester(textFieldFocusRequester)
+                    }
             }
-        )
+
+            DysnomiaTextField(
+                value = messageText,
+                enabled = !chatUiState.isCommandPending,
+                label = if (isMessageACommand) {
+                    stringResource(R.string.enter_command)
+                } else {
+                    stringResource(R.string.enter_message)
+                },
+                onValueChange = onTextChange,
+                maxLines = 6,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.None
+                ),
+                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                trailingIcon = if (messageText.text.isEmpty()) {
+                    ImageVector.vectorResource(R.drawable.code)
+                } else {
+                    ImageVector.vectorResource(R.drawable.send)
+                },
+                onTrailingIconClick = if (messageText.text.isEmpty()) {
+                    {
+                        onTextChange(
+                            TextFieldValue(
+                                text = "/",
+                                selection = TextRange(1)
+                            )
+                        )
+                        textFieldFocusRequester.requestFocus()
+                    }
+                } else if (isMessageACommand) {
+                    { onSendCommand() }
+                } else {
+                    { onSendMessage() }
+                },
+                modifier = if (chatUiState.isCommandPending) {
+                    Modifier
+                        .focusRequester(textFieldFocusRequester)
+                        .shimmer()
+                } else {
+                    Modifier.focusRequester(textFieldFocusRequester)
+                }
+            )
+        }
     }
 }
 
@@ -562,6 +645,16 @@ private fun ChatScreenLightPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
+                    ),
+                    commandSuggestionList = listOf(
+                        CommandSuggestion(
+                            command = "help",
+                            result = "some help"
+                        ),
+                        CommandSuggestion(
+                            command = "help",
+                            result = "some help"
+                        ),
                     )
                 ),
                 messageText = TextFieldValue(),
@@ -589,6 +682,16 @@ private fun ChatScreenDarkPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
+                    ),
+                    commandSuggestionList = listOf(
+                        CommandSuggestion(
+                            command = "help",
+                            result = "some help"
+                        ),
+                        CommandSuggestion(
+                            command = "help",
+                            result = "some help"
+                        ),
                     )
                 ),
                 messageText = TextFieldValue("Some message"),
@@ -768,6 +871,20 @@ private fun ReplyBoxPreview() {
                 ),
                 onCancel = {},
                 modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun CommandSuggestionItemPreview() {
+    DysnomiaTheme {
+        Surface {
+            CommandSuggestionItem(
+                command = "help",
+                result = "Provides some very very very very very useful help",
+                onClick = {}
             )
         }
     }

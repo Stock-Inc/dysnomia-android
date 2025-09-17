@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.data.PreferencesRepository
+import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
@@ -42,7 +43,8 @@ enum class ConnectionState {
 data class ChatUiState(
     val connectionState: ConnectionState = ConnectionState.Success,
     val isCommandPending: Boolean = false,
-    val repliedMessage: RepliedMessage? = null
+    val repliedMessage: RepliedMessage? = null,
+    val commandSuggestionList: List<CommandSuggestion> = emptyList()
 )
 
 @HiltViewModel
@@ -70,6 +72,7 @@ class ChatViewModel @Inject constructor(
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     init {
+        getCommandSuggestions()
         observeWebsocketLifecycle()
         networkRepository.connect()
     }
@@ -258,6 +261,23 @@ class ChatViewModel @Inject constructor(
                 }
             }
         }
+
+    private fun getCommandSuggestions() {
+        viewModelScope.launch {
+            try {
+                val commandSuggestions = networkRepository.getCommandSuggestions()
+                _chatUiState.update {
+                    it.copy(
+                        commandSuggestionList = commandSuggestions
+                    )
+                }
+            } catch (e: IOException) {
+                Timber.e(e)
+            } catch (e: HttpException) {
+                Timber.e(e)
+            }
+        }
+    }
 
     fun replyTo(messageEntity: MessageEntity) {
         _chatUiState.update {

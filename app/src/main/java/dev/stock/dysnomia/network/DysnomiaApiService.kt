@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.network
 
 import dev.stock.dysnomia.model.AuthResponse
+import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
@@ -15,6 +16,9 @@ interface DysnomiaApiService {
     suspend fun sendCommand(
         @Query("command") command: String
     ): String
+
+    @GET("allCommands")
+    suspend fun getCommandSuggestions(): List<CommandSuggestion>
 
     @POST("auth/sign-up")
     suspend fun signUp(
