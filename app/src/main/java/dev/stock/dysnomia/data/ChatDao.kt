@@ -25,4 +25,7 @@ interface ChatDao {
 
     @Update
     suspend fun updateMessage(messageEntity: MessageEntity)
+
+    @Query("DELETE FROM chat_history WHERE delivery_status = 'PENDING'")
+    suspend fun deletePendingMessages()
 }

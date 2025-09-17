@@ -10,6 +10,7 @@ interface DataRepository {
     fun getAllHistory(): Flow<List<MessageEntity>>
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
     suspend fun setDelivered(messageEntity: MessageEntity)
+    suspend fun deletePendingMessages()
 }
 
 @Singleton
@@ -34,4 +35,7 @@ class OfflineRepository @Inject constructor(
                 )
             )
         )
+
+    override suspend fun deletePendingMessages() =
+        chatDao.deletePendingMessages()
 }

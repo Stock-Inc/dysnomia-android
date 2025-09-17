@@ -23,7 +23,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providesConsoleDao(@ApplicationContext context: Context): ChatDao {
+    fun providesChatDao(@ApplicationContext context: Context): ChatDao {
         return providesDatabase(context).chatDao()
     }
 }

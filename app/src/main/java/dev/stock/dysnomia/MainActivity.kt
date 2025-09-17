@@ -10,15 +10,22 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.AndroidEntryPoint
+import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import kotlinx.coroutines.launch
 import timber.log.Timber.DebugTree
 import timber.log.Timber.Forest.plant
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var offlineRepository: OfflineRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -28,6 +35,10 @@ class MainActivity : ComponentActivity() {
         }
 
         enableEdgeToEdge()
+
+        lifecycleScope.launch {
+            offlineRepository.deletePendingMessages()
+        }
 
         val requestPermissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission(),
