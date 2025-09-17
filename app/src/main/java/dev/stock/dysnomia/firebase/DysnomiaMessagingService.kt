@@ -15,6 +15,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dev.stock.dysnomia.MainActivity
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.isDarkThemeOn
 import timber.log.Timber
 
@@ -28,7 +29,7 @@ class DysnomiaMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         var title = remoteMessage.data.getOrElse("title") { "Dysnomia" }
         if (title == "") {
-            title = "Anonymous"
+            title = ANONYMOUS
         }
         val body = remoteMessage.data.getOrElse("body") { "" }
 

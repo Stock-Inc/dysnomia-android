@@ -17,6 +17,7 @@ import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.model.toRepliedMessage
+import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import io.reactivex.disposables.CompositeDisposable
 import kotlinx.coroutines.Job
@@ -284,7 +285,7 @@ class ChatViewModel @Inject constructor(
             it.copy(
                 repliedMessage = RepliedMessage(
                     id = messageEntity.messageId!!,
-                    name = messageEntity.name.ifEmpty { "Anonymous" }, // TODO: Set constant for anon
+                    name = messageEntity.name.ifEmpty { ANONYMOUS },
                     message = messageEntity.message
                 )
             )
