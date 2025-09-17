@@ -18,7 +18,8 @@ class PreferencesRepository(
 ) {
     private companion object {
         val NAME = stringPreferencesKey("name")
-        val TOKEN = stringPreferencesKey("token")
+        val ACCESS_TOKEN = stringPreferencesKey("access_token")
+        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
     }
 
     val name: Flow<String> = dataStore.data
@@ -34,7 +35,7 @@ class PreferencesRepository(
             preferences[NAME] ?: ""
         }
 
-    val token: Flow<String> = dataStore.data
+    val accessToken: Flow<String> = dataStore.data
         .catch {
             if (it is IOException) {
                 Timber.e(it, "Error reading user preferences.")
@@ -44,20 +45,35 @@ class PreferencesRepository(
             }
         }
         .map { preferences ->
-            preferences[TOKEN] ?: ""
+            preferences[ACCESS_TOKEN] ?: ""
         }
 
-    suspend fun saveAccount(name: String, token: String) {
+    val refreshToken: Flow<String> = dataStore.data
+        .catch {
+            if (it is IOException) {
+                Timber.e(it, "Error reading user preferences.")
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[REFRESH_TOKEN] ?: ""
+        }
+
+    suspend fun saveAccount(name: String, accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
             preferences[NAME] = name
-            preferences[TOKEN] = token
+            preferences[ACCESS_TOKEN] = accessToken
+            preferences[REFRESH_TOKEN] = refreshToken
         }
     }
 
     suspend fun clearAccount() {
         dataStore.edit { preferences ->
             preferences.remove(NAME)
-            preferences.remove(TOKEN)
+            preferences.remove(ACCESS_TOKEN)
+            preferences.remove(REFRESH_TOKEN)
         }
     }
 }

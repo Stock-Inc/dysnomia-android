@@ -548,7 +548,7 @@ fun ChatScreen(
                     .forEach {
                         CommandSuggestionItem(
                             command = it.command,
-                            result = it.result,
+                            result = it.description ?: "",
                             onClick = { onSendCommand("/${it.command}") }
                         )
                     }
@@ -640,11 +640,11 @@ private fun ChatScreenLightPreview() {
                     commandSuggestionList = listOf(
                         CommandSuggestion(
                             command = "help",
-                            result = "some help"
+                            description = "some help"
                         ),
                         CommandSuggestion(
                             command = "help",
-                            result = "some help"
+                            description = "some help"
                         ),
                     )
                 ),
@@ -677,11 +677,11 @@ private fun ChatScreenDarkPreview() {
                     commandSuggestionList = listOf(
                         CommandSuggestion(
                             command = "help",
-                            result = "some help"
+                            description = "some help"
                         ),
                         CommandSuggestion(
                             command = "help",
-                            result = "some help"
+                            description = "some help"
                         ),
                     )
                 ),

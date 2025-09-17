@@ -3,6 +3,7 @@ package dev.stock.dysnomia.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AuthResponse(
-    val token: String
+data class SignInResponse(
+    val accessToken: String,
+    val refreshToken: String
 )

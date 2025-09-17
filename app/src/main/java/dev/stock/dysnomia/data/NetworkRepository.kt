@@ -1,10 +1,10 @@
 package dev.stock.dysnomia.data
 
-import dev.stock.dysnomia.model.AuthResponse
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignInResponse
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.network.DysnomiaApiService
 import dev.stock.dysnomia.utils.CHAT_APP
@@ -24,8 +24,8 @@ import javax.inject.Singleton
 interface Repository {
     suspend fun sendCommand(command: String): String
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
-    suspend fun signIn(signInBody: SignInBody): AuthResponse
-    suspend fun signUp(signUpBody: SignUpBody): AuthResponse
+    suspend fun signIn(signInBody: SignInBody): SignInResponse
+    suspend fun signUp(signUpBody: SignUpBody): String
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
     fun observeLifecycle(): Flowable<LifecycleEvent>
     fun observeMessages(): Flowable<MessageEntity>
@@ -49,10 +49,10 @@ class NetworkRepository @Inject constructor(
     override suspend fun getCommandSuggestions(): List<CommandSuggestion> =
         dysnomiaApiService.getCommandSuggestions()
 
-    override suspend fun signIn(signInBody: SignInBody): AuthResponse =
+    override suspend fun signIn(signInBody: SignInBody): SignInResponse =
         dysnomiaApiService.signIn(signInBody)
 
-    override suspend fun signUp(signUpBody: SignUpBody): AuthResponse =
+    override suspend fun signUp(signUpBody: SignUpBody): String =
         dysnomiaApiService.signUp(signUpBody)
 
     override suspend fun getMessageByMessageId(messageId: Int): MessageEntity =

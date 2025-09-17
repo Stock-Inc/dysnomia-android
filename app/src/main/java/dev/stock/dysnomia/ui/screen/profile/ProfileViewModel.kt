@@ -55,23 +55,25 @@ class ProfileViewModel @Inject constructor(
             viewModelScope.launch {
                 uiState = ProfileUiState.AuthInProgress
                 try {
+                    val signInResult = networkRepository.signIn(
+                        SignInBody(
+                            username = signInBody.username.trim(),
+                            password = signInBody.password.trim()
+                        )
+                    )
+
                     userPreferencesRepository.saveAccount(
                         name = signInBody.username.trim(),
-                        token = networkRepository.signIn(
-                            SignInBody(
-                                username = signInBody.username.trim(),
-                                password = signInBody.password.trim()
-                            )
-                        ).token
+                        accessToken = signInResult.accessToken,
+                        refreshToken = signInResult.refreshToken
                     )
 
                     password = TextFieldValue()
                 } catch (e: HttpException) {
                     uiState = ProfileUiState.Error(
                         when (e.code()) {
-                            403 -> "Incorrect username or password"
-                            400 -> "Invalid username or password"
-                            500 -> "This user already exists"
+                            401 -> "Incorrect username or password"
+                            500 -> "Error, check your credentials and try again"
                             else -> e.toString()
                         }
                     )
@@ -93,24 +95,24 @@ class ProfileViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     uiState = ProfileUiState.AuthInProgress
-                    userPreferencesRepository.saveAccount(
-                        name = signUpBody.username.trim(),
-                        token = networkRepository.signUp(
-                            SignUpBody(
-                                username = signUpBody.username.trim(),
-                                email = signUpBody.email.trim(),
-                                password = signUpBody.password.trim()
-                            )
-                        ).token
+                    networkRepository.signUp(
+                        SignUpBody(
+                            username = signUpBody.username.trim(),
+                            password = signUpBody.password.trim()
+                        )
                     )
 
-                    password = TextFieldValue()
+                    signIn(
+                        SignInBody(
+                            username = signUpBody.username.trim(),
+                            password = signUpBody.password.trim()
+                        )
+                    )
                 } catch (e: HttpException) {
                     uiState = ProfileUiState.Error(
                         when (e.code()) {
-                            403 -> "Incorrect username or password"
-                            400 -> "Invalid username or password"
-                            500 -> "This user already exists"
+                            401 -> "Incorrect username or password"
+                            500 -> "Error, check your credentials and try again"
                             else -> e.toString()
                         }
                     )

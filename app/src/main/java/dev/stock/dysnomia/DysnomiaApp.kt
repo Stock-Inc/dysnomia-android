@@ -151,7 +151,6 @@ fun DysnomiaApp(
                                 profileViewModel.signUp(
                                     SignUpBody(
                                         username = username.text,
-                                        email = "${username.text.trim()}@femboymatrix.su",
                                         password = password.text
                                     )
                                 )

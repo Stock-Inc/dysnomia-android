@@ -1,9 +1,9 @@
 package dev.stock.dysnomia.network
 
-import dev.stock.dysnomia.model.AuthResponse
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignInResponse
 import dev.stock.dysnomia.model.SignUpBody
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -20,15 +20,15 @@ interface DysnomiaApiService {
     @GET("allCommands")
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
 
-    @POST("auth/sign-up")
+    @POST("registration")
     suspend fun signUp(
         @Body signUpBody: SignUpBody
-    ): AuthResponse
+    ): String
 
-    @POST("auth/sign-in")
+    @POST("login")
     suspend fun signIn(
         @Body signInBody: SignInBody
-    ): AuthResponse
+    ): SignInResponse
 
     @GET("message/{messageId}")
     suspend fun getMessageByMessageId(
