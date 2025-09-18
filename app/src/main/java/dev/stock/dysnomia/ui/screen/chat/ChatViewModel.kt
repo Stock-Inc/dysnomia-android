@@ -239,7 +239,7 @@ class ChatViewModel @Inject constructor(
         MutableStateFlow(
             RepliedMessage(
                 id = messageId,
-                name = "Someone",
+                name = ANONYMOUS,
                 message = "Loading reply...",
             )
         ).also { flow ->

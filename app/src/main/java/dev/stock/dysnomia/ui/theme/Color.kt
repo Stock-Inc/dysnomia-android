@@ -3,7 +3,8 @@ import androidx.compose.ui.graphics.Color
 
 val MysteriousPurple = Color(0xFF6B0772)
 val DysnomiaPink = Color(0xFFE799AE)
-val DysnomiaDarkPink = Color(0xff271c1c)
+val DysnomiaDarkPink = Color(0xFF271C1C)
+val DarkerPrimary = Color(0xFFF2A1B6)
 
 val primaryLight = Color(0xFF8C4A5E)
 val onPrimaryLight = Color(0xFFFFFFFF)

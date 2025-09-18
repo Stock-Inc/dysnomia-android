@@ -96,6 +96,7 @@ import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
+import dev.stock.dysnomia.ui.theme.DarkerPrimary
 import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
@@ -184,10 +185,7 @@ fun MessageItem(
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
             border = CardDefaults.outlinedCardBorder(true)
         ) {
-            Column(
-                horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
-                modifier = Modifier.padding(8.dp)
-            ) {
+            Column(modifier = Modifier.padding(8.dp)) {
                 repliedMessage?.let {
                     MessageReplyBox(
                         isUserMe = isUserMe,
@@ -197,7 +195,13 @@ fun MessageItem(
 
                 Text(
                     text = messageEntity.message,
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink
+                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
+                    modifier = Modifier
+                        .padding(
+                            top = 4.dp,
+                            start = 4.dp,
+                            end = 4.dp
+                        )
                 )
                 Text(
                     text = getLocalTime(messageEntity.date, context),
@@ -308,7 +312,7 @@ fun MessageReplyBox(
         isUserMe = isUserMe,
         modifier = modifier.height(64.dp)
     ) {
-        Column {
+        Column(modifier = Modifier.padding(end = 8.dp)) {
             Text(
                 text = stringResource(R.string.reply_to, repliedMessage.name.ifEmpty { ANONYMOUS }),
                 fontWeight = FontWeight.Bold,
@@ -334,8 +338,12 @@ fun LabeledBarRow(
     content: @Composable RowScope.() -> Unit
 ) {
     Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                if (isUserMe) DarkerPrimary else Color.Unspecified
+            )
     ) {
         Box(
             Modifier
