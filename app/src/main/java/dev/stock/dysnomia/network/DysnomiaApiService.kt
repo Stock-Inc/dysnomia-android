@@ -4,7 +4,6 @@ import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignInResponse
-import dev.stock.dysnomia.model.SignUpBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -17,13 +16,8 @@ interface DysnomiaApiService {
         @Query("command") command: String
     ): String
 
-    @GET("allCommands")
+    @GET("all_commands")
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
-
-    @POST("registration")
-    suspend fun signUp(
-        @Body signUpBody: SignUpBody
-    ): String
 
     @POST("login")
     suspend fun signIn(

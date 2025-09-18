@@ -18,7 +18,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.stock.dysnomia.model.SignInBody
-import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
@@ -148,8 +147,8 @@ fun DysnomiaApp(
                                 )
                             },
                             onRegisterClick = {
-                                profileViewModel.signUp(
-                                    SignUpBody(
+                                profileViewModel.signIn(
+                                    SignInBody(
                                         username = username.text,
                                         password = password.text
                                     )
