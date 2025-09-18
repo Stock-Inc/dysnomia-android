@@ -235,8 +235,14 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun getMessageStateFlowByMessageId(messageId: Int): MutableStateFlow<RepliedMessage?> =
-        MutableStateFlow<RepliedMessage?>(null).also { flow ->
+    fun getMessageStateFlowByMessageId(messageId: Int): MutableStateFlow<RepliedMessage> =
+        MutableStateFlow(
+            RepliedMessage(
+                id = messageId,
+                name = "Someone",
+                message = "Loading reply...",
+            )
+        ).also { flow ->
             viewModelScope.launch {
                 val offlineMessage = offlineRepository.getMessageByMessageId(messageId)
                 if (offlineMessage != null) {
@@ -249,14 +255,14 @@ class ChatViewModel @Inject constructor(
                 } catch (e: IOException) {
                     Timber.e(e)
                     flow.value = RepliedMessage(
-                        id = 0,
+                        id = messageId,
                         name = "Error",
                         message = "Unable to load reply"
                     )
                 } catch (e: HttpException) {
                     Timber.e(e)
                     flow.value = RepliedMessage(
-                        id = 0,
+                        id = messageId,
                         name = "Error",
                         message = "Unable to load reply"
                     )

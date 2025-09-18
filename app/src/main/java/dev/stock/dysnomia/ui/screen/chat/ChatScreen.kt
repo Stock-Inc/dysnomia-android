@@ -221,7 +221,7 @@ fun MessageItemWithReply(
     isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val repliedMessage = getRepliedMessageStateFlow(messageEntity.replyId).collectAsState(null).value
+    val repliedMessage = getRepliedMessageStateFlow(messageEntity.replyId).collectAsState().value
 
     MessageItem(
         messageEntity = messageEntity,
@@ -310,7 +310,7 @@ fun MessageReplyBox(
     ) {
         Column {
             Text(
-                text = stringResource(R.string.reply_to, repliedMessage.name),
+                text = stringResource(R.string.reply_to, repliedMessage.name.ifEmpty { ANONYMOUS }),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -395,7 +395,7 @@ fun ChatScreen(
     onSendCommand: (String?) -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
-    getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage?>,
+    getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage>,
     modifier: Modifier = Modifier
 ) {
     val chatListState = rememberLazyListState()
@@ -655,7 +655,7 @@ private fun ChatScreenLightPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
-                getRepliedMessageStateFlow = { MutableStateFlow(null) }
+                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
             )
         }
     }
@@ -692,7 +692,7 @@ private fun ChatScreenDarkPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
-                getRepliedMessageStateFlow = { MutableStateFlow(null) }
+                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
             )
         }
     }
