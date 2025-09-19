@@ -25,7 +25,7 @@ fun DysnomiaBottomNavigationBar(
         NavigationItemContent(
             screenType = DysnomiaApp.Home,
             icon = ImageVector.vectorResource(R.drawable.home),
-            text = R.string.land
+            text = R.string.home
         ),
         NavigationItemContent(
             screenType = DysnomiaApp.Chat,

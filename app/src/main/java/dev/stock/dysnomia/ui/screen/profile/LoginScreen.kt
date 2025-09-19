@@ -37,8 +37,8 @@ fun LoginScreen(
     password: TextFieldValue,
     onNameChange: (TextFieldValue) -> Unit,
     onPasswordChange: (TextFieldValue) -> Unit,
-    onLoginClick: () -> Unit,
-    onRegisterClick: () -> Unit,
+    onSignInClick: () -> Unit,
+    onSignUpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -74,7 +74,7 @@ fun LoginScreen(
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
-                onDone = { onLoginClick() }
+                onDone = { onSignInClick() }
             ),
             modifier = Modifier.padding(
                 start = 16.dp,
@@ -89,14 +89,14 @@ fun LoginScreen(
         ) {
             DysnomiaButton(
                 text = stringResource(R.string.sign_in),
-                onClick = onLoginClick,
+                onClick = onSignInClick,
                 modifier = Modifier.weight(1.0f)
             )
             Spacer(Modifier.width(32.dp))
             DysnomiaButton(
-                text = stringResource(R.string.take_pink_pill),
+                text = stringResource(R.string.sign_up),
                 isOutlined = true,
-                onClick = onRegisterClick,
+                onClick = onSignUpClick,
                 modifier = Modifier.weight(1.0f)
             )
         }
@@ -113,8 +113,8 @@ private fun LoginScreenLightPreview() {
                 password = TextFieldValue("password"),
                 onNameChange = {},
                 onPasswordChange = {},
-                onLoginClick = {},
-                onRegisterClick = {}
+                onSignInClick = {},
+                onSignUpClick = {}
             )
         }
     }
@@ -130,8 +130,8 @@ private fun LoginScreenDarkPreview() {
                 password = TextFieldValue("password"),
                 onNameChange = {},
                 onPasswordChange = {},
-                onLoginClick = {},
-                onRegisterClick = {}
+                onSignInClick = {},
+                onSignUpClick = {}
             )
         }
     }

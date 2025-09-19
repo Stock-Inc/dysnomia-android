@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.PreferencesRepository
 import dev.stock.dysnomia.model.SignInBody
+import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -65,6 +66,46 @@ class ProfileViewModel @Inject constructor(
                         name = signInBody.username.trim(),
                         accessToken = signInResult.accessToken,
                         refreshToken = signInResult.refreshToken
+                    )
+
+                    password = TextFieldValue()
+                } catch (e: HttpException) {
+                    uiState = ProfileUiState.Error(
+                        when (e.code()) {
+                            401 -> "Incorrect username or password"
+                            500 -> "Error, check your credentials and try again"
+                            else -> e.toString()
+                        }
+                    )
+                } catch (e: IOException) {
+                    uiState = ProfileUiState.Error(
+                        if (e.toString().startsWith("java.net.UnknownHostException")) {
+                            "No connection with the server (╥﹏╥)"
+                        } else {
+                            e.toString()
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    fun signUp(signUpBody: SignUpBody) {
+        if (signUpBody.username.trim().isNotEmpty() && signUpBody.password.trim().isNotEmpty()) {
+            viewModelScope.launch {
+                uiState = ProfileUiState.AuthInProgress
+                try {
+                    val signUpResult = networkRepository.signUp(
+                        SignUpBody(
+                            username = signUpBody.username.trim(),
+                            password = signUpBody.password.trim()
+                        )
+                    )
+
+                    userPreferencesRepository.saveAccount(
+                        name = signUpBody.username.trim(),
+                        accessToken = signUpResult.accessToken,
+                        refreshToken = signUpResult.refreshToken
                     )
 
                     password = TextFieldValue()

@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
 import okio.IOException
 import retrofit2.HttpException
 import timber.log.Timber
@@ -73,9 +74,9 @@ class ChatViewModel @Inject constructor(
     private val compositeDisposable: CompositeDisposable = CompositeDisposable()
 
     init {
-        getCommandSuggestions()
         observeWebsocketLifecycle()
         networkRepository.connect()
+        getCommandSuggestions()
     }
 
     private fun reconnectWithBackoff(
@@ -247,11 +248,13 @@ class ChatViewModel @Inject constructor(
                 val offlineMessage = offlineRepository.getMessageByMessageId(messageId)
                 if (offlineMessage != null) {
                     flow.value = offlineMessage.toRepliedMessage()
+                    return@launch
                 }
 
                 try {
                     val networkMessage = networkRepository.getMessageByMessageId(messageId)
                     flow.value = networkMessage.toRepliedMessage()
+                    offlineRepository.addToHistory(networkMessage)
                 } catch (e: IOException) {
                     Timber.e(e)
                     flow.value = RepliedMessage(
@@ -260,6 +263,13 @@ class ChatViewModel @Inject constructor(
                         message = "Unable to load reply"
                     )
                 } catch (e: HttpException) {
+                    Timber.e(e)
+                    flow.value = RepliedMessage(
+                        id = messageId,
+                        name = "Error",
+                        message = "Unable to load reply"
+                    )
+                } catch (e: SerializationException) {
                     Timber.e(e)
                     flow.value = RepliedMessage(
                         id = messageId,
