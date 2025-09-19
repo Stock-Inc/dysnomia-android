@@ -317,12 +317,14 @@ fun MessageReplyBox(
                 text = stringResource(R.string.reply_to, repliedMessage.name.ifEmpty { ANONYMOUS }),
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = if (isUserMe) Color.Unspecified else MaterialTheme.colorScheme.primary
             )
             Text(
                 text = repliedMessage.message,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = if (isUserMe) Color.Unspecified else MaterialTheme.colorScheme.primary
             )
         }
     }
