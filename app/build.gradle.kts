@@ -28,8 +28,8 @@ android {
         applicationId = "dev.stock.dysnomia"
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.0.2a"
+        versionCode = 5
+        versionName = "1.0.3"
     }
 
     buildTypes {
