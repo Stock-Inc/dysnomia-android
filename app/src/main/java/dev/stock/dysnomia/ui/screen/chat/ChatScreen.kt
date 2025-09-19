@@ -544,7 +544,7 @@ fun ChatScreen(
 
         Box {
             DropdownMenu(
-                expanded = filteredSuggestions.isNotEmpty(),
+                expanded = filteredSuggestions.isNotEmpty() && !chatUiState.isCommandPending,
                 onDismissRequest = { },
                 properties = PopupProperties(
                     focusable = false,
