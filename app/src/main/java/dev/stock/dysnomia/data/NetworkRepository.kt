@@ -1,5 +1,6 @@
 package dev.stock.dysnomia.data
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
@@ -12,37 +13,155 @@ import dev.stock.dysnomia.utils.CHAT_APP
 import dev.stock.dysnomia.utils.HISTORY_APP
 import dev.stock.dysnomia.utils.HISTORY_TOPIC
 import dev.stock.dysnomia.utils.MESSAGE_TOPIC
-import io.reactivex.Completable
-import io.reactivex.Flowable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import dev.stock.dysnomia.utils.WEBSOCKETS_BASE_URL
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flatMapMerge
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.retry
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
-import ua.naiksoftware.stomp.StompClient
-import ua.naiksoftware.stomp.dto.LifecycleEvent
+import org.hildan.krossbow.stomp.ConnectionException
+import org.hildan.krossbow.stomp.ConnectionTimeout
+import org.hildan.krossbow.stomp.LostReceiptException
+import org.hildan.krossbow.stomp.StompClient
+import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
+import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
+import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
+import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
+import org.hildan.krossbow.stomp.sendEmptyMsg
+import org.hildan.krossbow.websocket.WebSocketConnectionException
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-interface Repository {
+interface NetworkRepository {
+    suspend fun connect()
+    suspend fun disconnect()
+    suspend fun requestHistory()
+    suspend fun sendMessage(messageBody: MessageBody)
     suspend fun sendCommand(command: String): String
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
     suspend fun signIn(signInBody: SignInBody): SignInResponse
     suspend fun signUp(signUpBody: SignUpBody): SignUpResponse
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
-    fun observeLifecycle(): Flowable<LifecycleEvent>
-    fun observeMessages(): Flowable<MessageEntity>
-    fun observeHistory(): Flowable<List<MessageEntity>>
-    fun requestHistory(): Completable
-    fun sendMessage(messageBody: MessageBody): Completable
-    fun connect()
-    fun closeConnection()
+    val connectionState: StateFlow<ConnectionState>
+    val messages: Flow<MessageEntity>
 }
 
+sealed class ConnectionState {
+    data object Disconnected : ConnectionState()
+    data object Connecting : ConnectionState()
+    data object Connected : ConnectionState()
+    data class Error(val error: Throwable) : ConnectionState()
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
-class NetworkRepository @Inject constructor(
+class NetworkRepositoryImpl @Inject constructor(
     private val dysnomiaApiService: DysnomiaApiService,
     private val dysnomiaStompClient: StompClient,
-) : Repository {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json: Json
+) : NetworkRepository {
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
+
+    private val _sessionState = MutableStateFlow<StompSessionWithKxSerialization?>(null)
+    private val sessionState: StateFlow<StompSessionWithKxSerialization?> = _sessionState.asStateFlow()
+
+    override val messages: Flow<MessageEntity> = sessionState
+        .filterNotNull()
+        .flatMapLatest { session ->
+            merge(
+                session.subscribe(
+                    destination = MESSAGE_TOPIC,
+                    deserializer = MessageEntity.serializer()
+                ),
+                session.subscribe(
+                    destination = HISTORY_TOPIC,
+                    deserializer = ListSerializer(MessageEntity.serializer())
+                ).flatMapMerge { it.asFlow() }
+            )
+        }
+        .retry { error ->
+            FirebaseCrashlytics.getInstance().recordException(error)
+            Timber.e(error)
+            _connectionState.value = ConnectionState.Error(error)
+            true
+        }
+
+    override suspend fun connect() {
+        try {
+            _connectionState.value = ConnectionState.Connecting
+
+            disconnect()
+
+            val newSession = dysnomiaStompClient
+                .connect(WEBSOCKETS_BASE_URL)
+                .withJsonConversions(json)
+
+            _sessionState.value = newSession
+            _connectionState.value = ConnectionState.Connected
+        } catch (e: ConnectionTimeout) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Timber.e(e)
+            _connectionState.value = ConnectionState.Error(e)
+            _sessionState.value = null
+        } catch (e: ConnectionException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Timber.e(e)
+            _connectionState.value = ConnectionState.Error(e)
+            _sessionState.value = null
+        } catch (e: WebSocketConnectionException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Timber.e(e)
+            _connectionState.value = ConnectionState.Error(e)
+            _sessionState.value = null
+        }
+    }
+
+    override suspend fun disconnect() {
+        _sessionState.value?.disconnect()
+        _sessionState.value = null
+    }
+
+    override suspend fun sendMessage(messageBody: MessageBody) {
+        val session = _sessionState.value
+        if (session != null && _connectionState.value == ConnectionState.Connected) {
+            try {
+                session.convertAndSend(
+                    CHAT_APP,
+                    messageBody,
+                    MessageBody.serializer()
+                )
+            } catch (e: LostReceiptException) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                Timber.e(e)
+                _connectionState.value = ConnectionState.Error(e)
+            }
+        } else {
+            Timber.e("Not connected to server")
+        }
+    }
+
+    override suspend fun requestHistory() {
+        val session = _sessionState.value
+        if (session != null && _connectionState.value == ConnectionState.Connected) {
+            try {
+                session.sendEmptyMsg(HISTORY_APP)
+            } catch (e: LostReceiptException) {
+                _connectionState.value = ConnectionState.Error(e)
+            }
+        } else {
+            Timber.e("Not connected to server")
+        }
+    }
 
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
@@ -58,48 +177,4 @@ class NetworkRepository @Inject constructor(
 
     override suspend fun getMessageByMessageId(messageId: Int): MessageEntity =
         dysnomiaApiService.getMessageByMessageId(messageId)
-
-    override fun observeLifecycle(): Flowable<LifecycleEvent> =
-        dysnomiaStompClient.lifecycle()
-            .subscribeOn(Schedulers.io(), false)
-            .observeOn(AndroidSchedulers.mainThread())
-
-    override fun observeHistory(): Flowable<List<MessageEntity>> {
-        return dysnomiaStompClient.topic(HISTORY_TOPIC)
-            .subscribeOn(Schedulers.io(), false)
-            .observeOn(Schedulers.computation())
-            .map { listMessageJson ->
-                json.decodeFromString<List<MessageEntity>>(listMessageJson.payload)
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-    }
-
-    override fun observeMessages(): Flowable<MessageEntity> =
-        dysnomiaStompClient.topic(MESSAGE_TOPIC)
-            .subscribeOn(Schedulers.io(), false)
-            .observeOn(Schedulers.computation())
-            .map { messageJson ->
-                json.decodeFromString<MessageEntity>(messageJson.payload)
-            }
-            .observeOn(AndroidSchedulers.mainThread())
-
-    override fun sendMessage(messageBody: MessageBody): Completable =
-        dysnomiaStompClient
-            .send(CHAT_APP, json.encodeToString(messageBody))
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-
-    override fun requestHistory(): Completable =
-        dysnomiaStompClient
-            .send(HISTORY_APP, null)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-
-    override fun connect() {
-        dysnomiaStompClient.connect()
-    }
-
-    override fun closeConnection() {
-        dysnomiaStompClient.disconnect()
-    }
 }

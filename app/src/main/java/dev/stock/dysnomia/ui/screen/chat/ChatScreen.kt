@@ -225,7 +225,7 @@ fun MessageItemWithReply(
     isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val repliedMessageFlow = remember(messageEntity.replyId) {
+    val repliedMessageFlow = remember {
         getRepliedMessageStateFlow(messageEntity.replyId)
     }
     val repliedMessage = repliedMessageFlow.collectAsState().value
@@ -281,7 +281,7 @@ fun ReplyBox(
         Column(modifier = Modifier.weight(1.0f)) {
             repliedMessage?.let {
                 Text(
-                    text = stringResource(R.string.reply_to, repliedMessage.name),
+                    text = repliedMessage.name,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     color = MaterialTheme.colorScheme.primary,
@@ -317,7 +317,7 @@ fun MessageReplyBox(
     ) {
         Column(modifier = Modifier.padding(end = 8.dp)) {
             Text(
-                text = stringResource(R.string.reply_to, repliedMessage.name.ifEmpty { ANONYMOUS }),
+                text = repliedMessage.name.ifEmpty { ANONYMOUS },
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -327,7 +327,7 @@ fun MessageReplyBox(
                 text = repliedMessage.message,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (isUserMe) Color.Unspecified else MaterialTheme.colorScheme.primary
+                color = if (isUserMe) Color.Unspecified else Color.White
             )
         }
     }
@@ -392,7 +392,8 @@ fun CommandSuggestionItem(
         Text(
             text = result,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.alpha(0.75f)
         )
     }
 }
@@ -555,6 +556,7 @@ fun ChatScreen(
                     focusable = false,
                     dismissOnClickOutside = false
                 ),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 filteredSuggestions

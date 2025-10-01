@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-interface DataRepository {
+interface OfflineRepository {
     suspend fun addToHistory(messageEntity: MessageEntity)
     fun getAllHistory(): Flow<List<MessageEntity>>
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
@@ -14,9 +14,9 @@ interface DataRepository {
 }
 
 @Singleton
-class OfflineRepository @Inject constructor(
+class OfflineRepositoryImpl @Inject constructor(
     private val chatDao: ChatDao
-) : DataRepository {
+) : OfflineRepository {
     override suspend fun addToHistory(messageEntity: MessageEntity) =
         chatDao.addToHistory(messageEntity)
 

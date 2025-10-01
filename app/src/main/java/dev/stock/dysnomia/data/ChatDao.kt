@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.data
 
 import androidx.room.Dao
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
@@ -23,7 +24,7 @@ interface ChatDao {
     @Query("SELECT * FROM chat_history WHERE message_id = :messageId LIMIT 1")
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
 
-    @Update
+    @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateMessage(messageEntity: MessageEntity)
 
     @Query("DELETE FROM chat_history WHERE delivery_status = 'PENDING'")

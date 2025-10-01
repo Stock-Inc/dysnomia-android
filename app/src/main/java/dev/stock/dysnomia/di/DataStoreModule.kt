@@ -9,17 +9,16 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import dev.stock.dysnomia.data.PreferencesRepository
 import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Module
 @InstallIn(SingletonComponent::class)
-object PreferencesModule {
+object DataStoreModule {
     @Provides
     @Singleton
-    fun providesRepository(@ApplicationContext context: Context): PreferencesRepository {
-        return PreferencesRepository(context.dataStore)
-    }
+    fun providePreferencesDataStore(
+        @ApplicationContext context: Context
+    ): DataStore<Preferences> = context.dataStore
 }
