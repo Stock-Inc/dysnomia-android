@@ -114,4 +114,7 @@ dependencies {
     // Krossbow
     implementation(libs.krossbow.websocket.okhttp)
     implementation(libs.krossbow.stomp.kxserialization.json)
+
+    // LeakCanary
+    debugImplementation(libs.leakcanary.android)
 }
