@@ -7,15 +7,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
-    alias(libs.plugins.detekt)
     alias(libs.plugins.google.services)
     alias(libs.plugins.firebase.crashlytics)
-}
-
-detekt {
-    toolVersion = "1.23.8"
-    config.setFrom(file("../config/detekt/detekt.yml"))
-    parallel = true
 }
 
 ksp {
@@ -102,9 +95,6 @@ dependencies {
     // Room
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
-
-    // Detekt
-    detektPlugins(libs.detekt.formatting)
 
     // DataStore
     implementation(libs.androidx.datastore.preferences)

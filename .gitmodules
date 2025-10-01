@@ -1,3 +1,0 @@
-[submodule "config/detekt"]
-	path = config/detekt
-	url = https://gist.github.com/c831acf07e222f937e6c2f9cada5c5b6.git
