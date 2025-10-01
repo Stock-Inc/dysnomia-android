@@ -117,4 +117,8 @@ dependencies {
 
     // LeakCanary
     debugImplementation(libs.leakcanary.android)
+
+    // Chucker
+    debugImplementation(libs.chucker.library)
+    releaseImplementation(libs.chucker.library.no.op)
 }
