@@ -225,7 +225,7 @@ fun MessageItemWithReply(
     isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val repliedMessageFlow = remember(messageEntity.replyId) {
+    val repliedMessageFlow = remember {
         getRepliedMessageStateFlow(messageEntity.replyId)
     }
     val repliedMessage = repliedMessageFlow.collectAsState().value

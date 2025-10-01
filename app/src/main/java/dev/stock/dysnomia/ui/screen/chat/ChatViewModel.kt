@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.stock.dysnomia.data.ConnectionState
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.data.PreferencesRepository
@@ -19,14 +20,16 @@ import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.model.toRepliedMessage
 import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
-import io.reactivex.disposables.CompositeDisposable
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,16 +37,11 @@ import kotlinx.serialization.SerializationException
 import okio.IOException
 import retrofit2.HttpException
 import timber.log.Timber
-import ua.naiksoftware.stomp.dto.LifecycleEvent
 import javax.inject.Inject
 import kotlin.math.pow
 
-enum class ConnectionState {
-    Success, Connecting
-}
-
 data class ChatUiState(
-    val connectionState: ConnectionState = ConnectionState.Success,
+    val connectionState: ConnectionState = ConnectionState.Connecting,
     val isCommandPending: Boolean = false,
     val repliedMessage: RepliedMessage? = null,
     val commandSuggestionList: List<CommandSuggestion> = emptyList()
@@ -68,118 +66,79 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
         )
 
-    private val currentName: Flow<String> = preferencesRepository.name
-
-    private var reconnectionJob: Job? = null
-    private val compositeDisposable: CompositeDisposable = CompositeDisposable()
+    private val username: MutableStateFlow<String> = MutableStateFlow("")
 
     init {
-        observeWebsocketLifecycle()
-        networkRepository.connect()
+        observeUsername()
+        observeConnectionState()
+        observeIncomingMessages()
         getCommandSuggestions()
     }
 
-    private fun reconnectWithBackoff(
-        maxDelay: Double = 8000.0,
-        maxRetries: Int = Int.MAX_VALUE
-    ) {
-        reconnectionJob?.cancel()
-        reconnectionJob = viewModelScope.launch {
-            repeat(maxRetries) { attempt ->
-                val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
-                delay(delayMillis)
-                Timber.w("Reconnect attempt $attempt after $delayMillis ms")
-                if (attempt > 2) setConnectionState(ConnectionState.Connecting)
-                networkRepository.connect()
-            }
+    private fun observeUsername() {
+        viewModelScope.launch {
+            preferencesRepository.name
+                .collect { name ->
+                    username.value = name
+                }
         }
     }
 
-    private fun observeWebsocketLifecycle() {
-        compositeDisposable.add(
-            networkRepository.observeLifecycle().subscribe(
-                { lifecycleEvent ->
-                    when (lifecycleEvent.type!!) {
-                        LifecycleEvent.Type.OPENED -> {
-                            reconnectionJob?.cancel()
-                            Timber.d("Connection opened")
-                            setConnectionState(ConnectionState.Success)
-
-                            subscribeToTopics()
-                            compositeDisposable.add(
-                                networkRepository.requestHistory()
-                                    .subscribe(
-                                        {},
-                                        { e ->
-                                            websocketErrorHandler(e)
-                                        }
-                                    )
-                            )
-                        }
-
-                        LifecycleEvent.Type.CLOSED -> {
-                            if (reconnectionJob?.isActive != true) {
-                                reconnectWithBackoff()
-                            }
-                        }
-
-                        LifecycleEvent.Type.ERROR -> {
-                            Timber.e("Connection error")
-                        }
-
-                        LifecycleEvent.Type.FAILED_SERVER_HEARTBEAT -> {
-                            Timber.w("Failed server heartbeat")
-                        }
+    private fun observeConnectionState(
+        maxDelay: Double = 8000.0
+    ) {
+        var attempt = 1
+        networkRepository.connectionState
+            .onEach { state ->
+                when (state) {
+                    ConnectionState.Disconnected -> {
+                        networkRepository.connect()
                     }
-                },
-                { e ->
-                    websocketErrorHandler(e)
+                    ConnectionState.Connected -> {
+                        setConnectionState(state)
+                        attempt = 1
+                        networkRepository.requestHistory()
+                    }
+                    is ConnectionState.Error -> {
+                        setConnectionState(ConnectionState.Connecting)
+                        val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
+                        delay(delayMillis)
+                        Timber.w("Reconnect attempt $attempt after $delayMillis ms")
+                        attempt++
+                        networkRepository.connect()
+                    }
+                    else -> Unit
                 }
-            )
-        )
+            }
+            .launchIn(viewModelScope)
     }
 
-    private fun subscribeToTopics() {
-        compositeDisposable.addAll(
-            networkRepository.observeMessages().subscribe(
-                { message ->
-                    viewModelScope.launch {
-                        if (message.name == preferencesRepository.name.first()) {
-                            offlineRepository.setDelivered(message)
-                        } else {
-                            offlineRepository.addToHistory(message)
-                        }
-                    }
-                },
-                { e ->
-                    websocketErrorHandler(e)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeIncomingMessages() {
+        networkRepository.connectionState
+            .filterIsInstance<ConnectionState.Connected>()
+            .flatMapConcat {
+                networkRepository.messages
+            }
+            .onEach { message ->
+                if (message.name == username.value) {
+                    offlineRepository.setDelivered(message)
+                } else {
+                    offlineRepository.addToHistory(message)
                 }
-            ),
-            networkRepository.observeHistory().subscribe(
-                { messagesList ->
-                    viewModelScope.launch {
-                        messagesList.asReversed().forEach { message ->
-                            offlineRepository.addToHistory(message)
-                        }
-                    }
-                },
-                { e ->
-                    websocketErrorHandler(e)
-                }
-            )
-        )
+            }
+            .launchIn(viewModelScope)
     }
 
     fun sendMessage() {
         val message = messageText.text.trim()
         if (message.isNotEmpty()) {
             viewModelScope.launch {
-                val name = currentName.first()
                 val repliedMessage = _chatUiState.value.repliedMessage
 
                 offlineRepository.addToHistory(
                     MessageEntity(
-                        name = name,
+                        name = username.value,
                         message = message,
                         deliveryStatus = DeliveryStatus.PENDING,
                         replyId = repliedMessage?.id ?: 0
@@ -187,18 +146,11 @@ class ChatViewModel @Inject constructor(
                 )
                 clearPendingState()
                 cancelReply()
-                compositeDisposable.add(
-                    networkRepository.sendMessage(
-                        MessageBody(
-                            name = name,
-                            message = message,
-                            replyId = repliedMessage?.id ?: 0
-                        )
-                    ).subscribe(
-                        {},
-                        { e ->
-                            websocketErrorHandler(e)
-                        }
+                networkRepository.sendMessage(
+                    MessageBody(
+                        name = username.value,
+                        message = message,
+                        replyId = repliedMessage?.id ?: 0
                     )
                 )
             }
@@ -338,15 +290,6 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun websocketErrorHandler(e: Throwable) {
-        if (e is IllegalStateException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Timber.e(e)
-        } else {
-            throw e
-        }
-    }
-
     private suspend fun apiErrorHandler(e: Throwable) {
         FirebaseCrashlytics.getInstance().recordException(e)
         Timber.e(e)
@@ -360,7 +303,8 @@ class ChatViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        networkRepository.closeConnection()
-        compositeDisposable.dispose()
+        viewModelScope.launch {
+            networkRepository.disconnect()
+        }
     }
 }

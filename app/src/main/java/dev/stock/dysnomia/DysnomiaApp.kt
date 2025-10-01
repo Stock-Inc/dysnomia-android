@@ -17,12 +17,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dev.stock.dysnomia.data.ConnectionState
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
-import dev.stock.dysnomia.ui.screen.chat.ConnectionState
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.home.HomeUiState
 import dev.stock.dysnomia.ui.screen.profile.LoadingScreen

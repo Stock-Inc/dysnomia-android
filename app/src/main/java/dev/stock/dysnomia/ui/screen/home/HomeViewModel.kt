@@ -17,7 +17,7 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val userPreferencesRepository: PreferencesRepository
+    userPreferencesRepository: PreferencesRepository
 ) : ViewModel() {
     val uiState: StateFlow<HomeUiState> = userPreferencesRepository.name
         .map {
