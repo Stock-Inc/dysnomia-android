@@ -35,6 +35,8 @@ class ProfileViewModel @Inject constructor(
         private set
     var password by mutableStateOf(TextFieldValue())
         private set
+    var email by mutableStateOf(TextFieldValue())
+        private set
 
     val currentName = userPreferencesRepository.name.stateIn(
         scope = viewModelScope,
@@ -50,20 +52,19 @@ class ProfileViewModel @Inject constructor(
         this.password = password
     }
 
+    fun changeEmail(email: TextFieldValue) {
+        this.email = email
+    }
+
     fun signIn(signInBody: SignInBody) {
-        if (signInBody.username.trim().isNotEmpty() && signInBody.password.trim().isNotEmpty()) {
+        if (signInBody.username.isNotEmpty() && signInBody.password.isNotEmpty()) {
             viewModelScope.launch {
                 uiState = ProfileUiState.AuthInProgress
                 try {
-                    val signInResult = networkRepository.signIn(
-                        SignInBody(
-                            username = signInBody.username.trim(),
-                            password = signInBody.password.trim()
-                        )
-                    )
+                    val signInResult = networkRepository.signIn(signInBody)
 
                     userPreferencesRepository.saveAccount(
-                        name = signInBody.username.trim(),
+                        name = signInBody.username,
                         accessToken = signInResult.accessToken,
                         refreshToken = signInResult.refreshToken
                     )
@@ -91,19 +92,14 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun signUp(signUpBody: SignUpBody) {
-        if (signUpBody.username.trim().isNotEmpty() && signUpBody.password.trim().isNotEmpty()) {
+        if (signUpBody.username.isNotEmpty() && signUpBody.password.isNotEmpty()) {
             viewModelScope.launch {
                 uiState = ProfileUiState.AuthInProgress
                 try {
-                    val signUpResult = networkRepository.signUp(
-                        SignUpBody(
-                            username = signUpBody.username.trim(),
-                            password = signUpBody.password.trim()
-                        )
-                    )
+                    val signUpResult = networkRepository.signUp(signUpBody)
 
                     userPreferencesRepository.saveAccount(
-                        name = signUpBody.username.trim(),
+                        name = signUpBody.username,
                         accessToken = signUpResult.accessToken,
                         refreshToken = signUpResult.refreshToken
                     )

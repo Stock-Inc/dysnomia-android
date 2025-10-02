@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -34,8 +35,10 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 @Composable
 fun LoginScreen(
     username: TextFieldValue,
+    email: TextFieldValue,
     password: TextFieldValue,
     onNameChange: (TextFieldValue) -> Unit,
+    onEmailChange: (TextFieldValue) -> Unit,
     onPasswordChange: (TextFieldValue) -> Unit,
     onSignInClick: () -> Unit,
     onSignUpClick: () -> Unit,
@@ -57,6 +60,20 @@ fun LoginScreen(
             leadingIcon = Icons.Default.AccountCircle,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            modifier = Modifier.padding(
+                start = 16.dp,
+                end = 16.dp
+            )
+        )
+        DysnomiaTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            label = stringResource(R.string.email),
+            leadingIcon = Icons.Default.Email,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
             modifier = Modifier.padding(
@@ -110,8 +127,10 @@ private fun LoginScreenLightPreview() {
         Surface {
             LoginScreen(
                 username = TextFieldValue("username"),
+                email = TextFieldValue("email@test.com"),
                 password = TextFieldValue("password"),
                 onNameChange = {},
+                onEmailChange = {},
                 onPasswordChange = {},
                 onSignInClick = {},
                 onSignUpClick = {}
@@ -127,8 +146,10 @@ private fun LoginScreenDarkPreview() {
         Surface {
             LoginScreen(
                 username = TextFieldValue("username"),
+                email = TextFieldValue("email@test.com"),
                 password = TextFieldValue("password"),
                 onNameChange = {},
+                onEmailChange = {},
                 onPasswordChange = {},
                 onSignInClick = {},
                 onSignUpClick = {}

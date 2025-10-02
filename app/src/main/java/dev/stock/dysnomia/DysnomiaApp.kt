@@ -117,6 +117,7 @@ fun DysnomiaApp(
             composable(route = DysnomiaApp.Profile.name) {
                 val profileUiState = profileViewModel.uiState
                 val username = profileViewModel.username
+                val email = profileViewModel.email
                 val password = profileViewModel.password
 
                 if (currentName == "") {
@@ -136,22 +137,25 @@ fun DysnomiaApp(
                     } else {
                         LoginScreen(
                             username = username,
+                            email = email,
                             password = password,
                             onNameChange = profileViewModel::changeName,
+                            onEmailChange = profileViewModel::changeEmail,
                             onPasswordChange = profileViewModel::changePassword,
                             onSignInClick = {
                                 profileViewModel.signIn(
                                     SignInBody(
-                                        username = username.text,
-                                        password = password.text
+                                        username = username.text.trim(),
+                                        password = password.text.trim()
                                     )
                                 )
                             },
                             onSignUpClick = {
                                 profileViewModel.signUp(
                                     SignUpBody(
-                                        username = username.text,
-                                        password = password.text
+                                        username = username.text.trim(),
+                                        email = email.text.trim(),
+                                        password = password.text.trim()
                                     )
                                 )
                             },
