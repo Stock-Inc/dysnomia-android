@@ -26,7 +26,7 @@ interface DysnomiaApiService {
         @Body signInBody: SignInBody
     ): SignInResponse
 
-    @POST("registration")
+    @POST("signup")
     suspend fun signUp(
         @Body signUpBody: SignUpBody
     ): SignUpResponse
