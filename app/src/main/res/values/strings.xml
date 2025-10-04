@@ -3,7 +3,6 @@
     <string name="sign_up">Sign Up</string>
     <string name="sign_in">Sign In</string>
     <string name="password">Password</string>
-    <string name="login">Login</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     <string name="welcome">"Welcome \n"</string>
     <string name="home">Home</string>
@@ -16,4 +15,7 @@
     <string name="enter_command">Enter Command</string>
     <string name="default_notification_channel_id" translatable="false">default_channel_id</string>
     <string name="email">E-mail</string>
+    <string name="username">Username</string>
+    <string name="maybe_you_want_to">"Maybe you want to "</string>
+    <string name="sign_up_question">sign up?</string>
 </resources>

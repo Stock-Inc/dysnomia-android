@@ -2,12 +2,12 @@ package dev.stock.dysnomia.ui.composables
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
@@ -15,13 +15,15 @@ fun DysnomiaButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isOutlined: Boolean = false
+    isOutlined: Boolean = false,
+    enabled: Boolean = true
 ) {
     if (isOutlined) {
         OutlinedButton(
             onClick = onClick,
+            enabled = enabled,
             colors = ButtonDefaults.outlinedButtonColors().copy(
-                contentColor = DysnomiaPink
+                contentColor = MaterialTheme.colorScheme.primary
             ),
             modifier = modifier
         ) {
@@ -33,8 +35,9 @@ fun DysnomiaButton(
     } else {
         Button(
             onClick = onClick,
+            enabled = enabled,
             colors = ButtonDefaults.buttonColors().copy(
-                containerColor = DysnomiaPink
+                containerColor = MaterialTheme.colorScheme.primary
             ),
             modifier = modifier
         ) {
