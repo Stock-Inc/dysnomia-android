@@ -83,7 +83,7 @@ class ProfileViewModel @Inject constructor(
                     _uiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    Timber.w(e)
+                    Timber.d(e)
                     _uiState.update {
                         it.copy(
                             errorMessage = when (e.code()) {
@@ -95,7 +95,7 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                 } catch (e: UnknownHostException) {
-                    Timber.w(e)
+                    Timber.d(e)
                     _uiState.update {
                         it.copy(
                             errorMessage = "No connection with the server",
@@ -128,7 +128,7 @@ class ProfileViewModel @Inject constructor(
                     _uiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    Timber.w(e)
+                    Timber.d(e)
                     _uiState.update {
                         it.copy(
                             errorMessage = when (e.code()) {
@@ -140,7 +140,7 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                 } catch (e: UnknownHostException) {
-                    Timber.w(e)
+                    Timber.d(e)
                     _uiState.update {
                         it.copy(
                             errorMessage = "No connection with the server",

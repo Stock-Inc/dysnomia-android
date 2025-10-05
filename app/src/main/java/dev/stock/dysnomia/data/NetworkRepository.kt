@@ -1,6 +1,5 @@
 package dev.stock.dysnomia.data
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
@@ -90,7 +89,6 @@ class NetworkRepositoryImpl @Inject constructor(
             )
         }
         .retry { error ->
-            FirebaseCrashlytics.getInstance().recordException(error)
             Timber.e(error)
             _connectionState.value = ConnectionState.Error(error)
             true
@@ -109,18 +107,15 @@ class NetworkRepositoryImpl @Inject constructor(
             _sessionState.value = newSession
             _connectionState.value = ConnectionState.Connected
         } catch (e: ConnectionTimeout) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Timber.e(e)
+            Timber.d(e)
             _connectionState.value = ConnectionState.Error(e)
             _sessionState.value = null
         } catch (e: ConnectionException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Timber.e(e)
+            Timber.d(e)
             _connectionState.value = ConnectionState.Error(e)
             _sessionState.value = null
         } catch (e: WebSocketConnectionException) {
-            FirebaseCrashlytics.getInstance().recordException(e)
-            Timber.e(e)
+            Timber.d(e)
             _connectionState.value = ConnectionState.Error(e)
             _sessionState.value = null
         }
@@ -141,7 +136,6 @@ class NetworkRepositoryImpl @Inject constructor(
                     MessageBody.serializer()
                 )
             } catch (e: LostReceiptException) {
-                FirebaseCrashlytics.getInstance().recordException(e)
                 Timber.e(e)
                 _connectionState.value = ConnectionState.Error(e)
             }
@@ -156,6 +150,7 @@ class NetworkRepositoryImpl @Inject constructor(
             try {
                 session.sendEmptyMsg(HISTORY_APP)
             } catch (e: LostReceiptException) {
+                Timber.e(e)
                 _connectionState.value = ConnectionState.Error(e)
             }
         } else {

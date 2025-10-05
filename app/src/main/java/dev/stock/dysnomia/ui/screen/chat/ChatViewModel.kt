@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.ConnectionState
 import dev.stock.dysnomia.data.NetworkRepository
@@ -103,7 +102,7 @@ class ChatViewModel @Inject constructor(
                         setConnectionState(ConnectionState.Connecting)
                         val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
                         delay(delayMillis)
-                        Timber.w("Reconnect attempt $attempt after $delayMillis ms")
+                        Timber.d("Reconnect attempt $attempt after $delayMillis ms")
                         attempt++
                         networkRepository.connect()
                     }
@@ -208,14 +207,14 @@ class ChatViewModel @Inject constructor(
                     flow.value = networkMessage.toRepliedMessage()
                     offlineRepository.addToHistory(networkMessage)
                 } catch (e: IOException) {
-                    Timber.e(e)
+                    Timber.d(e)
                     flow.value = RepliedMessage(
                         id = messageId,
                         name = "Error",
                         message = "Unable to load reply"
                     )
                 } catch (e: HttpException) {
-                    Timber.e(e)
+                    Timber.d(e)
                     flow.value = RepliedMessage(
                         id = messageId,
                         name = "Error",
@@ -291,8 +290,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private suspend fun apiErrorHandler(e: Throwable) {
-        FirebaseCrashlytics.getInstance().recordException(e)
-        Timber.e(e)
+        Timber.d(e)
         offlineRepository.addToHistory(
             MessageEntity(
                 message = "Error connecting to the server:\n$e",
