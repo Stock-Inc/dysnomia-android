@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import timber.log.Timber
+import java.net.ConnectException
 import java.net.UnknownHostException
 import javax.inject.Inject
 
@@ -102,6 +103,14 @@ class ProfileViewModel @Inject constructor(
                             isInProgress = false
                         )
                     }
+                } catch (e: ConnectException) {
+                    Timber.d(e)
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
                 }
             }
         }
@@ -140,6 +149,14 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                 } catch (e: UnknownHostException) {
+                    Timber.d(e)
+                    _uiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: ConnectException) {
                     Timber.d(e)
                     _uiState.update {
                         it.copy(
