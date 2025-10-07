@@ -95,7 +95,7 @@ class ProfileViewModel @Inject constructor(
                         _profileUiState.update {
                             it.copy(
                                 errorMessage = when (e.code()) {
-                                    401 -> "Incorrect username or password"
+                                    401 -> "Your session has expired, please log in again to continue"
                                     404 -> "User not found"
                                     500 -> "Error while receiving info, this issue is reported"
                                     else -> e.toString()
@@ -147,12 +147,15 @@ class ProfileViewModel @Inject constructor(
                     _authUiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    Timber.d(e)
+                    if (e.code() == 401) {
+                        Timber.d(e)
+                    } else {
+                        Timber.e(e)
+                    }
                     _authUiState.update {
                         it.copy(
                             errorMessage = when (e.code()) {
                                 401 -> "Incorrect username or password"
-                                500 -> "Error, check your credentials and try again"
                                 else -> e.toString()
                             },
                             isInProgress = false
@@ -200,12 +203,15 @@ class ProfileViewModel @Inject constructor(
                     _authUiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    Timber.d(e)
+                    if (e.code() == 401) {
+                        Timber.d(e)
+                    } else {
+                        Timber.e(e)
+                    }
                     _authUiState.update {
                         it.copy(
                             errorMessage = when (e.code()) {
-                                409 -> "User already exists"
-                                500 -> "Error, check your credentials and try again"
+                                401 -> "Error, check your credentials and try again"
                                 else -> e.toString()
                             },
                             isInProgress = false
