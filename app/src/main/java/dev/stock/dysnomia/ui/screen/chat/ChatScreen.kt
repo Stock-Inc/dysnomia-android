@@ -97,7 +97,6 @@ import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DarkerPrimary
-import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -173,7 +172,7 @@ fun MessageItem(
         if (isTheFirstMessageFromAuthor) {
             Text(
                 text = messageEntity.name.ifEmpty { ANONYMOUS },
-                color = DysnomiaPink,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = if (isUserMe) TextAlign.Right else null,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -195,7 +194,6 @@ fun MessageItem(
 
                 Text(
                     text = messageEntity.message,
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
                     modifier = Modifier
                         .padding(
                             top = 4.dp,
@@ -205,7 +203,6 @@ fun MessageItem(
                 )
                 Text(
                     text = getLocalTime(messageEntity.date, context),
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
                     modifier = Modifier
                         .alpha(0.5f)
                         .align(alignment = Alignment.End)
@@ -262,7 +259,7 @@ fun CommandItem(
             } else {
                 messageEntity.message
             },
-            color = DysnomiaPink,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(8.dp)
         )
     }

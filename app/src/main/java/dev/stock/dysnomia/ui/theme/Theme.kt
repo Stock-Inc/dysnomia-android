@@ -108,11 +108,6 @@ fun DysnomiaTheme(
 
     val shimmerTheme = defaultShimmerTheme.copy(
         blendMode = BlendMode.SrcIn,
-        shaderColors = listOf(
-            DysnomiaPink.copy(alpha = 0.5f),
-            DysnomiaPink.copy(alpha = 1.00f),
-            DysnomiaPink.copy(alpha = 0.5f),
-        ),
         shaderColorStops = listOf(
             0.0f,
             0.5f,
