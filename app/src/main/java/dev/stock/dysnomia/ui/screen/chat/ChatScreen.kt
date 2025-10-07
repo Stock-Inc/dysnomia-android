@@ -182,16 +182,15 @@ fun MessageItem(
             onClick = onClick,
             color = if (isUserMe) MaterialTheme.colorScheme.primary else Color.Transparent,
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
-            border = CardDefaults.outlinedCardBorder(true)
+            border = CardDefaults.outlinedCardBorder(true),
+            modifier = Modifier.width(IntrinsicSize.Max)
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
                 repliedMessage?.let {
                     MessageReplyBox(
                         isUserMe = isUserMe,
                         repliedMessage = repliedMessage,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .width(IntrinsicSize.Min)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
@@ -784,13 +783,37 @@ private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
 
 @Preview
 @Composable
-private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
+private fun ChatItemYoursFirstLargeMessageWithSmallReplyPreview() {
     DysnomiaTheme {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
                     name = "Username",
                     message = "some message".repeat(50)
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
