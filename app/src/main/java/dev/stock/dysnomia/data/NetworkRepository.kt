@@ -1,12 +1,12 @@
 package dev.stock.dysnomia.data
 
+import dev.stock.dysnomia.model.AuthTokens
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.Profile
 import dev.stock.dysnomia.model.SignInBody
-import dev.stock.dysnomia.model.SignInResponse
 import dev.stock.dysnomia.model.SignUpBody
-import dev.stock.dysnomia.model.SignUpResponse
 import dev.stock.dysnomia.network.DysnomiaApiService
 import dev.stock.dysnomia.utils.CHAT_APP
 import dev.stock.dysnomia.utils.HISTORY_APP
@@ -47,9 +47,11 @@ interface NetworkRepository {
     suspend fun sendMessage(messageBody: MessageBody)
     suspend fun sendCommand(command: String): String
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
-    suspend fun signIn(signInBody: SignInBody): SignInResponse
-    suspend fun signUp(signUpBody: SignUpBody): SignUpResponse
+    suspend fun signIn(signInBody: SignInBody): AuthTokens
+    suspend fun signUp(signUpBody: SignUpBody): AuthTokens
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
+    suspend fun getProfile(username: String): Profile
+    suspend fun getNewTokens(bearerRefreshToken: String): AuthTokens
     val connectionState: StateFlow<ConnectionState>
     val messages: Flow<MessageEntity>
 }
@@ -164,12 +166,18 @@ class NetworkRepositoryImpl @Inject constructor(
     override suspend fun getCommandSuggestions(): List<CommandSuggestion> =
         dysnomiaApiService.getCommandSuggestions()
 
-    override suspend fun signIn(signInBody: SignInBody): SignInResponse =
+    override suspend fun signIn(signInBody: SignInBody): AuthTokens =
         dysnomiaApiService.signIn(signInBody)
 
-    override suspend fun signUp(signUpBody: SignUpBody): SignUpResponse =
+    override suspend fun signUp(signUpBody: SignUpBody): AuthTokens =
         dysnomiaApiService.signUp(signUpBody)
 
     override suspend fun getMessageByMessageId(messageId: Int): MessageEntity =
         dysnomiaApiService.getMessageByMessageId(messageId)
+
+    override suspend fun getProfile(username: String): Profile =
+        dysnomiaApiService.getProfile(username)
+
+    override suspend fun getNewTokens(bearerRefreshToken: String): AuthTokens =
+        dysnomiaApiService.refreshToken(bearerRefreshToken)
 }

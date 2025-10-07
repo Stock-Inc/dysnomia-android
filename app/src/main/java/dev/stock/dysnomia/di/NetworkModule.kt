@@ -8,6 +8,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dev.stock.dysnomia.data.PreferencesRepository
+import dev.stock.dysnomia.network.AuthInterceptor
 import dev.stock.dysnomia.network.DysnomiaApiService
 import dev.stock.dysnomia.utils.API_BASE_URL
 import kotlinx.serialization.json.Json
@@ -56,8 +58,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun providesOkHttpClient(@ApplicationContext context: Context): OkHttpClient =
+    fun providesOkHttpClient(
+        preferencesRepository: PreferencesRepository,
+        @ApplicationContext context: Context
+    ): OkHttpClient =
         OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(preferencesRepository))
             .addInterceptor(ChuckerInterceptor(context))
             .build()
 }

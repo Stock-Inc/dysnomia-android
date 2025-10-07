@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import dev.stock.dysnomia.model.AuthTokens
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -15,6 +16,7 @@ import javax.inject.Singleton
 
 interface PreferencesRepository {
     suspend fun saveAccount(name: String, accessToken: String, refreshToken: String)
+    suspend fun saveTokens(authTokens: AuthTokens)
     suspend fun clearAccount()
     val name: Flow<String>
     val accessToken: Flow<String>
@@ -75,6 +77,13 @@ class PreferencesRepositoryImpl @Inject constructor(
             preferences[NAME] = name
             preferences[ACCESS_TOKEN] = accessToken
             preferences[REFRESH_TOKEN] = refreshToken
+        }
+    }
+
+    override suspend fun saveTokens(authTokens: AuthTokens) {
+        dataStore.edit { preferences ->
+            preferences[ACCESS_TOKEN] = authTokens.accessToken
+            preferences[REFRESH_TOKEN] = authTokens.refreshToken
         }
     }
 

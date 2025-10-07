@@ -21,8 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +40,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.ui.composables.AnimatedErrorCard
 import dev.stock.dysnomia.ui.composables.DysnomiaButton
 import dev.stock.dysnomia.ui.composables.DysnomiaLogo
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
@@ -132,28 +131,7 @@ fun AuthScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            AnimatedVisibility(!authUiState.errorMessage.isNullOrEmpty()) {
-                if (authUiState.errorMessage != null) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        ),
-                        onClick = {}
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .padding(8.dp)
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                text = authUiState.errorMessage,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    }
-                }
-            }
+            AnimatedErrorCard(authUiState.errorMessage)
 
             AnimatedVisibility(!authUiState.isSignUp) {
                 Box(

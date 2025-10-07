@@ -99,7 +99,7 @@ fun DysnomiaApp(
                 val currentName = profileViewModel.currentName.collectAsState().value
 
                 if (currentName == "") {
-                    val authUiState = profileViewModel.uiState.collectAsState().value
+                    val authUiState = profileViewModel.authUiState.collectAsState().value
                     val username = profileViewModel.username
                     val email = profileViewModel.email
                     val password = profileViewModel.password
@@ -134,10 +134,13 @@ fun DysnomiaApp(
                         modifier = Modifier.padding(contentPadding)
                     )
                 } else {
+                    val profileUiState = profileViewModel.profileUiState.collectAsState().value
+
                     ProfileScreen(
-                        name = currentName,
+                        profileUiState = profileUiState,
                         onLogoutClick = profileViewModel::logout,
-                        modifier = Modifier.padding(contentPadding)
+                        modifier = Modifier.padding(contentPadding),
+                        isUserMe = true
                     )
                 }
             }
