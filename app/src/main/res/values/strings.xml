@@ -4,12 +4,8 @@
     <string name="sign_in">Sign In</string>
     <string name="password">Password</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
-    <string name="welcome">"Welcome \n"</string>
-    <string name="home">Home</string>
-    <string name="chat">Chat</string>
-    <string name="profile">Profile</string>
+    <string name="welcome">"Welcome!"</string>
     <string name="logout">Logout</string>
-    <string name="your_name">Your Name</string>
     <string name="enter_message">Enter Message</string>
     <string name="enter_command">Enter Command</string>
     <string name="default_notification_channel_id" translatable="false">default_channel_id</string>

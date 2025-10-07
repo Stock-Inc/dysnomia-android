@@ -1,24 +1,19 @@
 package dev.stock.dysnomia
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
-import dev.stock.dysnomia.ui.composables.DysnomiaBottomNavigationBar
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
-import dev.stock.dysnomia.ui.screen.home.HomeUiState
 import dev.stock.dysnomia.ui.screen.profile.AuthScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
@@ -30,48 +25,28 @@ enum class DysnomiaApp {
 @Composable
 fun DysnomiaApp(
     chatViewModel: ChatViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel(),
-//    homeViewModel: HomeViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
     val navController = rememberNavController()
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentScreen = DysnomiaApp.valueOf(
-        backStackEntry?.destination?.route ?: DysnomiaApp.Home.name
-    )
 
-    Scaffold(
-        bottomBar = {
-            DysnomiaBottomNavigationBar(
-                currentScreen = currentScreen,
-                onClick = {
-                    if (it != currentScreen) {
-                        navController.navigate(it.name) {
-                            launchSingleTop = true
-                        }
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    ) { contentPadding ->
+    Scaffold { contentPadding ->
         NavHost(
             navController = navController,
             startDestination = DysnomiaApp.Home.name,
         ) {
             composable(route = DysnomiaApp.Home.name) {
-                val currentName = profileViewModel.currentName.collectAsState().value
-                val homeUiState = HomeUiState(currentName)
-
                 HomeScreen(
-                    uiState = homeUiState,
                     onChatClicked = {
-                        if (it == 0) {
-                            navController.navigate(DysnomiaApp.Chat.name) {
-                                launchSingleTop = true
-                            }
+                        navController.navigate(DysnomiaApp.Chat.name) {
+                            launchSingleTop = true
                         }
                     },
-                    modifier = Modifier.padding(contentPadding)
+                    onProfileClicked = {
+                        navController.navigate(DysnomiaApp.Profile.name) {
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.padding(contentPadding),
                 )
             }
 

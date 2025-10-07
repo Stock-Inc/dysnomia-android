@@ -9,38 +9,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
-import dev.stock.dysnomia.ui.theme.DysnomiaDarkPink
-import dev.stock.dysnomia.ui.theme.DysnomiaPink
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
-import dev.stock.dysnomia.ui.theme.MysteriousPurple
-import dev.stock.dysnomia.utils.grayScale
 
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState,
     onChatClicked: (Int) -> Unit,
+    onProfileClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -48,111 +42,83 @@ fun HomeScreen(
             .padding(8.dp)
             .fillMaxSize()
     ) {
-        Row {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth()
+        ) {
             Text(
-                text = buildAnnotatedString {
-                    append(stringResource(R.string.welcome))
-                    withStyle(
-                        SpanStyle(
-                            brush = Brush.linearGradient(
-                                colors = listOf(DysnomiaPink, MysteriousPurple)
-                            )
-                        )
-                    ) {
-                        if (uiState.name != "") {
-                            append("[ ${uiState.name} ]")
-                        } else {
-                            append("[ ${stringResource(R.string.your_name)} ]")
-                        }
-                    }
-                },
+                text = stringResource(R.string.welcome),
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.padding(4.dp)
             )
+            IconButton(
+                onClick = onProfileClicked
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp)
+                )
+            }
         }
         Spacer(Modifier.height(16.dp))
-        LazyColumn {
-            item {
-                FormListItem(
-                    name = "[ Global ] chat",
-                    details = buildAnnotatedString {
-                        withStyle(
-                            SpanStyle(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(DysnomiaPink, MysteriousPurple)
-                                )
-                            )
-                        ) {
-                            append("Find someone ♡")
-                        }
-                    },
-                    onClick = { onChatClicked(0) },
-                    image = R.drawable.astolfo,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            item {
-                FormListItem(
-                    name = "Astolfo [ WIP ]",
-                    image = R.drawable.astolfo,
-                    onClick = { onChatClicked(1) },
-                    details = buildAnnotatedString {
-                        append("Gender: ")
-                        withStyle(
-                            SpanStyle(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(DysnomiaPink, MysteriousPurple)
-                                )
-                            )
-                        ) {
-                            append("Secret\n")
-                        }
-                        append("Height: 164 cm\nWeight: 56 kg")
-                    },
-                    modifier = Modifier.Companion.grayScale()
-                )
-            }
+        Column {
+            ChatCard(
+                name = "Global chat",
+                details = "Chat with everyone online",
+                onClick = { onChatClicked(0) },
+                image = R.drawable.ic_launcher_foreground
+            )
         }
     }
 }
 
 @Composable
-fun FormListItem(
+fun ChatCard(
     name: String,
-    details: AnnotatedString,
+    details: String,
     @DrawableRes image: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         onClick = onClick,
-        colors = CardDefaults.cardColors(containerColor = DysnomiaDarkPink),
-        modifier = modifier.heightIn(128.dp, 256.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        modifier = modifier.height(128.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(
+                    space = 16.dp
+                ),
+                modifier = Modifier.padding(16.dp)
+            ) {
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.padding(start = 16.dp)
+                    style = MaterialTheme.typography.headlineMedium
                 )
-                Spacer(Modifier.height(36.dp))
                 Text(
                     text = details,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(start = 16.dp)
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
             Image(
                 painter = painterResource(image),
                 contentDescription = null,
-                contentScale = ContentScale.Inside,
                 alignment = Alignment.CenterEnd,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .scale(2f)
             )
         }
     }
@@ -164,8 +130,8 @@ private fun HomeScreenLightPreview() {
     DysnomiaTheme(darkTheme = false) {
         Surface {
             HomeScreen(
-                uiState = HomeUiState(),
-                onChatClicked = {}
+                onChatClicked = {},
+                onProfileClicked = {}
             )
         }
     }
@@ -177,8 +143,8 @@ private fun HomeScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         Surface {
             HomeScreen(
-                uiState = HomeUiState(),
-                onChatClicked = {}
+                onChatClicked = {},
+                onProfileClicked = {}
             )
         }
     }
@@ -186,24 +152,14 @@ private fun HomeScreenDarkPreview() {
 
 @Preview
 @Composable
-private fun FormListItemDarkPreview() {
+private fun ChatCardDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         Surface {
-            FormListItem(
-                name = "[ Global ] chat",
-                details = buildAnnotatedString {
-                    withStyle(
-                        SpanStyle(
-                            brush = Brush.linearGradient(
-                                colors = listOf(DysnomiaPink, MysteriousPurple)
-                            )
-                        )
-                    ) {
-                        append("Find someone ♡")
-                    }
-                },
-                onClick = { },
-                image = R.drawable.astolfo
+            ChatCard(
+                name = "Global chat",
+                details = "Chat with everyone online",
+                onClick = {},
+                image = R.drawable.ic_launcher_foreground
             )
         }
     }
