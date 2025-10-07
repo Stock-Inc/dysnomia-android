@@ -97,7 +97,6 @@ import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
-import dev.stock.dysnomia.ui.theme.DarkerPrimary
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -347,7 +346,7 @@ fun LabeledBarRow(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (isUserMe) DarkerPrimary else Color.Unspecified
+                if (isUserMe) MaterialTheme.colorScheme.onPrimaryContainer else Color.Unspecified
             )
     ) {
         Box(
