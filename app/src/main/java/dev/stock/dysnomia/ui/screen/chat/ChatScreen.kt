@@ -23,6 +23,7 @@ import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -188,7 +189,10 @@ fun MessageItem(
                 repliedMessage?.let {
                     MessageReplyBox(
                         isUserMe = isUserMe,
-                        repliedMessage = repliedMessage
+                        repliedMessage = repliedMessage,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .width(IntrinsicSize.Min)
                     )
                 }
 
@@ -324,7 +328,6 @@ fun MessageReplyBox(
                 text = repliedMessage.message,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (isUserMe) Color.Unspecified else Color.White
             )
         }
     }
@@ -758,7 +761,7 @@ private fun ChatItemYoursFirstMessagePreview() {
 
 @Preview
 @Composable
-private fun ChatItemYoursFirstMessageWithReplyPreview() {
+private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
     DysnomiaTheme {
         Surface {
             MessageItem(
@@ -774,6 +777,30 @@ private fun ChatItemYoursFirstMessageWithReplyPreview() {
                     id = 0,
                     name = "Name ".repeat(10),
                     message = "some message ".repeat(3)
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message".repeat(50)
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
                 )
             )
         }
