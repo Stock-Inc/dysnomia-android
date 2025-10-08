@@ -248,4 +248,10 @@ class ProfileViewModel @Inject constructor(
     fun changeAuthScreen(isSignUp: Boolean) {
         _authUiState.value = AuthUiState(isSignUp = isSignUp)
     }
+
+    fun setNotFirstLaunch() {
+        viewModelScope.launch {
+            userPreferencesRepository.setNotFirstLaunch()
+        }
+    }
 }

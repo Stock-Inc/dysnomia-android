@@ -14,4 +14,9 @@
     <string name="maybe_you_want_to">"Maybe you want to "</string>
     <string name="sign_up_question">sign up?</string>
     <string name="bio">bio</string>
+    <string name="slogan">Free and open-source chat application</string>
+    <string name="get_started">Get started</string>
+    <string name="get_updates">Get Updates</string>
+    <string name="allow_notifications_prompt">Allow notifications to make sure you don\'t miss any messages</string>
+    <string name="allow_notifications">Allow notifications</string>
 </resources>
