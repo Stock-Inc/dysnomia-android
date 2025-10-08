@@ -42,8 +42,13 @@ class DysnomiaApplication : Application() {
 
         applicationScope.launch {
             offlineRepository.deletePendingMessages()
+
+            val refreshToken = preferencesRepository.refreshToken.first()
+            if (refreshToken.isEmpty()) {
+                return@launch
+            }
+
             try {
-                val refreshToken = preferencesRepository.refreshToken.first()
                 preferencesRepository.saveTokens(
                     networkRepository.getNewTokens(
                         "Bearer $refreshToken"
