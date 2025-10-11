@@ -35,6 +35,10 @@ class OfflineRepositoryImpl @Inject constructor(
     override suspend fun setDelivered(messageEntity: MessageEntity) =
         chatDao.updateMessage(
             messageEntity.copy(
+                entityId = chatDao.getEntityIdOfPendingMessage(
+                    name = messageEntity.name,
+                    message = messageEntity.message
+                ),
                 deliveryStatus = DeliveryStatus.DELIVERED
             )
         )
@@ -42,6 +46,10 @@ class OfflineRepositoryImpl @Inject constructor(
     override suspend fun setFailedToSend(messageEntity: MessageEntity) =
         chatDao.updateMessage(
             messageEntity.copy(
+                entityId = chatDao.getEntityIdOfPendingMessage(
+                    name = messageEntity.name,
+                    message = messageEntity.message
+                ),
                 deliveryStatus = DeliveryStatus.FAILED
             )
         )

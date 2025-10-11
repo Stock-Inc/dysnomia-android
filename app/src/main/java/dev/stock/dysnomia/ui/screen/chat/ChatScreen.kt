@@ -99,6 +99,7 @@ import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composables.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
+import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -154,6 +155,7 @@ fun MessageItem(
     Column(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
         modifier = modifier
+            .setVisualsBasedOfMessageStatus(messageEntity.deliveryStatus)
             .anchoredDraggable(
                 state = draggableState,
                 orientation = Orientation.Horizontal,
@@ -493,16 +495,7 @@ fun ChatScreen(
                             onReply = onReply,
                             isUserMe = item.name == currentName,
                             isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                Modifier
-                                    .alpha(0.5f)
-                                    .padding(4.dp)
-                                    .animateItem()
-                            } else {
-                                Modifier
-                                    .padding(4.dp)
-                                    .animateItem()
-                            }
+                            modifier = Modifier.animateItem()
                         )
                     } else {
                         MessageItemWithReply(
@@ -705,9 +698,8 @@ private fun ChatScreenDarkPreview() {
                     CommandSuggestion(
                         command = "help",
                         description = "some help"
-                    ),
-                ),
-                modifier = TODO()
+                    )
+                )
             )
         }
     }
@@ -816,6 +808,56 @@ private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
                 messageEntity = MessageEntity(
                     name = "Username",
                     message = "some message"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyPendingPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message",
+                    deliveryStatus = DeliveryStatus.PENDING
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyFailedPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message",
+                    deliveryStatus = DeliveryStatus.FAILED
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
