@@ -116,7 +116,7 @@ class ChatViewModel @Inject constructor(
                 networkRepository.messagesFlow
             }
             .onEach { message ->
-                if (message.name != username.value) offlineRepository.addToHistory(message)
+                offlineRepository.addToHistory(message)
             }
             .launchIn(viewModelScope)
     }
@@ -129,7 +129,7 @@ class ChatViewModel @Inject constructor(
                 networkRepository.historyFlow
             }
             .onEach { messages ->
-                offlineRepository.addToHistory(messages.filter { it.name != username.value })
+                offlineRepository.addToHistory(messages)
             }
             .launchIn(viewModelScope)
     }
