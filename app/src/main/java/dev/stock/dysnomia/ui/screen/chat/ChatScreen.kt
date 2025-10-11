@@ -402,6 +402,7 @@ fun ChatScreen(
     chatUiState: ChatUiState,
     messageText: TextFieldValue,
     currentName: String,
+    commandSuggestions: List<CommandSuggestion>,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
     onSendCommand: (String?) -> Unit,
@@ -418,12 +419,12 @@ fun ChatScreen(
 
     val isMessageACommand = messageText.text.startsWith('/')
     val filteredSuggestions by remember(
-        chatUiState.commandSuggestionList,
+        commandSuggestions,
         messageText.text
     ) {
         derivedStateOf {
             if (isMessageACommand) {
-                chatUiState.commandSuggestionList
+                commandSuggestions
                     .filter { suggestion ->
                         suggestion.command.contains(
                             messageText.text.drop(1),
@@ -649,16 +650,16 @@ private fun ChatScreenLightPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
+                    )
+                ),
+                commandSuggestions = listOf(
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
                     ),
-                    commandSuggestionList = listOf(
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
                     )
                 ),
                 messageText = TextFieldValue(),
@@ -686,16 +687,6 @@ private fun ChatScreenDarkPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
-                    ),
-                    commandSuggestionList = listOf(
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
                     )
                 ),
                 messageText = TextFieldValue("Some message"),
@@ -705,7 +696,18 @@ private fun ChatScreenDarkPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
-                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
+                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) },
+                commandSuggestions = listOf(
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
+                    ),
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
+                    ),
+                ),
+                modifier = TODO()
             )
         }
     }

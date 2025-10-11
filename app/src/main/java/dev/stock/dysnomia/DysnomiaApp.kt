@@ -106,12 +106,14 @@ fun DysnomiaApp(
                 val chatUiState = chatViewModel.chatUiState.collectAsState().value
                 val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
                 val currentName = profileViewModel.currentName.collectAsState().value
+                val commandSuggestions = chatViewModel.commandSuggestions.collectAsState().value
 
                 ChatScreen(
                     chatHistory = chatHistory,
                     messageText = chatViewModel.messageText,
                     chatUiState = chatUiState,
                     currentName = currentName,
+                    commandSuggestions = commandSuggestions,
                     onTextChange = chatViewModel::changeChatText,
                     onSendMessage = chatViewModel::sendMessage,
                     onSendCommand = chatViewModel::sendCommand,

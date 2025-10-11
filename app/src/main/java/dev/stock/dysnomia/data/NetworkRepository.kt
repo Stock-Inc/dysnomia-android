@@ -17,12 +17,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.retry
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -30,6 +27,7 @@ import org.hildan.krossbow.stomp.ConnectionException
 import org.hildan.krossbow.stomp.ConnectionTimeout
 import org.hildan.krossbow.stomp.LostReceiptException
 import org.hildan.krossbow.stomp.StompClient
+import org.hildan.krossbow.stomp.StompReceipt
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
 import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
@@ -43,8 +41,8 @@ import javax.inject.Singleton
 interface NetworkRepository {
     suspend fun connect()
     suspend fun disconnect()
-    suspend fun requestHistory()
-    suspend fun sendMessage(messageBody: MessageBody)
+    suspend fun requestHistory(): StompReceipt?
+    suspend fun sendMessage(messageBody: MessageBody): StompReceipt?
     suspend fun sendCommand(command: String): String
     suspend fun getCommandSuggestions(): List<CommandSuggestion>
     suspend fun signIn(signInBody: SignInBody): AuthTokens
@@ -53,7 +51,8 @@ interface NetworkRepository {
     suspend fun getProfile(username: String): Profile
     suspend fun getNewTokens(bearerRefreshToken: String): AuthTokens
     val connectionState: StateFlow<ConnectionState>
-    val messages: Flow<MessageEntity>
+    val messagesFlow: Flow<MessageEntity>
+    val historyFlow: Flow<List<MessageEntity>>
 }
 
 sealed class ConnectionState {
@@ -76,22 +75,30 @@ class NetworkRepositoryImpl @Inject constructor(
     private val _sessionState = MutableStateFlow<StompSessionWithKxSerialization?>(null)
     private val sessionState: StateFlow<StompSessionWithKxSerialization?> = _sessionState.asStateFlow()
 
-    override val messages: Flow<MessageEntity> = sessionState
+    override val messagesFlow: Flow<MessageEntity> = sessionState
         .filterNotNull()
         .flatMapLatest { session ->
-            merge(
-                session.subscribe(
-                    destination = MESSAGE_TOPIC,
-                    deserializer = MessageEntity.serializer()
-                ),
-                session.subscribe(
-                    destination = HISTORY_TOPIC,
-                    deserializer = ListSerializer(MessageEntity.serializer())
-                ).flatMapMerge { it.asFlow() }
+            session.subscribe(
+                destination = MESSAGE_TOPIC,
+                deserializer = MessageEntity.serializer()
             )
         }
         .retry { error ->
-            Timber.e(error)
+            Timber.d(error)
+            _connectionState.value = ConnectionState.Error(error)
+            true
+        }
+
+    override val historyFlow: Flow<List<MessageEntity>> = sessionState
+        .filterNotNull()
+        .flatMapLatest { session ->
+            session.subscribe(
+                destination = HISTORY_TOPIC,
+                deserializer = ListSerializer(MessageEntity.serializer())
+            )
+        }
+        .retry { error ->
+            Timber.d(error)
             _connectionState.value = ConnectionState.Error(error)
             true
         }
@@ -128,11 +135,11 @@ class NetworkRepositoryImpl @Inject constructor(
         _sessionState.value = null
     }
 
-    override suspend fun sendMessage(messageBody: MessageBody) {
+    override suspend fun sendMessage(messageBody: MessageBody): StompReceipt? {
         val session = _sessionState.value
         if (session != null && _connectionState.value == ConnectionState.Connected) {
             try {
-                session.convertAndSend(
+                return session.convertAndSend(
                     CHAT_APP,
                     messageBody,
                     MessageBody.serializer()
@@ -142,22 +149,24 @@ class NetworkRepositoryImpl @Inject constructor(
                 _connectionState.value = ConnectionState.Error(e)
             }
         } else {
-            Timber.e("Not connected to server")
+            Timber.e("Not connected to server. session: $session, _connectionState.value = ${_connectionState.value}")
         }
+        return null
     }
 
-    override suspend fun requestHistory() {
+    override suspend fun requestHistory(): StompReceipt? {
         val session = _sessionState.value
         if (session != null && _connectionState.value == ConnectionState.Connected) {
             try {
-                session.sendEmptyMsg(HISTORY_APP)
+                return session.sendEmptyMsg(HISTORY_APP)
             } catch (e: LostReceiptException) {
                 Timber.e(e)
                 _connectionState.value = ConnectionState.Error(e)
             }
         } else {
-            Timber.e("Not connected to server")
+            Timber.e("Not connected to server. session: $session, _connectionState.value = ${_connectionState.value}")
         }
+        return null
     }
 
     override suspend fun sendCommand(command: String): String =

@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -42,15 +42,14 @@ import kotlin.math.pow
 data class ChatUiState(
     val connectionState: ConnectionState = ConnectionState.Connecting,
     val isCommandPending: Boolean = false,
-    val repliedMessage: RepliedMessage? = null,
-    val commandSuggestionList: List<CommandSuggestion> = emptyList()
+    val repliedMessage: RepliedMessage? = null
 )
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val networkRepository: NetworkRepository,
     private val offlineRepository: OfflineRepository,
-    private val preferencesRepository: PreferencesRepository
+    preferencesRepository: PreferencesRepository
 ) : ViewModel() {
     private val _chatUiState = MutableStateFlow(ChatUiState())
     val chatUiState = _chatUiState.asStateFlow()
@@ -65,22 +64,19 @@ class ChatViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
         )
 
-    private val username: MutableStateFlow<String> = MutableStateFlow("")
+    private val username = preferencesRepository.name.stateIn(
+        scope = viewModelScope,
+        initialValue = "",
+        started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
+    )
+
+    val commandSuggestions: MutableStateFlow<List<CommandSuggestion>> = MutableStateFlow(emptyList())
 
     init {
-        observeUsername()
         observeConnectionState()
         observeIncomingMessages()
+        observeIncomingHistory()
         getCommandSuggestions()
-    }
-
-    private fun observeUsername() {
-        viewModelScope.launch {
-            preferencesRepository.name
-                .collect { name ->
-                    username.value = name
-                }
-        }
     }
 
     private fun observeConnectionState(
@@ -116,15 +112,24 @@ class ChatViewModel @Inject constructor(
     private fun observeIncomingMessages() {
         networkRepository.connectionState
             .filterIsInstance<ConnectionState.Connected>()
-            .flatMapConcat {
-                networkRepository.messages
+            .flatMapLatest {
+                networkRepository.messagesFlow
             }
             .onEach { message ->
-                if (message.name == username.value) {
-                    offlineRepository.setDelivered(message)
-                } else {
-                    offlineRepository.addToHistory(message)
-                }
+                if (message.name != username.value) offlineRepository.addToHistory(message)
+            }
+            .launchIn(viewModelScope)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeIncomingHistory() {
+        networkRepository.connectionState
+            .filterIsInstance<ConnectionState.Connected>()
+            .flatMapLatest {
+                networkRepository.historyFlow
+            }
+            .onEach { messages ->
+                offlineRepository.addToHistory(messages.filter { it.name != username.value })
             }
             .launchIn(viewModelScope)
     }
@@ -134,24 +139,32 @@ class ChatViewModel @Inject constructor(
         if (message.isNotEmpty()) {
             viewModelScope.launch {
                 val repliedMessage = _chatUiState.value.repliedMessage
-
-                offlineRepository.addToHistory(
+                val messageToBeSent =
                     MessageEntity(
                         name = username.value,
                         message = message,
                         deliveryStatus = DeliveryStatus.PENDING,
                         replyId = repliedMessage?.id ?: 0
                     )
-                )
+
+                offlineRepository.addToHistory(messageToBeSent)
                 clearPendingState()
                 cancelReply()
-                networkRepository.sendMessage(
+                Timber.d("Sending message: %s", messageToBeSent.toString())
+                val receipt = networkRepository.sendMessage(
                     MessageBody(
                         name = username.value,
                         message = message,
                         replyId = repliedMessage?.id ?: 0
                     )
                 )
+                if (receipt != null) {
+                    offlineRepository.setDelivered(messageToBeSent)
+                    Timber.d("Message set delivered: %s", messageToBeSent.toString())
+                } else {
+                    offlineRepository.setFailedToSend(messageToBeSent)
+                    Timber.d("Message set failed: %s", messageToBeSent.toString())
+                }
             }
         }
     }
@@ -234,16 +247,11 @@ class ChatViewModel @Inject constructor(
     private fun getCommandSuggestions() {
         viewModelScope.launch {
             try {
-                val commandSuggestions = networkRepository.getCommandSuggestions()
-                _chatUiState.update {
-                    it.copy(
-                        commandSuggestionList = commandSuggestions
-                    )
-                }
+                commandSuggestions.value = networkRepository.getCommandSuggestions()
             } catch (e: IOException) {
-                Timber.e(e)
+                Timber.d(e)
             } catch (e: HttpException) {
-                Timber.e(e)
+                Timber.d(e)
             }
         }
     }
