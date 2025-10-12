@@ -88,11 +88,14 @@ class ChatViewModel @Inject constructor(
             .onEach { state ->
                 when (state) {
                     ConnectionState.Disconnected -> {
+                        Timber.d("Connecting to the server...")
                         networkRepository.connect()
                     }
 
                     ConnectionState.Connected -> {
                         attempt = 1
+                        setConnectionState(ConnectionState.Connected)
+                        Timber.d("Connected. Requesting history...")
                         networkRepository.requestHistory()
                     }
 
@@ -119,6 +122,7 @@ class ChatViewModel @Inject constructor(
                 networkRepository.messagesFlow
             }
             .onEach { message ->
+                Timber.d("Received message")
                 offlineRepository.addToHistory(message)
             }
             .launchIn(viewModelScope)
@@ -132,7 +136,7 @@ class ChatViewModel @Inject constructor(
                 networkRepository.historyFlow
             }
             .onEach { messages ->
-                setConnectionState(ConnectionState.Connected)
+                Timber.d("Received history")
                 offlineRepository.addToHistory(messages)
             }
             .launchIn(viewModelScope)
@@ -163,11 +167,11 @@ class ChatViewModel @Inject constructor(
                     )
                 )
                 if (receipt != null) {
-                    offlineRepository.setDelivered(messageToBeSent)
                     Timber.d("Message set delivered: %s", messageToBeSent.toString())
+                    offlineRepository.setDelivered(messageToBeSent)
                 } else {
-                    offlineRepository.setFailedToSend(messageToBeSent)
                     Timber.d("Message set failed: %s", messageToBeSent.toString())
+                    offlineRepository.setFailedToSend(messageToBeSent)
                 }
             }
         }
