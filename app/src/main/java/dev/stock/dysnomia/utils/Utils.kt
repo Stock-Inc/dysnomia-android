@@ -14,7 +14,7 @@ import dev.stock.dysnomia.model.DeliveryStatus
 
 fun Context.isDarkThemeOn(): Boolean {
     return resources.configuration.uiMode and
-        Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
 }
 
 @Composable
@@ -23,11 +23,13 @@ fun Modifier.setVisualsBasedOfMessageStatus(deliveryStatus: DeliveryStatus) =
         DeliveryStatus.DELIVERED -> {
             Modifier.padding(4.dp)
         }
+
         DeliveryStatus.PENDING -> {
             Modifier
                 .alpha(0.5f)
                 .padding(4.dp)
         }
+
         DeliveryStatus.FAILED -> {
             Modifier
                 .background(MaterialTheme.colorScheme.onError)

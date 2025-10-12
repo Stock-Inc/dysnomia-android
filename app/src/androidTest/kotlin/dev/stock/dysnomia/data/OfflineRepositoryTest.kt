@@ -2,7 +2,9 @@ package dev.stock.dysnomia.data
 
 import android.content.Context
 import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.testutils.MessageEntityBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -12,9 +14,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
-import androidx.test.core.app.ApplicationProvider
-import dev.stock.dysnomia.model.DeliveryStatus
-
 
 @RunWith(AndroidJUnit4::class)
 class OfflineRepositoryImplTest {
@@ -26,7 +25,8 @@ class OfflineRepositoryImplTest {
     fun setup() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(
-            context, AppDatabase::class.java).build()
+            context, AppDatabase::class.java
+        ).build()
         chatDao = db.chatDao()
 
         offlineRepository = OfflineRepositoryImpl(chatDao)

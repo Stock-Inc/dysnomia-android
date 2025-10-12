@@ -109,8 +109,8 @@ class ProfileViewModel @Inject constructor(
                                 errorMessage = "Error while receiving info, this issue is reported"
                             )
                         }
+                    }
                 }
-            }
         }
     }
 

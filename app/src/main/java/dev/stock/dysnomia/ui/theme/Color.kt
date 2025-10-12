@@ -1,4 +1,5 @@
 package dev.stock.dysnomia.ui.theme
+
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF8C4A5E)

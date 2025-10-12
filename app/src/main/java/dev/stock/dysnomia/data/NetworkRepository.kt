@@ -73,7 +73,8 @@ class NetworkRepositoryImpl @Inject constructor(
     override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
     private val _sessionState = MutableStateFlow<StompSessionWithKxSerialization?>(null)
-    private val sessionState: StateFlow<StompSessionWithKxSerialization?> = _sessionState.asStateFlow()
+    private val sessionState: StateFlow<StompSessionWithKxSerialization?> =
+        _sessionState.asStateFlow()
 
     override val messagesFlow: Flow<MessageEntity> = sessionState
         .filterNotNull()

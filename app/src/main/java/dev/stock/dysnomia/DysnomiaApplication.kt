@@ -24,8 +24,10 @@ import javax.inject.Inject
 class DysnomiaApplication : Application() {
     @Inject
     lateinit var offlineRepository: OfflineRepository
+
     @Inject
     lateinit var preferencesRepository: PreferencesRepository
+
     @Inject
     lateinit var networkRepository: NetworkRepository
 

@@ -70,7 +70,8 @@ class ChatViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
     )
 
-    val commandSuggestions: MutableStateFlow<List<CommandSuggestion>> = MutableStateFlow(emptyList())
+    val commandSuggestions: MutableStateFlow<List<CommandSuggestion>> =
+        MutableStateFlow(emptyList())
 
     init {
         observeConnectionState()
@@ -89,11 +90,13 @@ class ChatViewModel @Inject constructor(
                     ConnectionState.Disconnected -> {
                         networkRepository.connect()
                     }
+
                     ConnectionState.Connected -> {
                         setConnectionState(state)
                         attempt = 1
                         networkRepository.requestHistory()
                     }
+
                     is ConnectionState.Error -> {
                         setConnectionState(ConnectionState.Connecting)
                         val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
@@ -102,6 +105,7 @@ class ChatViewModel @Inject constructor(
                         attempt++
                         networkRepository.connect()
                     }
+
                     else -> Unit
                 }
             }

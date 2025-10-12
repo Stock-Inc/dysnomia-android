@@ -79,6 +79,7 @@ fun DysnomiaApp(
                             }
                         )
                     }
+
                     2 -> {
                         IntroductionSecondStepScreen(
                             onProceed = { finishIntroduction() }

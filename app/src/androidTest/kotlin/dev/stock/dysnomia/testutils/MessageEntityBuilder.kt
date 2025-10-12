@@ -38,7 +38,10 @@ class MessageEntityBuilder {
         fun aCommand() = MessageEntityBuilder()
             .withIsCommand(true)
 
-        fun messageList(count: Int, configure: MessageEntityBuilder.() -> Unit = {}): List<MessageEntity> {
+        fun messageList(
+            count: Int,
+            configure: MessageEntityBuilder.() -> Unit = {}
+        ): List<MessageEntity> {
             return (1..count).map { index ->
                 MessageEntityBuilder()
                     .withEntityId(index)
