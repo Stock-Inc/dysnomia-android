@@ -3,33 +3,49 @@ package dev.stock.dysnomia.utils
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-
-fun Modifier.grayScale(): Modifier {
-    val saturationMatrix = ColorMatrix().apply { setToSaturation(0f) }
-    val saturationFilter = ColorFilter.colorMatrix(saturationMatrix)
-    val paint = Paint().apply { colorFilter = saturationFilter }
-
-    return drawWithCache {
-        val canvasBounds = Rect(Offset.Zero, size)
-        onDrawWithContent {
-            drawIntoCanvas {
-                it.saveLayer(canvasBounds, paint)
-                drawContent()
-                it.restore()
-            }
-        }
-    }
-}
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.dp
+import com.valentinilk.shimmer.Shimmer
+import com.valentinilk.shimmer.ShimmerBounds
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.shimmer
+import dev.stock.dysnomia.model.DeliveryStatus
 
 fun Context.isDarkThemeOn(): Boolean {
     return resources.configuration.uiMode and
-        Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
 }
+
+@Composable
+fun Modifier.shimmer(
+    isActive: Boolean,
+    customShimmer: Shimmer = rememberShimmer(ShimmerBounds.View)
+) = then(
+    if (isActive) Modifier.shimmer(customShimmer)
+    else Modifier
+)
+
+@Composable
+fun Modifier.setVisualsBasedOfMessageStatus(deliveryStatus: DeliveryStatus) =
+    this then when (deliveryStatus) {
+        DeliveryStatus.DELIVERED -> {
+            Modifier.padding(4.dp)
+        }
+
+        DeliveryStatus.PENDING -> {
+            Modifier
+                .alpha(0.5f)
+                .padding(4.dp)
+        }
+
+        DeliveryStatus.FAILED -> {
+            Modifier
+                .background(MaterialTheme.colorScheme.onError)
+                .padding(4.dp)
+        }
+    }

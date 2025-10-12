@@ -9,28 +9,47 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.PreferencesRepository
+import dev.stock.dysnomia.model.Profile
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
+import timber.log.Timber
 import java.io.IOException
+import java.net.ConnectException
+import java.net.UnknownHostException
 import javax.inject.Inject
 
-sealed interface ProfileUiState {
-    data object AuthRequired : ProfileUiState
-    data object AuthInProgress : ProfileUiState
-    data class Error(val errorMessage: String) : ProfileUiState
-}
+data class AuthUiState(
+    val isInProgress: Boolean = false,
+    val errorMessage: String? = null,
+    val isSignUp: Boolean = false
+)
+
+data class ProfileUiState(
+    val profile: Profile? = null,
+    val errorMessage: String? = null
+)
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userPreferencesRepository: PreferencesRepository,
     private val networkRepository: NetworkRepository
 ) : ViewModel() {
-    var uiState: ProfileUiState by mutableStateOf(ProfileUiState.AuthRequired)
+    private val _authUiState: MutableStateFlow<AuthUiState> = MutableStateFlow(AuthUiState())
+    val authUiState = _authUiState.asStateFlow()
+
+    private val _profileUiState: MutableStateFlow<ProfileUiState> = MutableStateFlow(ProfileUiState())
+    val profileUiState = _profileUiState.asStateFlow()
+
     var username by mutableStateOf(TextFieldValue())
         private set
     var password by mutableStateOf(TextFieldValue())
@@ -43,6 +62,57 @@ class ProfileViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
         initialValue = ""
     )
+
+    init {
+        loadProfile()
+    }
+
+    private fun loadProfile() {
+        viewModelScope.launch {
+            currentName
+                .filter { it.isNotEmpty() }
+                .collect { currentName ->
+                    try {
+                        _profileUiState.update {
+                            ProfileUiState(
+                                profile = networkRepository.getProfile(currentName),
+                                errorMessage = null
+                            )
+                        }
+                    } catch (e: IOException) {
+                        Timber.d(e)
+                        _profileUiState.update {
+                            it.copy(
+                                errorMessage = "No connection with the server"
+                            )
+                        }
+                    } catch (e: HttpException) {
+                        if (e.code() in listOf(401, 404)) {
+                            Timber.d(e)
+                        } else {
+                            Timber.e(e)
+                        }
+                        _profileUiState.update {
+                            it.copy(
+                                errorMessage = when (e.code()) {
+                                    401 -> "Your session has expired, please log in again to continue"
+                                    404 -> "User not found"
+                                    500 -> "Error while receiving info, this issue is reported"
+                                    else -> e.toString()
+                                }
+                            )
+                        }
+                    } catch (e: SerializationException) {
+                        Timber.e(e)
+                        _profileUiState.update {
+                            it.copy(
+                                errorMessage = "Error while receiving info, this issue is reported"
+                            )
+                        }
+                    }
+                }
+        }
+    }
 
     fun changeName(username: TextFieldValue) {
         this.username = username
@@ -59,7 +129,12 @@ class ProfileViewModel @Inject constructor(
     fun signIn(signInBody: SignInBody) {
         if (signInBody.username.isNotEmpty() && signInBody.password.isNotEmpty()) {
             viewModelScope.launch {
-                uiState = ProfileUiState.AuthInProgress
+                _authUiState.update {
+                    it.copy(
+                        isInProgress = true
+                    )
+                }
+
                 try {
                     val signInResult = networkRepository.signIn(signInBody)
 
@@ -69,23 +144,39 @@ class ProfileViewModel @Inject constructor(
                         refreshToken = signInResult.refreshToken
                     )
 
+                    _authUiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    uiState = ProfileUiState.Error(
-                        when (e.code()) {
-                            401 -> "Incorrect username or password"
-                            500 -> "Error, check your credentials and try again"
-                            else -> e.toString()
-                        }
-                    )
-                } catch (e: IOException) {
-                    uiState = ProfileUiState.Error(
-                        if (e.toString().startsWith("java.net.UnknownHostException")) {
-                            "No connection with the server (╥﹏╥)"
-                        } else {
-                            e.toString()
-                        }
-                    )
+                    if (e.code() == 401) {
+                        Timber.d(e)
+                    } else {
+                        Timber.e(e)
+                    }
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = when (e.code()) {
+                                401 -> "Incorrect username or password"
+                                else -> e.toString()
+                            },
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: UnknownHostException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: ConnectException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
                 }
             }
         }
@@ -94,7 +185,12 @@ class ProfileViewModel @Inject constructor(
     fun signUp(signUpBody: SignUpBody) {
         if (signUpBody.username.isNotEmpty() && signUpBody.password.isNotEmpty()) {
             viewModelScope.launch {
-                uiState = ProfileUiState.AuthInProgress
+                _authUiState.update {
+                    it.copy(
+                        isInProgress = true
+                    )
+                }
+
                 try {
                     val signUpResult = networkRepository.signUp(signUpBody)
 
@@ -104,23 +200,39 @@ class ProfileViewModel @Inject constructor(
                         refreshToken = signUpResult.refreshToken
                     )
 
+                    _authUiState.value = AuthUiState()
                     password = TextFieldValue()
                 } catch (e: HttpException) {
-                    uiState = ProfileUiState.Error(
-                        when (e.code()) {
-                            401 -> "Incorrect username or password"
-                            500 -> "Error, check your credentials and try again"
-                            else -> e.toString()
-                        }
-                    )
-                } catch (e: IOException) {
-                    uiState = ProfileUiState.Error(
-                        if (e.toString().startsWith("java.net.UnknownHostException")) {
-                            "No connection with the server (╥﹏╥)"
-                        } else {
-                            e.toString()
-                        }
-                    )
+                    if (e.code() == 401) {
+                        Timber.d(e)
+                    } else {
+                        Timber.e(e)
+                    }
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = when (e.code()) {
+                                401 -> "Error, check your credentials and try again"
+                                else -> e.toString()
+                            },
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: UnknownHostException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: ConnectException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
                 }
             }
         }
@@ -129,11 +241,17 @@ class ProfileViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             userPreferencesRepository.clearAccount()
-            uiState = ProfileUiState.AuthRequired
+            _authUiState.value = AuthUiState()
         }
     }
 
-    fun hideError() {
-        uiState = ProfileUiState.AuthRequired
+    fun changeAuthScreen(isSignUp: Boolean) {
+        _authUiState.value = AuthUiState(isSignUp = isSignUp)
+    }
+
+    fun setNotFirstLaunch() {
+        viewModelScope.launch {
+            userPreferencesRepository.setNotFirstLaunch()
+        }
     }
 }

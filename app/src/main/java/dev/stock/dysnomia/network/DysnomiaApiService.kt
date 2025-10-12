@@ -1,13 +1,14 @@
 package dev.stock.dysnomia.network
 
+import dev.stock.dysnomia.model.AuthTokens
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageEntity
+import dev.stock.dysnomia.model.Profile
 import dev.stock.dysnomia.model.SignInBody
-import dev.stock.dysnomia.model.SignInResponse
 import dev.stock.dysnomia.model.SignUpBody
-import dev.stock.dysnomia.model.SignUpResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -24,15 +25,25 @@ interface DysnomiaApiService {
     @POST("login")
     suspend fun signIn(
         @Body signInBody: SignInBody
-    ): SignInResponse
+    ): AuthTokens
 
-    @POST("registration")
+    @POST("signup")
     suspend fun signUp(
         @Body signUpBody: SignUpBody
-    ): SignUpResponse
+    ): AuthTokens
 
     @GET("message/{messageId}")
     suspend fun getMessageByMessageId(
         @Path("messageId") messageId: Int
     ): MessageEntity
+
+    @GET("user/{username}")
+    suspend fun getProfile(
+        @Path("username") username: String
+    ): Profile
+
+    @POST("refresh_token")
+    suspend fun refreshToken(
+        @Header("Authorization") bearerRefreshToken: String,
+    ): AuthTokens
 }

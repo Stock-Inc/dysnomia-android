@@ -23,6 +23,7 @@ import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -89,17 +90,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
-import dev.stock.dysnomia.ui.composables.DysnomiaTextField
-import dev.stock.dysnomia.ui.theme.DarkerPrimary
-import dev.stock.dysnomia.ui.theme.DysnomiaPink
+import dev.stock.dysnomia.ui.composable.DysnomiaTextField
+import dev.stock.dysnomia.ui.screen.chat.composable.ChatTopAppBar
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
+import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus
+import dev.stock.dysnomia.utils.shimmer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -155,6 +156,7 @@ fun MessageItem(
     Column(
         horizontalAlignment = if (isUserMe) Alignment.End else Alignment.Start,
         modifier = modifier
+            .setVisualsBasedOfMessageStatus(messageEntity.deliveryStatus)
             .anchoredDraggable(
                 state = draggableState,
                 orientation = Orientation.Horizontal,
@@ -173,7 +175,7 @@ fun MessageItem(
         if (isTheFirstMessageFromAuthor) {
             Text(
                 text = messageEntity.name.ifEmpty { ANONYMOUS },
-                color = DysnomiaPink,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = if (isUserMe) TextAlign.Right else null,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -183,19 +185,20 @@ fun MessageItem(
             onClick = onClick,
             color = if (isUserMe) MaterialTheme.colorScheme.primary else Color.Transparent,
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
-            border = CardDefaults.outlinedCardBorder(true)
+            border = CardDefaults.outlinedCardBorder(true),
+            modifier = Modifier.width(IntrinsicSize.Max)
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
                 repliedMessage?.let {
                     MessageReplyBox(
                         isUserMe = isUserMe,
-                        repliedMessage = repliedMessage
+                        repliedMessage = repliedMessage,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
                 Text(
                     text = messageEntity.message,
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
                     modifier = Modifier
                         .padding(
                             top = 4.dp,
@@ -205,7 +208,6 @@ fun MessageItem(
                 )
                 Text(
                     text = getLocalTime(messageEntity.date, context),
-                    color = if (isUserMe) MaterialTheme.colorScheme.surface else DysnomiaPink,
                     modifier = Modifier
                         .alpha(0.5f)
                         .align(alignment = Alignment.End)
@@ -262,7 +264,7 @@ fun CommandItem(
             } else {
                 messageEntity.message
             },
-            color = DysnomiaPink,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(8.dp)
         )
     }
@@ -327,7 +329,6 @@ fun MessageReplyBox(
                 text = repliedMessage.message,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = if (isUserMe) Color.Unspecified else Color.White
             )
         }
     }
@@ -347,7 +348,7 @@ fun LabeledBarRow(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(
-                if (isUserMe) DarkerPrimary else Color.Unspecified
+                if (isUserMe) MaterialTheme.colorScheme.onPrimaryContainer else Color.Unspecified
             )
     ) {
         Box(
@@ -404,11 +405,13 @@ fun ChatScreen(
     chatUiState: ChatUiState,
     messageText: TextFieldValue,
     currentName: String,
+    commandSuggestions: List<CommandSuggestion>,
     onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
     onSendCommand: (String?) -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
+    onNavigateUp: () -> Unit,
     getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage>,
     modifier: Modifier = Modifier
 ) {
@@ -420,12 +423,12 @@ fun ChatScreen(
 
     val isMessageACommand = messageText.text.startsWith('/')
     val filteredSuggestions by remember(
-        chatUiState.commandSuggestionList,
+        commandSuggestions,
         messageText.text
     ) {
         derivedStateOf {
             if (isMessageACommand) {
-                chatUiState.commandSuggestionList
+                commandSuggestions
                     .filter { suggestion ->
                         suggestion.command.contains(
                             messageText.text.drop(1),
@@ -446,41 +449,27 @@ fun ChatScreen(
 
     Column(
         verticalArrangement = Arrangement.Bottom,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.Bottom,
-            reverseLayout = true,
-            state = chatListState,
-            modifier = Modifier.weight(1f)
-        ) {
-            itemsIndexed(
-                items = chatHistory,
-                key = { _, item -> item.entityId }
-            ) { index, item ->
-                val nextItem = chatHistory.getOrNull(index + 1)
+        ChatTopAppBar(
+            connectionState = chatUiState.connectionState,
+            onBackPressed = onNavigateUp
+        )
+        Column(Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
+            LazyColumn(
+                verticalArrangement = Arrangement.Bottom,
+                reverseLayout = true,
+                state = chatListState,
+                modifier = Modifier.weight(1f)
+            ) {
+                itemsIndexed(
+                    items = chatHistory,
+                    key = { _, item -> item.entityId }
+                ) { index, item ->
+                    val nextItem = chatHistory.getOrNull(index + 1)
 
-                if (item.isCommand) {
-                    CommandItem(
-                        messageEntity = item,
-                        onClick = {
-                            coroutineScope.launch {
-                                copyToClipboard(
-                                    context = context,
-                                    localClipboard = localClipboard,
-                                    textToCopy = item.message
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .animateItem()
-                    )
-                } else {
-                    if (item.replyId == 0) {
-                        MessageItem(
+                    if (item.isCommand) {
+                        CommandItem(
                             messageEntity = item,
                             onClick = {
                                 coroutineScope.launch {
@@ -491,127 +480,123 @@ fun ChatScreen(
                                     )
                                 }
                             },
-                            onReply = onReply,
-                            isUserMe = item.name == currentName,
-                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                Modifier
-                                    .alpha(0.5f)
-                                    .padding(4.dp)
-                                    .animateItem()
-                            } else {
-                                Modifier
-                                    .padding(4.dp)
-                                    .animateItem()
-                            }
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .animateItem()
                         )
                     } else {
-                        MessageItemWithReply(
-                            messageEntity = item,
-                            getRepliedMessageStateFlow = getRepliedMessageStateFlow,
-                            onClick = {
-                                coroutineScope.launch {
-                                    copyToClipboard(
-                                        context = context,
-                                        localClipboard = localClipboard,
-                                        textToCopy = item.message
-                                    )
-                                }
-                            },
-                            onReply = onReply,
-                            isUserMe = item.name == currentName,
-                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                Modifier
-                                    .alpha(0.5f)
-                                    .padding(4.dp)
-                                    .animateItem()
-                            } else {
-                                Modifier
-                                    .padding(4.dp)
-                                    .animateItem()
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        AnimatedVisibility(
-            visible = chatUiState.repliedMessage != null,
-            enter = slideInVertically { it } + expandVertically(),
-            exit = slideOutVertically { it } + shrinkVertically()
-        ) {
-            ReplyBox(
-                repliedMessage = chatUiState.repliedMessage,
-                onCancel = onCancelReply
-            )
-        }
-
-        Box {
-            DropdownMenu(
-                expanded = filteredSuggestions.isNotEmpty() && !chatUiState.isCommandPending,
-                onDismissRequest = { },
-                properties = PopupProperties(
-                    focusable = false,
-                    dismissOnClickOutside = false
-                ),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                filteredSuggestions
-                    .forEach {
-                        CommandSuggestionItem(
-                            command = it.command,
-                            result = it.description ?: "",
-                            onClick = { onSendCommand("/${it.command}") }
-                        )
-                    }
-            }
-
-            DysnomiaTextField(
-                value = messageText,
-                enabled = !chatUiState.isCommandPending,
-                label = if (isMessageACommand) {
-                    stringResource(R.string.enter_command)
-                } else {
-                    stringResource(R.string.enter_message)
-                },
-                onValueChange = onTextChange,
-                maxLines = 6,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.None
-                ),
-                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                trailingIcon = if (messageText.text.isEmpty()) {
-                    ImageVector.vectorResource(R.drawable.code)
-                } else {
-                    ImageVector.vectorResource(R.drawable.send)
-                },
-                onTrailingIconClick = if (messageText.text.isEmpty()) {
-                    {
-                        onTextChange(
-                            TextFieldValue(
-                                text = "/",
-                                selection = TextRange(1)
+                        if (item.replyId == 0) {
+                            MessageItem(
+                                messageEntity = item,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                onReply = onReply,
+                                isUserMe = item.name == currentName,
+                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                                modifier = Modifier.animateItem()
                             )
-                        )
-                        textFieldFocusRequester.requestFocus()
+                        } else {
+                            MessageItemWithReply(
+                                messageEntity = item,
+                                getRepliedMessageStateFlow = getRepliedMessageStateFlow,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                onReply = onReply,
+                                isUserMe = item.name == currentName,
+                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
-                } else if (isMessageACommand) {
-                    { onSendCommand(null) }
-                } else {
-                    { onSendMessage() }
-                },
-                modifier = if (chatUiState.isCommandPending) {
-                    Modifier
-                        .focusRequester(textFieldFocusRequester)
-                        .shimmer()
-                } else {
-                    Modifier.focusRequester(textFieldFocusRequester)
                 }
-            )
+            }
+
+            AnimatedVisibility(
+                visible = chatUiState.repliedMessage != null,
+                enter = slideInVertically { it } + expandVertically(),
+                exit = slideOutVertically { it } + shrinkVertically()
+            ) {
+                ReplyBox(
+                    repliedMessage = chatUiState.repliedMessage,
+                    onCancel = onCancelReply
+                )
+            }
+
+            Box {
+                DropdownMenu(
+                    expanded = filteredSuggestions.isNotEmpty() && !chatUiState.isCommandPending,
+                    onDismissRequest = { },
+                    properties = PopupProperties(
+                        focusable = false,
+                        dismissOnClickOutside = false
+                    ),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    filteredSuggestions
+                        .forEach {
+                            CommandSuggestionItem(
+                                command = it.command,
+                                result = it.description ?: "",
+                                onClick = { onSendCommand("/${it.command}") }
+                            )
+                        }
+                }
+
+                DysnomiaTextField(
+                    value = messageText,
+                    enabled = !chatUiState.isCommandPending,
+                    label = if (isMessageACommand) {
+                        stringResource(R.string.enter_command)
+                    } else {
+                        stringResource(R.string.enter_message)
+                    },
+                    onValueChange = onTextChange,
+                    maxLines = 6,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.None
+                    ),
+                    leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    trailingIcon = if (messageText.text.isEmpty()) {
+                        ImageVector.vectorResource(R.drawable.code)
+                    } else {
+                        ImageVector.vectorResource(R.drawable.send)
+                    },
+                    onTrailingIconClick = if (messageText.text.isEmpty()) {
+                        {
+                            onTextChange(
+                                TextFieldValue(
+                                    text = "/",
+                                    selection = TextRange(1)
+                                )
+                            )
+                            textFieldFocusRequester.requestFocus()
+                        }
+                    } else if (isMessageACommand) {
+                        { onSendCommand(null) }
+                    } else {
+                        { onSendMessage() }
+                    },
+                    modifier = Modifier
+                        .focusRequester(textFieldFocusRequester)
+                        .shimmer(chatUiState.isCommandPending)
+                )
+            }
         }
     }
 }
@@ -651,16 +636,16 @@ private fun ChatScreenLightPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
+                    )
+                ),
+                commandSuggestions = listOf(
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
                     ),
-                    commandSuggestionList = listOf(
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
                     )
                 ),
                 messageText = TextFieldValue(),
@@ -670,6 +655,7 @@ private fun ChatScreenLightPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
+                onNavigateUp = {},
                 getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
             )
         }
@@ -688,16 +674,6 @@ private fun ChatScreenDarkPreview() {
                         id = 0,
                         name = "Name ".repeat(10),
                         message = "some message ".repeat(3)
-                    ),
-                    commandSuggestionList = listOf(
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
-                        CommandSuggestion(
-                            command = "help",
-                            description = "some help"
-                        ),
                     )
                 ),
                 messageText = TextFieldValue("Some message"),
@@ -707,7 +683,18 @@ private fun ChatScreenDarkPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
-                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
+                onNavigateUp = {},
+                getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) },
+                commandSuggestions = listOf(
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
+                    ),
+                    CommandSuggestion(
+                        command = "help",
+                        description = "some help"
+                    )
+                )
             )
         }
     }
@@ -761,7 +748,7 @@ private fun ChatItemYoursFirstMessagePreview() {
 
 @Preview
 @Composable
-private fun ChatItemYoursFirstMessageWithReplyPreview() {
+private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
     DysnomiaTheme {
         Surface {
             MessageItem(
@@ -777,6 +764,104 @@ private fun ChatItemYoursFirstMessageWithReplyPreview() {
                     id = 0,
                     name = "Name ".repeat(10),
                     message = "some message ".repeat(3)
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstLargeMessageWithSmallReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message".repeat(50)
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyPendingPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message",
+                    deliveryStatus = DeliveryStatus.PENDING
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatItemYoursFirstMessageWithSmallReplyFailedPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "Username",
+                    message = "some message",
+                    deliveryStatus = DeliveryStatus.FAILED
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "Name",
+                    message = "some message"
                 )
             )
         }

@@ -1,10 +1,6 @@
 package dev.stock.dysnomia.ui.theme
-import androidx.compose.ui.graphics.Color
 
-val MysteriousPurple = Color(0xFF6B0772)
-val DysnomiaPink = Color(0xFFE799AE)
-val DysnomiaDarkPink = Color(0xFF271C1C)
-val DarkerPrimary = Color(0xFFF2A1B6)
+import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF8C4A5E)
 val onPrimaryLight = Color(0xFFFFFFFF)
@@ -45,7 +41,7 @@ val surfaceContainerHighestLight = Color(0xFFEFDFE1)
 val primaryDark = Color(0xFFFFB1C5)
 val onPrimaryDark = Color(0xFF551D30)
 val primaryContainerDark = Color(0xFF703346)
-val onPrimaryContainerDark = Color(0xFFFFD9E1)
+val onPrimaryContainerDark = Color(0xFFF2A1B6)
 val secondaryDark = Color(0xFFE3BDC5)
 val onSecondaryDark = Color(0xFF422930)
 val secondaryContainerDark = Color(0xFF5B3F46)
