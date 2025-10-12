@@ -10,12 +10,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import com.valentinilk.shimmer.Shimmer
+import com.valentinilk.shimmer.ShimmerBounds
+import com.valentinilk.shimmer.rememberShimmer
+import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.model.DeliveryStatus
 
 fun Context.isDarkThemeOn(): Boolean {
     return resources.configuration.uiMode and
             Configuration.UI_MODE_NIGHT_MASK == UI_MODE_NIGHT_YES
 }
+
+@Composable
+fun Modifier.shimmer(
+    isActive: Boolean,
+    customShimmer: Shimmer = rememberShimmer(ShimmerBounds.View)
+) = then(
+    if (isActive) Modifier.shimmer(customShimmer)
+    else Modifier
+)
 
 @Composable
 fun Modifier.setVisualsBasedOfMessageStatus(deliveryStatus: DeliveryStatus) =
