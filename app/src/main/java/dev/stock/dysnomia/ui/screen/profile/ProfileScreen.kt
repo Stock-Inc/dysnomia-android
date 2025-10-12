@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.Profile
-import dev.stock.dysnomia.ui.composables.DysnomiaButton
-import dev.stock.dysnomia.ui.composables.AnimatedErrorCard
+import dev.stock.dysnomia.ui.composable.DysnomiaButton
+import dev.stock.dysnomia.ui.composable.AnimatedErrorCard
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable

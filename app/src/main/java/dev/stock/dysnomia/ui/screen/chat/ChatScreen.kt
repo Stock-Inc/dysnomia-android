@@ -96,7 +96,7 @@ import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
-import dev.stock.dysnomia.ui.composables.DysnomiaTextField
+import dev.stock.dysnomia.ui.composable.DysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus

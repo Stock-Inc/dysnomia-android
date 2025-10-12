@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
 import dev.stock.dysnomia.R
-import dev.stock.dysnomia.ui.composables.DysnomiaButton
+import dev.stock.dysnomia.ui.composable.DysnomiaButton
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
