@@ -92,7 +92,6 @@ class ChatViewModel @Inject constructor(
                     }
 
                     ConnectionState.Connected -> {
-                        setConnectionState(state)
                         attempt = 1
                         networkRepository.requestHistory()
                     }
@@ -133,6 +132,7 @@ class ChatViewModel @Inject constructor(
                 networkRepository.historyFlow
             }
             .onEach { messages ->
+                setConnectionState(ConnectionState.Connected)
                 offlineRepository.addToHistory(messages)
             }
             .launchIn(viewModelScope)
@@ -294,6 +294,7 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun setConnectionState(connectionState: ConnectionState) {
+        if (_chatUiState.value.connectionState == connectionState) return
         _chatUiState.update {
             it.copy(
                 connectionState = connectionState
