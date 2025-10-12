@@ -67,8 +67,8 @@ fun HomeScreen(
         Spacer(Modifier.height(16.dp))
         Column {
             ChatCard(
-                name = "Global chat",
-                details = "Chat with everyone online",
+                name = stringResource(R.string.global_chat),
+                details = stringResource(R.string.chat_with_everyone_online),
                 onClick = { onChatClicked(0) },
                 image = R.drawable.ic_launcher_foreground
             )

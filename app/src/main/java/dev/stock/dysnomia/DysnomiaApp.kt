@@ -120,6 +120,7 @@ fun DysnomiaApp(
                     onSendCommand = chatViewModel::sendCommand,
                     onReply = chatViewModel::replyTo,
                     onCancelReply = chatViewModel::cancelReply,
+                    onNavigateUp = navController::navigateUp,
                     getRepliedMessageStateFlow = chatViewModel::getMessageStateFlowByMessageId
                 )
             }

@@ -90,16 +90,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
-import com.valentinilk.shimmer.shimmer
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
 import dev.stock.dysnomia.ui.composable.DysnomiaTextField
+import dev.stock.dysnomia.ui.screen.chat.composable.ChatTopAppBar
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus
+import dev.stock.dysnomia.utils.shimmer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -410,6 +411,7 @@ fun ChatScreen(
     onSendCommand: (String?) -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
+    onNavigateUp: () -> Unit,
     getRepliedMessageStateFlow: (Int) -> MutableStateFlow<RepliedMessage>,
     modifier: Modifier = Modifier
 ) {
@@ -447,41 +449,27 @@ fun ChatScreen(
 
     Column(
         verticalArrangement = Arrangement.Bottom,
-        modifier = modifier
-            .padding(8.dp)
-            .fillMaxSize()
+        modifier = modifier.fillMaxSize()
     ) {
-        LazyColumn(
-            verticalArrangement = Arrangement.Bottom,
-            reverseLayout = true,
-            state = chatListState,
-            modifier = Modifier.weight(1f)
-        ) {
-            itemsIndexed(
-                items = chatHistory,
-                key = { _, item -> item.entityId }
-            ) { index, item ->
-                val nextItem = chatHistory.getOrNull(index + 1)
+        ChatTopAppBar(
+            connectionState = chatUiState.connectionState,
+            onBackPressed = onNavigateUp
+        )
+        Column(Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
+            LazyColumn(
+                verticalArrangement = Arrangement.Bottom,
+                reverseLayout = true,
+                state = chatListState,
+                modifier = Modifier.weight(1f)
+            ) {
+                itemsIndexed(
+                    items = chatHistory,
+                    key = { _, item -> item.entityId }
+                ) { index, item ->
+                    val nextItem = chatHistory.getOrNull(index + 1)
 
-                if (item.isCommand) {
-                    CommandItem(
-                        messageEntity = item,
-                        onClick = {
-                            coroutineScope.launch {
-                                copyToClipboard(
-                                    context = context,
-                                    localClipboard = localClipboard,
-                                    textToCopy = item.message
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .animateItem()
-                    )
-                } else {
-                    if (item.replyId == 0) {
-                        MessageItem(
+                    if (item.isCommand) {
+                        CommandItem(
                             messageEntity = item,
                             onClick = {
                                 coroutineScope.launch {
@@ -492,118 +480,123 @@ fun ChatScreen(
                                     )
                                 }
                             },
-                            onReply = onReply,
-                            isUserMe = item.name == currentName,
-                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .animateItem()
                         )
                     } else {
-                        MessageItemWithReply(
-                            messageEntity = item,
-                            getRepliedMessageStateFlow = getRepliedMessageStateFlow,
-                            onClick = {
-                                coroutineScope.launch {
-                                    copyToClipboard(
-                                        context = context,
-                                        localClipboard = localClipboard,
-                                        textToCopy = item.message
-                                    )
-                                }
-                            },
-                            onReply = onReply,
-                            isUserMe = item.name == currentName,
-                            isTheFirstMessageFromAuthor = nextItem?.name != item.name,
-                            modifier = if (item.deliveryStatus == DeliveryStatus.PENDING) {
-                                Modifier
-                                    .alpha(0.5f)
-                                    .padding(4.dp)
-                                    .animateItem()
-                            } else {
-                                Modifier
-                                    .padding(4.dp)
-                                    .animateItem()
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        AnimatedVisibility(
-            visible = chatUiState.repliedMessage != null,
-            enter = slideInVertically { it } + expandVertically(),
-            exit = slideOutVertically { it } + shrinkVertically()
-        ) {
-            ReplyBox(
-                repliedMessage = chatUiState.repliedMessage,
-                onCancel = onCancelReply
-            )
-        }
-
-        Box {
-            DropdownMenu(
-                expanded = filteredSuggestions.isNotEmpty() && !chatUiState.isCommandPending,
-                onDismissRequest = { },
-                properties = PopupProperties(
-                    focusable = false,
-                    dismissOnClickOutside = false
-                ),
-                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                filteredSuggestions
-                    .forEach {
-                        CommandSuggestionItem(
-                            command = it.command,
-                            result = it.description ?: "",
-                            onClick = { onSendCommand("/${it.command}") }
-                        )
-                    }
-            }
-
-            DysnomiaTextField(
-                value = messageText,
-                enabled = !chatUiState.isCommandPending,
-                label = if (isMessageACommand) {
-                    stringResource(R.string.enter_command)
-                } else {
-                    stringResource(R.string.enter_message)
-                },
-                onValueChange = onTextChange,
-                maxLines = 6,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.None
-                ),
-                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                trailingIcon = if (messageText.text.isEmpty()) {
-                    ImageVector.vectorResource(R.drawable.code)
-                } else {
-                    ImageVector.vectorResource(R.drawable.send)
-                },
-                onTrailingIconClick = if (messageText.text.isEmpty()) {
-                    {
-                        onTextChange(
-                            TextFieldValue(
-                                text = "/",
-                                selection = TextRange(1)
+                        if (item.replyId == 0) {
+                            MessageItem(
+                                messageEntity = item,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                onReply = onReply,
+                                isUserMe = item.name == currentName,
+                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                                modifier = Modifier.animateItem()
                             )
-                        )
-                        textFieldFocusRequester.requestFocus()
+                        } else {
+                            MessageItemWithReply(
+                                messageEntity = item,
+                                getRepliedMessageStateFlow = getRepliedMessageStateFlow,
+                                onClick = {
+                                    coroutineScope.launch {
+                                        copyToClipboard(
+                                            context = context,
+                                            localClipboard = localClipboard,
+                                            textToCopy = item.message
+                                        )
+                                    }
+                                },
+                                onReply = onReply,
+                                isUserMe = item.name == currentName,
+                                isTheFirstMessageFromAuthor = nextItem?.name != item.name,
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
-                } else if (isMessageACommand) {
-                    { onSendCommand(null) }
-                } else {
-                    { onSendMessage() }
-                },
-                modifier = if (chatUiState.isCommandPending) {
-                    Modifier
-                        .focusRequester(textFieldFocusRequester)
-                        .shimmer()
-                } else {
-                    Modifier.focusRequester(textFieldFocusRequester)
                 }
-            )
+            }
+
+            AnimatedVisibility(
+                visible = chatUiState.repliedMessage != null,
+                enter = slideInVertically { it } + expandVertically(),
+                exit = slideOutVertically { it } + shrinkVertically()
+            ) {
+                ReplyBox(
+                    repliedMessage = chatUiState.repliedMessage,
+                    onCancel = onCancelReply
+                )
+            }
+
+            Box {
+                DropdownMenu(
+                    expanded = filteredSuggestions.isNotEmpty() && !chatUiState.isCommandPending,
+                    onDismissRequest = { },
+                    properties = PopupProperties(
+                        focusable = false,
+                        dismissOnClickOutside = false
+                    ),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    filteredSuggestions
+                        .forEach {
+                            CommandSuggestionItem(
+                                command = it.command,
+                                result = it.description ?: "",
+                                onClick = { onSendCommand("/${it.command}") }
+                            )
+                        }
+                }
+
+                DysnomiaTextField(
+                    value = messageText,
+                    enabled = !chatUiState.isCommandPending,
+                    label = if (isMessageACommand) {
+                        stringResource(R.string.enter_command)
+                    } else {
+                        stringResource(R.string.enter_message)
+                    },
+                    onValueChange = onTextChange,
+                    maxLines = 6,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.None
+                    ),
+                    leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    trailingIcon = if (messageText.text.isEmpty()) {
+                        ImageVector.vectorResource(R.drawable.code)
+                    } else {
+                        ImageVector.vectorResource(R.drawable.send)
+                    },
+                    onTrailingIconClick = if (messageText.text.isEmpty()) {
+                        {
+                            onTextChange(
+                                TextFieldValue(
+                                    text = "/",
+                                    selection = TextRange(1)
+                                )
+                            )
+                            textFieldFocusRequester.requestFocus()
+                        }
+                    } else if (isMessageACommand) {
+                        { onSendCommand(null) }
+                    } else {
+                        { onSendMessage() }
+                    },
+                    modifier = Modifier
+                        .focusRequester(textFieldFocusRequester)
+                        .shimmer(chatUiState.isCommandPending)
+                )
+            }
         }
     }
 }
@@ -662,6 +655,7 @@ private fun ChatScreenLightPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
+                onNavigateUp = {},
                 getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) }
             )
         }
@@ -689,6 +683,7 @@ private fun ChatScreenDarkPreview() {
                 onSendCommand = {},
                 onReply = {},
                 onCancelReply = {},
+                onNavigateUp = {},
                 getRepliedMessageStateFlow = { MutableStateFlow(RepliedMessage(0, "", "")) },
                 commandSuggestions = listOf(
                     CommandSuggestion(
