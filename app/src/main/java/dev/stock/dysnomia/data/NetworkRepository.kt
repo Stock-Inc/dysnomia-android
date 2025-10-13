@@ -13,6 +13,7 @@ import dev.stock.dysnomia.utils.HISTORY_APP
 import dev.stock.dysnomia.utils.HISTORY_TOPIC
 import dev.stock.dysnomia.utils.MESSAGE_TOPIC
 import dev.stock.dysnomia.utils.WEBSOCKETS_BASE_URL
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.retry
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -44,7 +47,7 @@ interface NetworkRepository {
     suspend fun requestHistory(): StompReceipt?
     suspend fun sendMessage(messageBody: MessageBody): StompReceipt?
     suspend fun sendCommand(command: String): String
-    suspend fun getCommandSuggestions(): List<CommandSuggestion>
+    fun getCommandSuggestionsFlow(): Flow<List<CommandSuggestion>>
     suspend fun signIn(signInBody: SignInBody): AuthTokens
     suspend fun signUp(signUpBody: SignUpBody): AuthTokens
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
@@ -173,8 +176,11 @@ class NetworkRepositoryImpl @Inject constructor(
     override suspend fun sendCommand(command: String): String =
         dysnomiaApiService.sendCommand(command)
 
-    override suspend fun getCommandSuggestions(): List<CommandSuggestion> =
-        dysnomiaApiService.getCommandSuggestions()
+    override fun getCommandSuggestionsFlow(): Flow<List<CommandSuggestion>> =
+        flow {
+            emit(dysnomiaApiService.getCommandSuggestions())
+        }
+        .flowOn(Dispatchers.IO)
 
     override suspend fun signIn(signInBody: SignInBody): AuthTokens =
         dysnomiaApiService.signIn(signInBody)

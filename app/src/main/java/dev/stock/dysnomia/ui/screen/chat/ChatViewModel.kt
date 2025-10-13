@@ -11,7 +11,6 @@ import dev.stock.dysnomia.data.ConnectionState
 import dev.stock.dysnomia.data.NetworkRepository
 import dev.stock.dysnomia.data.OfflineRepository
 import dev.stock.dysnomia.data.PreferencesRepository
-import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
@@ -25,10 +24,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -70,14 +71,27 @@ class ChatViewModel @Inject constructor(
         started = SharingStarted.Eagerly
     )
 
-    val commandSuggestions: MutableStateFlow<List<CommandSuggestion>> =
-        MutableStateFlow(emptyList())
+    val commandSuggestions = networkRepository.getCommandSuggestionsFlow()
+        .retry(3)
+        .catch { e ->
+            when (e) {
+                is IOException, is HttpException -> {
+                    Timber.d(e)
+                    emit(emptyList())
+                }
+                else -> throw e
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            initialValue = emptyList(),
+            started = SharingStarted.Eagerly
+        )
 
     init {
         observeConnectionState()
         observeIncomingMessages()
         observeIncomingHistory()
-        getCommandSuggestions()
     }
 
     private fun observeConnectionState(
@@ -254,18 +268,6 @@ class ChatViewModel @Inject constructor(
                 }
             }
         }
-
-    private fun getCommandSuggestions() {
-        viewModelScope.launch {
-            try {
-                commandSuggestions.value = networkRepository.getCommandSuggestions()
-            } catch (e: IOException) {
-                Timber.d(e)
-            } catch (e: HttpException) {
-                Timber.d(e)
-            }
-        }
-    }
 
     fun replyTo(messageEntity: MessageEntity) {
         _chatUiState.update {
