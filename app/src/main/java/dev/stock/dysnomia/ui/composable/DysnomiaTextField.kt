@@ -93,8 +93,24 @@ fun DysnomiaTextField(
 
 @Preview
 @Composable
-private fun DysnomiaTextFieldPreview() {
-    DysnomiaTheme {
+private fun DysnomiaTextFieldDarkPreview() {
+    DysnomiaTheme(darkTheme = true) {
+        Surface {
+            DysnomiaTextField(
+                value = TextFieldValue(),
+                label = "Enter Message",
+                onValueChange = { },
+                leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                trailingIcon = Icons.AutoMirrored.Filled.Send
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun DysnomiaTextFieldLightPreview() {
+    DysnomiaTheme(darkTheme = false) {
         Surface {
             DysnomiaTextField(
                 value = TextFieldValue(),
