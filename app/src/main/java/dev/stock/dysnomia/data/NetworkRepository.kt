@@ -149,7 +149,7 @@ class NetworkRepositoryImpl @Inject constructor(
                     MessageBody.serializer()
                 )
             } catch (e: LostReceiptException) {
-                Timber.e(e)
+                Timber.d(e)
                 _connectionState.value = ConnectionState.Error(e)
             }
         } else {
@@ -164,7 +164,7 @@ class NetworkRepositoryImpl @Inject constructor(
             try {
                 return session.sendEmptyMsg(HISTORY_APP)
             } catch (e: LostReceiptException) {
-                Timber.e(e)
+                Timber.d(e)
                 _connectionState.value = ConnectionState.Error(e)
             }
         } else {
