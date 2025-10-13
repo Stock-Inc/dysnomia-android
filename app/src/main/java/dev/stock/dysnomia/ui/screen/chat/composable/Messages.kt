@@ -44,8 +44,6 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus
 import kotlinx.coroutines.flow.StateFlow
-import java.text.DateFormat
-import java.text.SimpleDateFormat
 import kotlin.math.roundToInt
 
 private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
@@ -183,15 +181,7 @@ fun MessageItemWithReply(
 }
 
 private fun getLocalDateTime(unixTimeMs: Long, context: Context): String {
-    val locale = context.resources.configuration.locales.get(0)
-
-    val dateFormatter = DateFormat.getDateInstance(DateFormat.MEDIUM, locale) as SimpleDateFormat
-    dateFormatter.applyPattern(
-        dateFormatter
-            .toPattern()
-            .replace("[^\\p{Alpha}]*y+[^\\p{Alpha}]*".toRegex(), "")
-    )
-
+    val dateFormatter = android.text.format.DateFormat.getDateFormat(context)
     val timeFormatter = android.text.format.DateFormat.getTimeFormat(context)
 
     val date = dateFormatter.format(unixTimeMs * 1000)
