@@ -67,7 +67,7 @@ class ChatViewModel @Inject constructor(
     private val username = preferencesRepository.name.stateIn(
         scope = viewModelScope,
         initialValue = "",
-        started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
+        started = SharingStarted.Eagerly
     )
 
     val commandSuggestions: MutableStateFlow<List<CommandSuggestion>> =
