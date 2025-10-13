@@ -137,11 +137,7 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { message ->
                 Timber.d("Received message")
-                if (message.name == username.value && username.value.isNotEmpty()) {
-                    offlineRepository.setDelivered(message)
-                } else {
-                    offlineRepository.addToHistory(message)
-                }
+                offlineRepository.addToHistory(message)
             }
             .launchIn(viewModelScope)
 
@@ -154,13 +150,7 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { messages ->
                 Timber.d("Received history")
-                messages.forEach { message ->
-                    if (message.name == username.value && username.value.isNotEmpty()) {
-                        offlineRepository.setDelivered(message)
-                    } else {
-                        offlineRepository.addToHistory(message)
-                    }
-                }
+                offlineRepository.addToHistory(messages)
             }
             .launchIn(viewModelScope)
 
@@ -181,13 +171,20 @@ class ChatViewModel @Inject constructor(
                 clearPendingState()
                 cancelReply()
                 Timber.d("Sending message: %s", messageToBeSent.toString())
-                networkRepository.sendMessage(
+                val receipt = networkRepository.sendMessage(
                     MessageBody(
                         name = username.value,
                         message = message,
                         replyId = repliedMessage?.id ?: 0
                     )
                 )
+                if (receipt != null) {
+                    Timber.d("Message set delivered: %s", messageToBeSent.toString())
+                    offlineRepository.setDelivered(messageToBeSent)
+                } else {
+                    Timber.d("Message set failed: %s", messageToBeSent.toString())
+                    offlineRepository.setFailedToSend(messageToBeSent)
+                }
             }
         }
     }
