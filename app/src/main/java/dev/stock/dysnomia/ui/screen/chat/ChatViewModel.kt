@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -123,7 +124,11 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { message ->
                 Timber.d("Received message")
-                offlineRepository.addToHistory(message)
+                if (message.name == username.value && username.value.isNotEmpty()) {
+                    offlineRepository.setDelivered(message)
+                } else {
+                    offlineRepository.addToHistory(message)
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -137,7 +142,13 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { messages ->
                 Timber.d("Received history")
-                offlineRepository.addToHistory(messages)
+                messages.forEach { message ->
+                    if (message.name == username.value && username.value.isNotEmpty()) {
+                        offlineRepository.setDelivered(message)
+                    } else {
+                        offlineRepository.addToHistory(message)
+                    }
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -159,20 +170,13 @@ class ChatViewModel @Inject constructor(
                 clearPendingState()
                 cancelReply()
                 Timber.d("Sending message: %s", messageToBeSent.toString())
-                val receipt = networkRepository.sendMessage(
+                networkRepository.sendMessage(
                     MessageBody(
                         name = username.value,
                         message = message,
                         replyId = repliedMessage?.id ?: 0
                     )
                 )
-                if (receipt != null) {
-                    Timber.d("Message set delivered: %s", messageToBeSent.toString())
-                    offlineRepository.setDelivered(messageToBeSent)
-                } else {
-                    Timber.d("Message set failed: %s", messageToBeSent.toString())
-                    offlineRepository.setFailedToSend(messageToBeSent)
-                }
             }
         }
     }
