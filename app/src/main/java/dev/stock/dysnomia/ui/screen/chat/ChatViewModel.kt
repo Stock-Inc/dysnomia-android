@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -58,8 +57,8 @@ class ChatViewModel @Inject constructor(
     var messageText: TextFieldValue by mutableStateOf(TextFieldValue())
         private set
 
-    val chatHistory: Flow<List<MessageEntity>> =
-        offlineRepository.getAllHistory().stateIn(
+    val chatHistory: Flow<List<MessageEntity>> = offlineRepository.getAllHistory()
+        .stateIn(
             scope = viewModelScope,
             initialValue = emptyList(),
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS)
