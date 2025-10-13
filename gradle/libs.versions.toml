@@ -6,6 +6,7 @@ leakcanaryAndroid = "2.14"
 chucker = "4.2.0"
 #mockk = "1.13.8"
 #retrofitMock = "3.0.0"
+materialIconsExtended = "1.7.8"
 runner = "1.6.1"
 shimmer = "1.3.3"
 firebase = "33.15.0"
@@ -17,8 +18,8 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.9.1"
 activityCompose = "1.10.1"
-composeBom = "2025.06.00"
-navigationCompose = "2.9.0"
+composeBom = "2025.10.00"
+navigationCompose = "2.9.5"
 retrofit = "2.11.0"
 converterScalars = "2.11.0"
 ksp = "2.1.10-1.0.30"
@@ -33,6 +34,7 @@ junitKtx = "1.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 androidx-runner = { module = "androidx.test:runner", version.ref = "runner" }

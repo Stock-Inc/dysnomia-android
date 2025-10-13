@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
@@ -35,10 +34,7 @@ fun ChatTopAppBar(
 ) {
     TopAppBar(
         title = {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
+            Column(verticalArrangement = Arrangement.Center) {
                 Text(
                     text = stringResource(R.string.global_chat),
                     style = MaterialTheme.typography.titleLarge,
