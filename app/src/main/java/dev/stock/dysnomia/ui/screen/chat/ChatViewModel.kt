@@ -129,7 +129,7 @@ class ChatViewModel @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeIncomingMessages() {
+    private fun observeIncomingMessages() =
         networkRepository.connectionState
             .filterIsInstance<ConnectionState.Connected>()
             .flatMapLatest {
@@ -144,10 +144,9 @@ class ChatViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
-    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeIncomingHistory() {
+    private fun observeIncomingHistory() =
         networkRepository.connectionState
             .filterIsInstance<ConnectionState.Connected>()
             .flatMapLatest {
@@ -164,7 +163,6 @@ class ChatViewModel @Inject constructor(
                 }
             }
             .launchIn(viewModelScope)
-    }
 
     fun sendMessage() {
         val message = messageText.text.trim()
