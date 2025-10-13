@@ -23,8 +23,8 @@ android {
         applicationId = "dev.stock.dysnomia"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "1.0.3"
+        versionCode = 6
+        versionName = "1.0.3a"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
