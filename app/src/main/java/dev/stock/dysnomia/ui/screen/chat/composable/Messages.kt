@@ -1,7 +1,6 @@
 package dev.stock.dysnomia.ui.screen.chat.composable
 
 import android.content.Context
-import android.text.format.DateFormat
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
@@ -45,7 +44,8 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.setVisualsBasedOfMessageStatus
 import kotlinx.coroutines.flow.StateFlow
-import java.util.Date
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import kotlin.math.roundToInt
 
 private val ChatBubbleShape = RoundedCornerShape(4.dp, 20.dp, 20.dp, 20.dp)
@@ -146,7 +146,7 @@ fun MessageItem(
                         )
                 )
                 Text(
-                    text = getLocalTime(messageEntity.date, context),
+                    text = getLocalDateTime(messageEntity.date, context),
                     modifier = Modifier
                         .alpha(0.5f)
                         .align(alignment = Alignment.End)
@@ -182,11 +182,22 @@ fun MessageItemWithReply(
     )
 }
 
-private fun getLocalTime(unixTime: Long, context: Context): String {
-    val formatter = DateFormat.getTimeFormat(context)
-    return formatter.format(Date(unixTime * 1000))
-}
+private fun getLocalDateTime(unixTimeMs: Long, context: Context): String {
+    val locale = context.resources.configuration.locales.get(0)
 
+    val dateFormatter = DateFormat.getDateInstance(DateFormat.MEDIUM, locale) as SimpleDateFormat
+    dateFormatter.applyPattern(
+        dateFormatter
+            .toPattern()
+            .replace("[^\\p{Alpha}]*y+[^\\p{Alpha}]*".toRegex(), "")
+    )
+
+    val timeFormatter = android.text.format.DateFormat.getTimeFormat(context)
+
+    val date = dateFormatter.format(unixTimeMs * 1000)
+    val time = timeFormatter.format(unixTimeMs * 1000)
+    return "$date $time"
+}
 
 @Preview
 @Composable
