@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.ui.composable
+package dev.stock.dysnomia.ui.screen.profile.composable
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
