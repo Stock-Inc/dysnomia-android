@@ -47,7 +47,7 @@ fun DysnomiaTextField(
         lineLimits = if (maxLines == 1) {
             TextFieldLineLimits.SingleLine
         } else {
-            TextFieldLineLimits.MultiLine(maxLines)
+            TextFieldLineLimits.MultiLine(maxHeightInLines = maxLines)
         },
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
