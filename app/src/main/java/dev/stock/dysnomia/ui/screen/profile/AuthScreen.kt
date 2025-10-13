@@ -13,8 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,7 +36,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,12 +49,9 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 @Composable
 fun AuthScreen(
     authUiState: AuthUiState,
-    username: TextFieldValue,
-    email: TextFieldValue,
-    password: TextFieldValue,
-    onNameChange: (TextFieldValue) -> Unit,
-    onEmailChange: (TextFieldValue) -> Unit,
-    onPasswordChange: (TextFieldValue) -> Unit,
+    usernameTextFieldState: TextFieldState,
+    emailTextFieldState: TextFieldState,
+    passwordTextFieldState: TextFieldState,
     onChangeAuthScreen: (Boolean) -> Unit,
     onProceed: () -> Unit,
     modifier: Modifier = Modifier
@@ -78,8 +75,7 @@ fun AuthScreen(
             DysnomiaLogo(modifier = Modifier.padding(32.dp))
 
             DysnomiaTextField(
-                value = username,
-                onValueChange = onNameChange,
+                state = usernameTextFieldState,
                 label = stringResource(R.string.username),
                 leadingIcon = Icons.Default.AccountCircle,
                 keyboardOptions = KeyboardOptions(
@@ -90,8 +86,7 @@ fun AuthScreen(
 
             AnimatedVisibility(authUiState.isSignUp) {
                 DysnomiaTextField(
-                    value = email,
-                    onValueChange = onEmailChange,
+                    state = emailTextFieldState,
                     label = stringResource(R.string.email),
                     leadingIcon = Icons.Default.Email,
                     keyboardOptions = KeyboardOptions(
@@ -102,17 +97,15 @@ fun AuthScreen(
             }
 
             DysnomiaTextField(
-                value = password,
-                onValueChange = onPasswordChange,
+                state = passwordTextFieldState,
                 label = stringResource(R.string.password),
                 leadingIcon = Icons.Default.Lock,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
-                keyboardActions = KeyboardActions(
-                    onDone = { onProceed() }
-                )
+                onKeyboardAction = KeyboardActionHandler { onProceed() }
+                    .takeUnless { authUiState.isInProgress }
             )
 
             HorizontalDivider(
@@ -176,12 +169,9 @@ private fun SignInScreenLightPreview() {
                 authUiState = AuthUiState(
                     errorMessage = "Some error occurred"
                 ),
-                username = TextFieldValue("username"),
-                email = TextFieldValue("email@test.com"),
-                password = TextFieldValue("password"),
-                onNameChange = {},
-                onEmailChange = {},
-                onPasswordChange = {},
+                usernameTextFieldState = TextFieldState("username"),
+                emailTextFieldState = TextFieldState("email@test.com"),
+                passwordTextFieldState = TextFieldState("password"),
                 onProceed = {},
                 onChangeAuthScreen = {}
             )
@@ -198,12 +188,9 @@ private fun SignInScreenDarkPreview() {
                 authUiState = AuthUiState(
                     errorMessage = "Some error occurred"
                 ),
-                username = TextFieldValue("username"),
-                email = TextFieldValue("email@test.com"),
-                password = TextFieldValue("password"),
-                onNameChange = {},
-                onEmailChange = {},
-                onPasswordChange = {},
+                usernameTextFieldState = TextFieldState("username"),
+                emailTextFieldState = TextFieldState("email@test.com"),
+                passwordTextFieldState = TextFieldState("password"),
                 onProceed = {},
                 onChangeAuthScreen = {}
             )
@@ -222,12 +209,9 @@ private fun SignUpScreenLightPreview() {
                     isSignUp = true,
                     errorMessage = "Some error occurred"
                 ),
-                username = TextFieldValue("username"),
-                email = TextFieldValue("email@test.com"),
-                password = TextFieldValue("password"),
-                onNameChange = {},
-                onEmailChange = {},
-                onPasswordChange = {},
+                usernameTextFieldState = TextFieldState("username"),
+                emailTextFieldState = TextFieldState("email@test.com"),
+                passwordTextFieldState = TextFieldState("password"),
                 onProceed = {},
                 onChangeAuthScreen = {}
             )
@@ -245,12 +229,9 @@ private fun SignUpScreenDarkPreview() {
                     isSignUp = true,
                     errorMessage = "Some error occurred"
                 ),
-                username = TextFieldValue("username"),
-                email = TextFieldValue("email@test.com"),
-                password = TextFieldValue("password"),
-                onNameChange = {},
-                onEmailChange = {},
-                onPasswordChange = {},
+                usernameTextFieldState = TextFieldState("username"),
+                emailTextFieldState = TextFieldState("email@test.com"),
+                passwordTextFieldState = TextFieldState("password"),
                 onProceed = {},
                 onChangeAuthScreen = {}
             )

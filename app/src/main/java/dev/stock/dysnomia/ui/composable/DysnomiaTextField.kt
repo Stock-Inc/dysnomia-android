@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,18 +22,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun DysnomiaTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
+    state: TextFieldState,
     label: String,
     modifier: Modifier = Modifier,
     maxLines: Int = 1,
@@ -39,16 +38,19 @@ fun DysnomiaTextField(
     trailingIcon: ImageVector? = null,
     onTrailingIconClick: () -> Unit = {},
     keyboardOptions: KeyboardOptions = KeyboardOptions(),
-    keyboardActions: KeyboardActions = KeyboardActions()
+    onKeyboardAction: KeyboardActionHandler? = null
 ) {
     OutlinedTextField(
-        value = value,
+        state = state,
         enabled = enabled,
-        onValueChange = onValueChange,
         shape = CircleShape,
-        maxLines = maxLines,
+        lineLimits = if (maxLines == 1) {
+            TextFieldLineLimits.SingleLine
+        } else {
+            TextFieldLineLimits.MultiLine(maxLines)
+        },
         keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
+        onKeyboardAction = onKeyboardAction,
         leadingIcon = {
             if (leadingIcon != null) {
                 Icon(
@@ -56,11 +58,6 @@ fun DysnomiaTextField(
                     contentDescription = null
                 )
             }
-        },
-        visualTransformation = if (keyboardOptions.keyboardType == KeyboardType.Password) {
-            PasswordVisualTransformation()
-        } else {
-            VisualTransformation.None
         },
         trailingIcon = {
             if (trailingIcon != null) {
@@ -97,9 +94,8 @@ private fun DysnomiaTextFieldDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         Surface {
             DysnomiaTextField(
-                value = TextFieldValue(),
+                state = TextFieldState(),
                 label = "Enter Message",
-                onValueChange = { },
                 leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 trailingIcon = Icons.AutoMirrored.Filled.Send
             )
@@ -113,9 +109,8 @@ private fun DysnomiaTextFieldLightPreview() {
     DysnomiaTheme(darkTheme = false) {
         Surface {
             DysnomiaTextField(
-                value = TextFieldValue(),
+                state = TextFieldState(),
                 label = "Enter Message",
-                onValueChange = { },
                 leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 trailingIcon = Icons.AutoMirrored.Filled.Send
             )

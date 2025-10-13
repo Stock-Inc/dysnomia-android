@@ -1,9 +1,7 @@
 package dev.stock.dysnomia.ui.screen.profile
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,11 +49,11 @@ class ProfileViewModel @Inject constructor(
     private val _authUiState: MutableStateFlow<AuthUiState> = MutableStateFlow(AuthUiState())
     val authUiState = _authUiState.asStateFlow()
 
-    var username by mutableStateOf(TextFieldValue())
+    var usernameTextFieldState = TextFieldState()
         private set
-    var password by mutableStateOf(TextFieldValue())
+    var passwordTextFieldState = TextFieldState()
         private set
-    var email by mutableStateOf(TextFieldValue())
+    var emailTextFieldState = TextFieldState()
         private set
 
     val currentName = userPreferencesRepository.name.stateIn(
@@ -117,18 +115,6 @@ class ProfileViewModel @Inject constructor(
             initialValue = ProfileUiState()
         )
 
-    fun changeName(username: TextFieldValue) {
-        this.username = username
-    }
-
-    fun changePassword(password: TextFieldValue) {
-        this.password = password
-    }
-
-    fun changeEmail(email: TextFieldValue) {
-        this.email = email
-    }
-
     fun signIn(signInBody: SignInBody) {
         if (signInBody.username.isNotEmpty() && signInBody.password.isNotEmpty()) {
             viewModelScope.launch {
@@ -142,13 +128,13 @@ class ProfileViewModel @Inject constructor(
                     val signInResult = networkRepository.signIn(signInBody)
 
                     userPreferencesRepository.saveAccount(
-                        name = signInBody.username,
+                        name = signInBody.username.toString(),
                         accessToken = signInResult.accessToken,
                         refreshToken = signInResult.refreshToken
                     )
 
                     _authUiState.value = AuthUiState()
-                    password = TextFieldValue()
+                    passwordTextFieldState.clearText()
                 } catch (e: HttpException) {
                     if (e.code() == 401) {
                         Timber.d(e)
@@ -206,13 +192,13 @@ class ProfileViewModel @Inject constructor(
                     val signUpResult = networkRepository.signUp(signUpBody)
 
                     userPreferencesRepository.saveAccount(
-                        name = signUpBody.username,
+                        name = signUpBody.username.toString(),
                         accessToken = signUpResult.accessToken,
                         refreshToken = signUpResult.refreshToken
                     )
 
                     _authUiState.value = AuthUiState()
-                    password = TextFieldValue()
+                    passwordTextFieldState.clearText()
                 } catch (e: HttpException) {
                     if (e.code() == 401) {
                         Timber.d(e)

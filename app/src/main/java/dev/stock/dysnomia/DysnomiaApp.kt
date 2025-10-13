@@ -105,17 +105,17 @@ fun DysnomiaApp(
 
             composable<Screen.Chat> {
                 val chatUiState = chatViewModel.chatUiState.collectAsState().value
+                val messageTextFieldState = chatViewModel.messageTextFieldState
                 val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
                 val currentName = profileViewModel.currentName.collectAsState().value
                 val commandSuggestions = chatViewModel.commandSuggestions.collectAsState().value
 
                 ChatScreen(
                     chatHistory = chatHistory,
-                    messageText = chatViewModel.messageText,
+                    messageTextFieldState = messageTextFieldState,
                     chatUiState = chatUiState,
                     currentName = currentName,
                     commandSuggestions = commandSuggestions,
-                    onTextChange = chatViewModel::changeChatText,
                     onSendMessage = chatViewModel::sendMessage,
                     onSendCommand = chatViewModel::sendCommand,
                     onReply = chatViewModel::replyTo,
@@ -130,32 +130,29 @@ fun DysnomiaApp(
 
                 if (currentName == "") {
                     val authUiState = profileViewModel.authUiState.collectAsState().value
-                    val username = profileViewModel.username
-                    val email = profileViewModel.email
-                    val password = profileViewModel.password
+                    val usernameTextFieldState = profileViewModel.usernameTextFieldState
+                    val emailTextFieldState = profileViewModel.emailTextFieldState
+                    val passwordTextFieldState = profileViewModel.passwordTextFieldState
 
                     AuthScreen(
                         authUiState = authUiState,
-                        username = username,
-                        email = email,
-                        password = password,
-                        onNameChange = profileViewModel::changeName,
-                        onEmailChange = profileViewModel::changeEmail,
-                        onPasswordChange = profileViewModel::changePassword,
+                        usernameTextFieldState = usernameTextFieldState,
+                        emailTextFieldState = emailTextFieldState,
+                        passwordTextFieldState = passwordTextFieldState,
                         onProceed = {
                             if (authUiState.isSignUp) {
                                 profileViewModel.signUp(
                                     SignUpBody(
-                                        username = username.text.trim(),
-                                        email = email.text.trim(),
-                                        password = password.text.trim()
+                                        username = usernameTextFieldState.text.trim().toString(),
+                                        email = emailTextFieldState.text.trim().toString(),
+                                        password = passwordTextFieldState.text.trim().toString()
                                     )
                                 )
                             } else {
                                 profileViewModel.signIn(
                                     SignInBody(
-                                        username = username.text.trim(),
-                                        password = password.text.trim()
+                                        username = usernameTextFieldState.text.trim().toString(),
+                                        password = passwordTextFieldState.text.trim().toString()
                                     )
                                 )
                             }

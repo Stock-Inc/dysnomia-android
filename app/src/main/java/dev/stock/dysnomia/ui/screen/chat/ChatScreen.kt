@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.DropdownMenu
@@ -40,10 +42,8 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
@@ -69,10 +69,9 @@ enum class DragValue { Replied, Resting }
 fun ChatScreen(
     chatHistory: List<MessageEntity>,
     chatUiState: ChatUiState,
-    messageText: TextFieldValue,
+    messageTextFieldState: TextFieldState,
     currentName: String,
     commandSuggestions: List<CommandSuggestion>,
-    onTextChange: (TextFieldValue) -> Unit,
     onSendMessage: () -> Unit,
     onSendCommand: (String?) -> Unit,
     onReply: (MessageEntity) -> Unit,
@@ -87,17 +86,17 @@ fun ChatScreen(
     val context = LocalContext.current
     val textFieldFocusRequester = remember { FocusRequester() }
 
-    val isMessageACommand = messageText.text.startsWith('/')
+    val isMessageACommand = messageTextFieldState.text.startsWith('/')
     val filteredSuggestions by remember(
         commandSuggestions,
-        messageText.text
+        messageTextFieldState.text
     ) {
         derivedStateOf {
             if (isMessageACommand) {
                 commandSuggestions
                     .filter { suggestion ->
                         suggestion.command.contains(
-                            messageText.text.drop(1),
+                            messageTextFieldState.text.drop(1),
                             ignoreCase = true
                         )
                     }
@@ -224,33 +223,27 @@ fun ChatScreen(
                 }
 
                 DysnomiaTextField(
-                    value = messageText,
+                    state = messageTextFieldState,
                     enabled = !chatUiState.isCommandPending,
                     label = if (isMessageACommand) {
                         stringResource(R.string.enter_command)
                     } else {
                         stringResource(R.string.enter_message)
                     },
-                    onValueChange = onTextChange,
                     maxLines = 6,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.None
                     ),
                     leadingIcon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    trailingIcon = if (messageText.text.isEmpty()) {
+                    trailingIcon = if (messageTextFieldState.text.isEmpty()) {
                         ImageVector.vectorResource(R.drawable.code)
                     } else {
                         ImageVector.vectorResource(R.drawable.send)
                     },
-                    onTrailingIconClick = if (messageText.text.isEmpty()) {
+                    onTrailingIconClick = if (messageTextFieldState.text.isEmpty()) { // FIXME
                         {
-                            onTextChange(
-                                TextFieldValue(
-                                    text = "/",
-                                    selection = TextRange(1)
-                                )
-                            )
+                            messageTextFieldState.setTextAndPlaceCursorAtEnd("/")
                             textFieldFocusRequester.requestFocus()
                         }
                     } else if (isMessageACommand) {
@@ -314,9 +307,8 @@ private fun ChatScreenLightPreview() {
                         description = "some help"
                     )
                 ),
-                messageText = TextFieldValue(),
+                messageTextFieldState = TextFieldState(),
                 currentName = "",
-                onTextChange = {},
                 onSendMessage = {},
                 onSendCommand = {},
                 onReply = {},
@@ -342,9 +334,8 @@ private fun ChatScreenDarkPreview() {
                         message = "some message ".repeat(3)
                     )
                 ),
-                messageText = TextFieldValue("Some message"),
+                messageTextFieldState = TextFieldState("Some message"),
                 currentName = "",
-                onTextChange = {},
                 onSendMessage = {},
                 onSendCommand = {},
                 onReply = {},

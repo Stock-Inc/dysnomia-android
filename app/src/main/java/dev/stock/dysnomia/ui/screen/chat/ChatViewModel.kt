@@ -1,9 +1,7 @@
 package dev.stock.dysnomia.ui.screen.chat
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,7 +53,7 @@ class ChatViewModel @Inject constructor(
     private val _chatUiState = MutableStateFlow(ChatUiState())
     val chatUiState = _chatUiState.asStateFlow()
 
-    var messageText: TextFieldValue by mutableStateOf(TextFieldValue())
+    var messageTextFieldState: TextFieldState = TextFieldState()
         private set
 
     val chatHistory: Flow<List<MessageEntity>> = offlineRepository.getAllHistory()
@@ -155,14 +153,14 @@ class ChatViewModel @Inject constructor(
             .launchIn(viewModelScope)
 
     fun sendMessage() {
-        val message = messageText.text.trim()
+        val message = messageTextFieldState.text.trim()
         if (message.isNotEmpty()) {
             viewModelScope.launch {
                 val repliedMessage = _chatUiState.value.repliedMessage
                 val messageToBeSent =
                     MessageEntity(
                         name = username.value,
-                        message = message,
+                        message = message.toString(),
                         deliveryStatus = DeliveryStatus.PENDING,
                         replyId = repliedMessage?.id ?: 0
                     )
@@ -174,7 +172,7 @@ class ChatViewModel @Inject constructor(
                 val receipt = networkRepository.sendMessage(
                     MessageBody(
                         name = username.value,
-                        message = message,
+                        message = message.toString(),
                         replyId = repliedMessage?.id ?: 0
                     )
                 )
@@ -190,7 +188,7 @@ class ChatViewModel @Inject constructor(
     }
 
     fun sendCommand(command: String?) {
-        val trimmedCommand = command?.trim() ?: messageText.text.trim()
+        val trimmedCommand = command?.trim() ?: messageTextFieldState.text.trim()
 
         if (trimmedCommand.startsWith('/')) {
             viewModelScope.launch {
@@ -202,9 +200,9 @@ class ChatViewModel @Inject constructor(
                     }
                     offlineRepository.addToHistory(
                         MessageEntity(
-                            name = trimmedCommand.drop(1),
+                            name = trimmedCommand.drop(1).toString(),
                             message = networkRepository.sendCommand(
-                                trimmedCommand.drop(1)
+                                trimmedCommand.drop(1).toString()
                             ),
                             isCommand = true
                         )
@@ -284,17 +282,13 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun changeChatText(messageText: TextFieldValue) {
-        this.messageText = messageText
-    }
-
     private fun clearPendingState() {
         _chatUiState.update {
             it.copy(
                 isCommandPending = false
             )
         }
-        messageText = TextFieldValue()
+        messageTextFieldState.clearText()
     }
 
     private fun setConnectionState(connectionState: ConnectionState) {
