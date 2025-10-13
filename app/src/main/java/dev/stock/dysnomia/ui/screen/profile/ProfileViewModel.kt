@@ -13,10 +13,13 @@ import dev.stock.dysnomia.model.Profile
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,6 +28,7 @@ import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
 import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import javax.inject.Inject
 
@@ -47,9 +51,6 @@ class ProfileViewModel @Inject constructor(
     private val _authUiState: MutableStateFlow<AuthUiState> = MutableStateFlow(AuthUiState())
     val authUiState = _authUiState.asStateFlow()
 
-    private val _profileUiState: MutableStateFlow<ProfileUiState> = MutableStateFlow(ProfileUiState())
-    val profileUiState = _profileUiState.asStateFlow()
-
     var username by mutableStateOf(TextFieldValue())
         private set
     var password by mutableStateOf(TextFieldValue())
@@ -63,56 +64,58 @@ class ProfileViewModel @Inject constructor(
         initialValue = ""
     )
 
-    init {
-        loadProfile()
-    }
-
-    private fun loadProfile() {
-        viewModelScope.launch {
-            currentName
-                .filter { it.isNotEmpty() }
-                .collect { currentName ->
-                    try {
-                        _profileUiState.update {
-                            ProfileUiState(
-                                profile = networkRepository.getProfile(currentName),
-                                errorMessage = null
-                            )
-                        }
-                    } catch (e: IOException) {
-                        Timber.d(e)
-                        _profileUiState.update {
-                            it.copy(
-                                errorMessage = "No connection with the server"
-                            )
-                        }
-                    } catch (e: HttpException) {
-                        if (e.code() in listOf(401, 404)) {
-                            Timber.d(e)
-                        } else {
-                            Timber.e(e)
-                        }
-                        _profileUiState.update {
-                            it.copy(
-                                errorMessage = when (e.code()) {
-                                    401 -> "Your session has expired, please log in again to continue"
-                                    404 -> "User not found"
-                                    500 -> "Error while receiving info, this issue is reported"
-                                    else -> e.toString()
-                                }
-                            )
-                        }
-                    } catch (e: SerializationException) {
-                        Timber.e(e)
-                        _profileUiState.update {
-                            it.copy(
-                                errorMessage = "Error while receiving info, this issue is reported"
-                            )
-                        }
-                    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val profileUiState = currentName
+        .filter { it.isNotEmpty() }
+        .mapLatest { currentName ->
+            try {
+                val profile = networkRepository.getProfile(currentName)
+                ProfileUiState(profile = profile, errorMessage = null)
+            } catch (e: IOException) {
+                Timber.d(e)
+                ProfileUiState(
+                    errorMessage = "No connection with the server"
+                )
+            } catch (e: SocketTimeoutException) {
+                Timber.d(e)
+                ProfileUiState(
+                    errorMessage = "No connection with the server"
+                )
+            } catch (e: HttpException) {
+                if (e.code() in listOf(401, 404)) {
+                    Timber.d(e)
+                } else {
+                    Timber.e(e)
                 }
+                ProfileUiState(
+                    errorMessage = when (e.code()) {
+                        401 -> "Your session has expired, please log in again to continue"
+                        404 -> "User not found"
+                        500 -> "Error while receiving info, this issue is reported"
+                        else -> e.toString()
+                    }
+                )
+            } catch (e: SerializationException) {
+                Timber.e(e)
+                ProfileUiState(
+                    errorMessage = "Error while receiving info, this issue is reported"
+                )
+            }
         }
-    }
+        .scan(ProfileUiState()) { previous, result ->
+            // If fetch succeeded, result.profile is non-null: use it.
+            // Otherwise, keep previous.profile and only update errorMessage.
+            if (result.profile != null) {
+                result
+            } else {
+                previous.copy(errorMessage = result.errorMessage)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
+            initialValue = ProfileUiState()
+        )
 
     fun changeName(username: TextFieldValue) {
         this.username = username
@@ -169,6 +172,14 @@ class ProfileViewModel @Inject constructor(
                             isInProgress = false
                         )
                     }
+                } catch (e: SocketTimeoutException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
                 } catch (e: ConnectException) {
                     Timber.d(e)
                     _authUiState.update {
@@ -218,6 +229,14 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                 } catch (e: UnknownHostException) {
+                    Timber.d(e)
+                    _authUiState.update {
+                        it.copy(
+                            errorMessage = "No connection with the server",
+                            isInProgress = false
+                        )
+                    }
+                } catch (e: SocketTimeoutException) {
                     Timber.d(e)
                     _authUiState.update {
                         it.copy(
