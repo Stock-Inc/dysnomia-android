@@ -51,10 +51,10 @@ fun DysnomiaTextField(
         },
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
-        leadingIcon = {
-            if (leadingIcon != null) {
+        leadingIcon = leadingIcon?.let { icon ->
+            {
                 Icon(
-                    leadingIcon,
+                    icon,
                     contentDescription = null
                 )
             }
