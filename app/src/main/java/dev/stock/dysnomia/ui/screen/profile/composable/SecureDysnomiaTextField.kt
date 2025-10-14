@@ -1,7 +1,7 @@
 package dev.stock.dysnomia.ui.screen.profile.composable
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.input.TextFieldState
@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
@@ -32,7 +33,7 @@ fun SecureDysnomiaTextField(
 ) {
     OutlinedSecureTextField(
         state = state,
-        shape = CircleShape,
+        shape = RoundedCornerShape(16.dp),
         keyboardOptions = keyboardOptions,
         onKeyboardAction = onKeyboardAction,
         leadingIcon = {
