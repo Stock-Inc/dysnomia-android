@@ -10,11 +10,14 @@ import dev.stock.dysnomia.data.PreferencesRepository
 import dev.stock.dysnomia.model.Profile
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
+import dev.stock.dysnomia.model.emptyProfile
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.scan
@@ -38,6 +41,11 @@ data class AuthUiState(
 
 data class ProfileUiState(
     val profile: Profile? = null,
+    val errorMessage: String? = null
+)
+
+data class ProfileEditUiState(
+    val profile: Profile,
     val errorMessage: String? = null
 )
 
@@ -114,6 +122,26 @@ class ProfileViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
             initialValue = ProfileUiState()
         )
+
+    private val profileEditErrorMessage: StateFlow<String?> = MutableStateFlow(null)
+    private val notNullProfileUiState = profileUiState.filter { it.profile != null }
+    val displayNameTextFieldState = TextFieldState()
+    val bioTextFieldState = TextFieldState()
+
+    val profileEditUiState = combine(
+        notNullProfileUiState,
+        profileEditErrorMessage
+    ) { profileUiState, errorMessage ->
+        ProfileEditUiState(
+            profile = profileUiState.profile!!,
+            errorMessage = errorMessage
+        )
+    }
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
+        initialValue = ProfileEditUiState(emptyProfile)
+    )
 
     fun signIn(signInBody: SignInBody) {
         if (signInBody.username.isNotEmpty() && signInBody.password.isNotEmpty()) {

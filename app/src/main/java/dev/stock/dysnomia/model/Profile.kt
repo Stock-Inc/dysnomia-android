@@ -9,3 +9,10 @@ data class Profile (
     val role: String,
     val bio: String?
 )
+
+val emptyProfile = Profile(
+    username = "",
+    displayName = "",
+    role = "USER",
+    bio = ""
+)

@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +28,7 @@ import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionFirstStepScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionSecondStepScreen
 import dev.stock.dysnomia.ui.screen.profile.AuthScreen
+import dev.stock.dysnomia.ui.screen.profile.ProfileEditScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
 import kotlinx.serialization.Serializable
@@ -165,9 +167,26 @@ fun DysnomiaApp(
                     ProfileScreen(
                         profileUiState = profileUiState,
                         onLogoutClick = profileViewModel::logout,
-                        isUserMe = true
+                        isUserMe = true,
+                        onEditProfileClick = { navController.navigate(Screen.ProfileEdit) }
                     )
                 }
+            }
+
+            composable<Screen.ProfileEdit> {
+                val displayNameTextFieldState = profileViewModel.displayNameTextFieldState
+                val bioTextFieldState = profileViewModel.bioTextFieldState
+                val profileEditUiState = profileViewModel.profileEditUiState
+                    .collectAsStateWithLifecycle().value
+
+                ProfileEditScreen(
+                    profileEditUiState = profileEditUiState,
+                    displayNameTextFieldState = displayNameTextFieldState,
+                    bioTextFieldState = bioTextFieldState,
+                    onChangeImage = {}, // TODO(DYS-14)
+                    onSaveClick = {},
+                    onBackPressed = navController::navigateUp
+                )
             }
         }
     }
@@ -186,4 +205,7 @@ sealed class Screen {
 
     @Serializable
     data object Profile : Screen()
+
+    @Serializable
+    data object ProfileEdit : Screen()
 }
