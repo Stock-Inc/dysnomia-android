@@ -8,7 +8,6 @@ import android.os.Build.VERSION_CODES
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -106,11 +105,11 @@ fun DysnomiaApp(
             }
 
             composable<Screen.Chat> {
-                val chatUiState = chatViewModel.chatUiState.collectAsState().value
+                val chatUiState = chatViewModel.chatUiState.collectAsStateWithLifecycle().value
                 val messageTextFieldState = chatViewModel.messageTextFieldState
-                val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
-                val currentName = profileViewModel.currentName.collectAsState().value
-                val commandSuggestions = chatViewModel.commandSuggestions.collectAsState().value
+                val chatHistory = chatViewModel.chatHistory.collectAsStateWithLifecycle(emptyList()).value
+                val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
+                val commandSuggestions = chatViewModel.commandSuggestions.collectAsStateWithLifecycle().value
 
                 ChatScreen(
                     chatHistory = chatHistory,
@@ -128,10 +127,10 @@ fun DysnomiaApp(
             }
 
             composable<Screen.Profile> {
-                val currentName = profileViewModel.currentName.collectAsState().value
+                val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
 
                 if (currentName == "") {
-                    val authUiState = profileViewModel.authUiState.collectAsState().value
+                    val authUiState = profileViewModel.authUiState.collectAsStateWithLifecycle().value
                     val usernameTextFieldState = profileViewModel.usernameTextFieldState
                     val emailTextFieldState = profileViewModel.emailTextFieldState
                     val passwordTextFieldState = profileViewModel.passwordTextFieldState
@@ -162,7 +161,7 @@ fun DysnomiaApp(
                         onChangeAuthScreen = profileViewModel::changeAuthScreen
                     )
                 } else {
-                    val profileUiState = profileViewModel.profileUiState.collectAsState().value
+                    val profileUiState = profileViewModel.profileUiState.collectAsStateWithLifecycle().value
 
                     ProfileScreen(
                         profileUiState = profileUiState,
