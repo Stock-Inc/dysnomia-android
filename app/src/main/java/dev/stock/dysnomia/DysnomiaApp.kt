@@ -179,7 +179,10 @@ fun DysnomiaApp(
                 ProfileEditScreen(
                     profileEditUiState = profileEditUiState,
                     onChangeImage = {}, // TODO(DYS-14)
-                    onSaveClick = profileViewModel::changeProfile,
+                    onSaveClick = {
+                        profileViewModel.changeProfile(it)
+                        navController.navigateUp()
+                    } ,
                     onBackPressed = navController::navigateUp
                 )
             }
