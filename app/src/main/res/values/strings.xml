@@ -13,7 +13,7 @@
     <string name="username">Username</string>
     <string name="maybe_you_want_to">"Maybe you want to "</string>
     <string name="sign_up_question">sign up?</string>
-    <string name="bio">bio</string>
+    <string name="bio">Bio</string>
     <string name="slogan">Free and open-source chat application</string>
     <string name="get_started">Get started</string>
     <string name="get_updates">Get Updates</string>
@@ -21,4 +21,8 @@
     <string name="allow_notifications">Allow notifications</string>
     <string name="global_chat">Global chat</string>
     <string name="chat_with_everyone_online">Chat with everyone online</string>
+    <string name="display_name">Display name</string>
+    <string name="change_image">Change image</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="save_changes">Save</string>
 </resources>

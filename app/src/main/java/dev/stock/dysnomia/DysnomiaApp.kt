@@ -8,12 +8,12 @@ import android.os.Build.VERSION_CODES
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,6 +27,7 @@ import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionFirstStepScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionSecondStepScreen
 import dev.stock.dysnomia.ui.screen.profile.AuthScreen
+import dev.stock.dysnomia.ui.screen.profile.ProfileEditScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
 import kotlinx.serialization.Serializable
@@ -104,11 +105,11 @@ fun DysnomiaApp(
             }
 
             composable<Screen.Chat> {
-                val chatUiState = chatViewModel.chatUiState.collectAsState().value
+                val chatUiState = chatViewModel.chatUiState.collectAsStateWithLifecycle().value
                 val messageTextFieldState = chatViewModel.messageTextFieldState
-                val chatHistory = chatViewModel.chatHistory.collectAsState(emptyList()).value
-                val currentName = profileViewModel.currentName.collectAsState().value
-                val commandSuggestions = chatViewModel.commandSuggestions.collectAsState().value
+                val chatHistory = chatViewModel.chatHistory.collectAsStateWithLifecycle(emptyList()).value
+                val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
+                val commandSuggestions = chatViewModel.commandSuggestions.collectAsStateWithLifecycle().value
 
                 ChatScreen(
                     chatHistory = chatHistory,
@@ -126,10 +127,10 @@ fun DysnomiaApp(
             }
 
             composable<Screen.Profile> {
-                val currentName = profileViewModel.currentName.collectAsState().value
+                val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
 
                 if (currentName == "") {
-                    val authUiState = profileViewModel.authUiState.collectAsState().value
+                    val authUiState = profileViewModel.authUiState.collectAsStateWithLifecycle().value
                     val usernameTextFieldState = profileViewModel.usernameTextFieldState
                     val emailTextFieldState = profileViewModel.emailTextFieldState
                     val passwordTextFieldState = profileViewModel.passwordTextFieldState
@@ -160,14 +161,27 @@ fun DysnomiaApp(
                         onChangeAuthScreen = profileViewModel::changeAuthScreen
                     )
                 } else {
-                    val profileUiState = profileViewModel.profileUiState.collectAsState().value
+                    val profileUiState = profileViewModel.profileUiState.collectAsStateWithLifecycle().value
 
                     ProfileScreen(
                         profileUiState = profileUiState,
                         onLogoutClick = profileViewModel::logout,
-                        isUserMe = true
+                        isUserMe = true,
+                        onEditProfileClick = { navController.navigate(Screen.ProfileEdit) }
                     )
                 }
+            }
+
+            composable<Screen.ProfileEdit> {
+                val profileEditUiState = profileViewModel.profileEditUiState
+                    .collectAsStateWithLifecycle().value
+
+                ProfileEditScreen(
+                    profileEditUiState = profileEditUiState,
+                    onChangeImage = {}, // TODO(DYS-14)
+                    onSaveClick = profileViewModel::changeProfile,
+                    onBackPressed = navController::navigateUp
+                )
             }
         }
     }
@@ -186,4 +200,7 @@ sealed class Screen {
 
     @Serializable
     data object Profile : Screen()
+
+    @Serializable
+    data object ProfileEdit : Screen()
 }

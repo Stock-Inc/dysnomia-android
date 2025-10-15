@@ -63,6 +63,13 @@ val Typography = Typography(
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
+    titleMedium = TextStyle(
+        fontFamily = Dustismo,
+        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
     labelSmall = TextStyle(
         fontFamily = Dustismo,
         fontWeight = FontWeight.Medium,

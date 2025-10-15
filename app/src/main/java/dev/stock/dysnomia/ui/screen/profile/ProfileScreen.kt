@@ -40,6 +40,7 @@ import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 @Composable
 fun ProfileScreen(
     profileUiState: ProfileUiState,
+    onEditProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
     isUserMe: Boolean = false
@@ -100,15 +101,22 @@ fun ProfileScreen(
             }
         }
         if (isUserMe) {
-            DysnomiaButton(
-                text = stringResource(R.string.logout),
-                onClick = onLogoutClick,
-                isOutlined = true,
-                modifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp)
-                    .fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(8.dp)
+            ) {
+                DysnomiaButton(
+                    text = stringResource(R.string.edit_profile),
+                    onClick = onEditProfileClick,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                DysnomiaButton(
+                    text = stringResource(R.string.logout),
+                    onClick = onLogoutClick,
+                    isOutlined = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
         Box(contentAlignment = Alignment.Center) {
             HorizontalDivider(
@@ -254,7 +262,8 @@ private fun ProfileScreenDarkPreview() {
                     )
                 ),
                 isUserMe = true,
-                onLogoutClick = {}
+                onLogoutClick = {},
+                onEditProfileClick = {}
             )
         }
     }
@@ -275,7 +284,8 @@ private fun ProfileScreenLightPreview() {
                     ),
                     errorMessage = "No connection with the server"
                 ),
-                onLogoutClick = {}
+                onLogoutClick = {},
+                onEditProfileClick = {}
             )
         }
     }
