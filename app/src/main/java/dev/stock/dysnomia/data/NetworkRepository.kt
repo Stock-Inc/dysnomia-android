@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.data
 
 import dev.stock.dysnomia.model.AuthTokens
+import dev.stock.dysnomia.model.ChangeProfileBody
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageBody
 import dev.stock.dysnomia.model.MessageEntity
@@ -52,6 +53,7 @@ interface NetworkRepository {
     suspend fun signUp(signUpBody: SignUpBody): AuthTokens
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity
     suspend fun getProfile(username: String): Profile
+    suspend fun changeProfile(changeProfileBody: ChangeProfileBody)
     suspend fun getNewTokens(bearerRefreshToken: String): AuthTokens
     val connectionState: StateFlow<ConnectionState>
     val messagesFlow: Flow<MessageEntity>
@@ -193,6 +195,9 @@ class NetworkRepositoryImpl @Inject constructor(
 
     override suspend fun getProfile(username: String): Profile =
         dysnomiaApiService.getProfile(username)
+
+    override suspend fun changeProfile(changeProfileBody: ChangeProfileBody) =
+        dysnomiaApiService.changeProfile(changeProfileBody)
 
     override suspend fun getNewTokens(bearerRefreshToken: String): AuthTokens =
         dysnomiaApiService.refreshToken(bearerRefreshToken)

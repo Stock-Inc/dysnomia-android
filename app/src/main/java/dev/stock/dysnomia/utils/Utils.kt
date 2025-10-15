@@ -5,10 +5,13 @@ import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import com.valentinilk.shimmer.Shimmer
 import com.valentinilk.shimmer.ShimmerBounds
@@ -48,4 +51,14 @@ fun Modifier.setVisualsBasedOfMessageStatus(deliveryStatus: DeliveryStatus) =
                 .background(MaterialTheme.colorScheme.onError)
                 .padding(4.dp)
         }
+    }
+
+@Composable
+fun rememberTextFieldStateWithInputs(
+    vararg inputs: Any?,
+    initialText: String = "",
+    initialSelection: TextRange = TextRange(initialText.length)
+): TextFieldState =
+    rememberSaveable(saver = TextFieldState.Saver, inputs = inputs) {
+        TextFieldState(initialText, initialSelection)
     }

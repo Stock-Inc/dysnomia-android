@@ -174,17 +174,13 @@ fun DysnomiaApp(
             }
 
             composable<Screen.ProfileEdit> {
-                val displayNameTextFieldState = profileViewModel.displayNameTextFieldState
-                val bioTextFieldState = profileViewModel.bioTextFieldState
                 val profileEditUiState = profileViewModel.profileEditUiState
                     .collectAsStateWithLifecycle().value
 
                 ProfileEditScreen(
                     profileEditUiState = profileEditUiState,
-                    displayNameTextFieldState = displayNameTextFieldState,
-                    bioTextFieldState = bioTextFieldState,
                     onChangeImage = {}, // TODO(DYS-14)
-                    onSaveClick = {},
+                    onSaveClick = profileViewModel::changeProfile,
                     onBackPressed = navController::navigateUp
                 )
             }

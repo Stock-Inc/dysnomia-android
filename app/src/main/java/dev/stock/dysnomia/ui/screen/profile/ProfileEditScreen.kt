@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.PermIdentity
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,28 +30,48 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
+import dev.stock.dysnomia.model.ChangeProfileBody
 import dev.stock.dysnomia.model.emptyProfile
 import dev.stock.dysnomia.ui.screen.profile.composable.AnimatedErrorCard
 import dev.stock.dysnomia.ui.screen.profile.composable.ProfileEditTopAppBar
 import dev.stock.dysnomia.ui.screen.profile.composable.TextAndTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
+import dev.stock.dysnomia.utils.rememberTextFieldStateWithInputs
 
 @Composable
 fun ProfileEditScreen(
     profileEditUiState: ProfileEditUiState,
-    displayNameTextFieldState: TextFieldState,
-    bioTextFieldState: TextFieldState,
     onChangeImage: () -> Unit,
-    onSaveClick: () -> Unit,
+    onSaveClick: (ChangeProfileBody) -> Unit,
     onBackPressed: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val displayNameTextFieldState: TextFieldState = rememberTextFieldStateWithInputs(
+        profileEditUiState.profile.displayName,
+        initialText = profileEditUiState.profile.displayName ?: ""
+    )
+    val bioTextFieldState: TextFieldState = rememberTextFieldStateWithInputs(
+        profileEditUiState.profile.bio,
+        initialText = profileEditUiState.profile.bio ?: ""
+    )
+    val usernameTextFieldState: TextFieldState = rememberTextFieldStateWithInputs(
+        profileEditUiState.profile.username,
+        initialText = profileEditUiState.profile.username
+    )
+
     Column(
         modifier = modifier.fillMaxSize()
     ) {
         ProfileEditTopAppBar(
             onBackPressed = onBackPressed,
-            onSaveClick = onSaveClick
+            onSaveClick = {
+                onSaveClick(
+                    ChangeProfileBody(
+                        displayName = displayNameTextFieldState.text.toString(),
+                        bio = bioTextFieldState.text.toString(),
+                    )
+                )
+            }
         )
         Column(Modifier.padding(8.dp)) {
             AnimatedErrorCard(profileEditUiState.errorMessage)
@@ -90,6 +111,16 @@ fun ProfileEditScreen(
                     )
                 )
                 TextAndTextField(
+                    textFieldState = usernameTextFieldState,
+                    enabled = false,
+                    label = R.string.username,
+                    leadingIcon = Icons.Default.PermIdentity,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    )
+                )
+                TextAndTextField(
                     textFieldState = bioTextFieldState,
                     label = R.string.bio,
                     maxLines = 12,
@@ -111,8 +142,6 @@ private fun ProfileEditScreenDarkPreview() {
     DysnomiaTheme(darkTheme = true) {
         Surface {
             ProfileEditScreen(
-                displayNameTextFieldState = TextFieldState(),
-                bioTextFieldState = TextFieldState(),
                 profileEditUiState = ProfileEditUiState(
                     profile = emptyProfile
                 ),
@@ -130,8 +159,6 @@ private fun ProfileEditScreenLightPreview() {
     DysnomiaTheme(darkTheme = false) {
         Surface {
             ProfileEditScreen(
-                displayNameTextFieldState = TextFieldState(),
-                bioTextFieldState = TextFieldState(),
                 profileEditUiState = ProfileEditUiState(
                     profile = emptyProfile
                 ),

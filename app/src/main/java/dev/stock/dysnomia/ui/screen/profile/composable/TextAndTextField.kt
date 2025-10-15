@@ -26,6 +26,7 @@ fun TextAndTextField(
     textFieldState: TextFieldState,
     @StringRes label: Int,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onKeyboardAction: KeyboardActionHandler? = null,
     leadingIcon: ImageVector? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(),
@@ -39,6 +40,7 @@ fun TextAndTextField(
         )
         DysnomiaTextField(
             state = textFieldState,
+            enabled = enabled,
             label = stringResource(label),
             maxLines = maxLines,
             leadingIcon = leadingIcon,

@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.network
 
 import dev.stock.dysnomia.model.AuthTokens
+import dev.stock.dysnomia.model.ChangeProfileBody
 import dev.stock.dysnomia.model.CommandSuggestion
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.Profile
@@ -9,6 +10,7 @@ import dev.stock.dysnomia.model.SignUpBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -41,6 +43,11 @@ interface DysnomiaApiService {
     suspend fun getProfile(
         @Path("username") username: String
     ): Profile
+
+    @PATCH("profile/edit_info")
+    suspend fun changeProfile(
+        @Body changeProfileBody: ChangeProfileBody
+    )
 
     @POST("refresh_token")
     suspend fun refreshToken(
