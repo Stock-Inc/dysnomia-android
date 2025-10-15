@@ -14,12 +14,18 @@ import dev.stock.dysnomia.model.SignUpBody
 import dev.stock.dysnomia.model.emptyProfile
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -70,43 +76,53 @@ class ProfileViewModel @Inject constructor(
         initialValue = ""
     )
 
+    private val refreshTrigger = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val profileUiState = currentName
-        .filter { it.isNotEmpty() }
-        .mapLatest { currentName ->
-            try {
-                val profile = networkRepository.getProfile(currentName)
-                ProfileUiState(profile = profile, errorMessage = null)
-            } catch (e: IOException) {
-                Timber.d(e)
-                ProfileUiState(
-                    errorMessage = "No connection with the server"
-                )
-            } catch (e: SocketTimeoutException) {
-                Timber.d(e)
-                ProfileUiState(
-                    errorMessage = "No connection with the server"
-                )
-            } catch (e: HttpException) {
-                if (e.code() in listOf(401, 404)) {
-                    Timber.d(e)
-                } else {
-                    Timber.e(e)
-                }
-                ProfileUiState(
-                    errorMessage = when (e.code()) {
-                        401 -> "Your session has expired, please log in again to continue"
-                        404 -> "User not found"
-                        500 -> "Error while receiving info, this issue is reported"
-                        else -> e.toString()
+    val profileUiState = refreshTrigger
+        .onStart { emit(Unit) }
+        .flatMapLatest {
+            currentName
+                .filterNot { it.isEmpty() }
+                .distinctUntilChanged()
+                .mapLatest { currentName ->
+                    try {
+                        val profile = networkRepository.getProfile(currentName)
+                        ProfileUiState(profile = profile, errorMessage = null)
+                    } catch (e: IOException) {
+                        Timber.d(e)
+                        ProfileUiState(
+                            errorMessage = "No connection with the server"
+                        )
+                    } catch (e: SocketTimeoutException) {
+                        Timber.d(e)
+                        ProfileUiState(
+                            errorMessage = "No connection with the server"
+                        )
+                    } catch (e: HttpException) {
+                        if (e.code() in listOf(401, 404)) {
+                            Timber.d(e)
+                        } else {
+                            Timber.e(e)
+                        }
+                        ProfileUiState(
+                            errorMessage = when (e.code()) {
+                                401 -> "Your session has expired, please log in again to continue"
+                                404 -> "User not found"
+                                500 -> "Error while receiving info, this issue is reported"
+                                else -> e.toString()
+                            }
+                        )
+                    } catch (e: SerializationException) {
+                        Timber.e(e)
+                        ProfileUiState(
+                            errorMessage = "Error while receiving info, this issue is reported"
+                        )
                     }
-                )
-            } catch (e: SerializationException) {
-                Timber.e(e)
-                ProfileUiState(
-                    errorMessage = "Error while receiving info, this issue is reported"
-                )
-            }
+                }
         }
         .scan(ProfileUiState()) { previous, result ->
             // If fetch succeeded, result.profile is non-null: use it.
@@ -122,6 +138,10 @@ class ProfileViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(SHARING_TIMEOUT_MILLIS),
             initialValue = ProfileUiState()
         )
+
+    fun refreshProfile() {
+        refreshTrigger.tryEmit(Unit)
+    }
 
     private val profileEditErrorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
     private val notNullProfileUiState = profileUiState.filter { it.profile != null }

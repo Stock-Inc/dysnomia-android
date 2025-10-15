@@ -182,6 +182,7 @@ fun DysnomiaApp(
                     onSaveClick = {
                         profileViewModel.changeProfile(it)
                         navController.navigateUp()
+                        profileViewModel.refreshProfile()
                     } ,
                     onBackPressed = navController::navigateUp
                 )
