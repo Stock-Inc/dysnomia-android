@@ -33,19 +33,20 @@ import org.hildan.krossbow.stomp.LostReceiptException
 import org.hildan.krossbow.stomp.StompClient
 import org.hildan.krossbow.stomp.StompReceipt
 import org.hildan.krossbow.stomp.conversions.kxserialization.StompSessionWithKxSerialization
-import org.hildan.krossbow.stomp.conversions.kxserialization.convertAndSend
 import org.hildan.krossbow.stomp.conversions.kxserialization.json.withJsonConversions
 import org.hildan.krossbow.stomp.conversions.kxserialization.subscribe
+import org.hildan.krossbow.stomp.headers.StompSendHeaders
 import org.hildan.krossbow.stomp.sendEmptyMsg
 import org.hildan.krossbow.websocket.WebSocketConnectionException
 import timber.log.Timber
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 interface NetworkRepository {
     suspend fun connect()
     suspend fun disconnect()
-    suspend fun requestHistory(): StompReceipt?
+    suspend fun requestHistory()
     suspend fun sendMessage(messageBody: MessageBody): StompReceipt?
     suspend fun sendCommand(command: String): String
     fun getCommandSuggestionsFlow(): Flow<List<CommandSuggestion>>
@@ -146,7 +147,9 @@ class NetworkRepositoryImpl @Inject constructor(
         if (session != null && _connectionState.value == ConnectionState.Connected) {
             try {
                 return session.convertAndSend(
-                    CHAT_APP,
+                    StompSendHeaders(CHAT_APP) {
+                        receipt = UUID.randomUUID().toString()
+                    },
                     messageBody,
                     MessageBody.serializer()
                 )
@@ -160,11 +163,11 @@ class NetworkRepositoryImpl @Inject constructor(
         return null
     }
 
-    override suspend fun requestHistory(): StompReceipt? {
+    override suspend fun requestHistory() {
         val session = _sessionState.value
         if (session != null && _connectionState.value == ConnectionState.Connected) {
             try {
-                return session.sendEmptyMsg(HISTORY_APP)
+                session.sendEmptyMsg(HISTORY_APP)
             } catch (e: LostReceiptException) {
                 Timber.d(e)
                 _connectionState.value = ConnectionState.Error(e)
@@ -172,7 +175,6 @@ class NetworkRepositoryImpl @Inject constructor(
         } else {
             Timber.e("Not connected to server. session: $session, _connectionState.value = ${_connectionState.value}")
         }
-        return null
     }
 
     override suspend fun sendCommand(command: String): String =

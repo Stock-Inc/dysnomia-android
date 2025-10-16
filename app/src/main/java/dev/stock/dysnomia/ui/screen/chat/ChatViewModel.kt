@@ -135,7 +135,7 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { message ->
                 Timber.d("Received message")
-                offlineRepository.addToHistory(message)
+//                offlineRepository.addToHistory(message)
             }
             .launchIn(viewModelScope)
 
@@ -148,7 +148,7 @@ class ChatViewModel @Inject constructor(
             }
             .onEach { messages ->
                 Timber.d("Received history")
-                offlineRepository.addToHistory(messages)
+//                offlineRepository.addToHistory(messages)
             }
             .launchIn(viewModelScope)
 

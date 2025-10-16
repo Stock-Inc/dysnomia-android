@@ -45,9 +45,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun providesStompClient(okHttpClient: OkHttpClient): StompClient =
-        StompClient(OkHttpWebSocketClient(okHttpClient)) {
-            autoReceipt = true
-        }
+        StompClient(OkHttpWebSocketClient(okHttpClient))
 
     @Provides
     @Singleton
