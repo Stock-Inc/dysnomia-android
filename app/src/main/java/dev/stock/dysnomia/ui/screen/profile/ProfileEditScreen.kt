@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.ChangeProfileBody
 import dev.stock.dysnomia.model.emptyProfile
-import dev.stock.dysnomia.ui.screen.profile.composable.AnimatedErrorCard
+import dev.stock.dysnomia.ui.composable.AnimatedErrorCard
 import dev.stock.dysnomia.ui.screen.profile.composable.ProfileEditTopAppBar
 import dev.stock.dysnomia.ui.screen.profile.composable.TextAndTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme

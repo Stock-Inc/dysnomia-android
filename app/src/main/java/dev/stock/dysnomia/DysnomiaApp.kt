@@ -21,12 +21,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dev.stock.dysnomia.model.SignInBody
 import dev.stock.dysnomia.model.SignUpBody
+import dev.stock.dysnomia.ui.screen.auth.AuthScreen
+import dev.stock.dysnomia.ui.screen.auth.AuthViewModel
 import dev.stock.dysnomia.ui.screen.chat.ChatScreen
 import dev.stock.dysnomia.ui.screen.chat.ChatViewModel
 import dev.stock.dysnomia.ui.screen.home.HomeScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionFirstStepScreen
 import dev.stock.dysnomia.ui.screen.introduction.IntroductionSecondStepScreen
-import dev.stock.dysnomia.ui.screen.profile.AuthScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileEditScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileScreen
 import dev.stock.dysnomia.ui.screen.profile.ProfileViewModel
@@ -37,7 +38,8 @@ import kotlinx.serialization.Serializable
 fun DysnomiaApp(
     firstLaunch: Boolean,
     chatViewModel: ChatViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel()
+    profileViewModel: ProfileViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
 ) {
     val navController = rememberNavController()
 
@@ -106,10 +108,10 @@ fun DysnomiaApp(
 
             composable<Screen.Chat> {
                 val chatUiState = chatViewModel.chatUiState.collectAsStateWithLifecycle().value
-                val messageTextFieldState = chatViewModel.messageTextFieldState
                 val chatHistory = chatViewModel.chatHistory.collectAsStateWithLifecycle(emptyList()).value
                 val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
                 val commandSuggestions = chatViewModel.commandSuggestions.collectAsStateWithLifecycle().value
+                val messageTextFieldState = chatViewModel.messageTextFieldState
 
                 ChatScreen(
                     chatHistory = chatHistory,
@@ -130,10 +132,10 @@ fun DysnomiaApp(
                 val currentName = profileViewModel.currentName.collectAsStateWithLifecycle().value
 
                 if (currentName == "") {
-                    val authUiState = profileViewModel.authUiState.collectAsStateWithLifecycle().value
-                    val usernameTextFieldState = profileViewModel.usernameTextFieldState
-                    val emailTextFieldState = profileViewModel.emailTextFieldState
-                    val passwordTextFieldState = profileViewModel.passwordTextFieldState
+                    val authUiState = authViewModel.authUiState.collectAsStateWithLifecycle().value
+                    val usernameTextFieldState = authViewModel.usernameTextFieldState
+                    val emailTextFieldState = authViewModel.emailTextFieldState
+                    val passwordTextFieldState = authViewModel.passwordTextFieldState
 
                     AuthScreen(
                         authUiState = authUiState,
@@ -142,7 +144,7 @@ fun DysnomiaApp(
                         passwordTextFieldState = passwordTextFieldState,
                         onProceed = {
                             if (authUiState.isSignUp) {
-                                profileViewModel.signUp(
+                                authViewModel.signUp(
                                     SignUpBody(
                                         username = usernameTextFieldState.text.trim().toString(),
                                         email = emailTextFieldState.text.trim().toString(),
@@ -150,7 +152,7 @@ fun DysnomiaApp(
                                     )
                                 )
                             } else {
-                                profileViewModel.signIn(
+                                authViewModel.signIn(
                                     SignInBody(
                                         username = usernameTextFieldState.text.trim().toString(),
                                         password = passwordTextFieldState.text.trim().toString()
@@ -158,7 +160,7 @@ fun DysnomiaApp(
                                 )
                             }
                         },
-                        onChangeAuthScreen = profileViewModel::changeAuthScreen
+                        onChangeAuthScreen = authViewModel::changeAuthScreen
                     )
                 } else {
                     val profileUiState = profileViewModel.profileUiState.collectAsStateWithLifecycle().value
@@ -166,7 +168,7 @@ fun DysnomiaApp(
                     ProfileScreen(
                         profileUiState = profileUiState,
                         onEditProfileClick = { navController.navigate(Screen.ProfileEdit) },
-                        onLogoutClick = profileViewModel::logout,
+                        onLogoutClick = authViewModel::logout,
                         isUserMe = true,
                         onRefresh = profileViewModel::refreshProfile
                     )
@@ -183,7 +185,7 @@ fun DysnomiaApp(
                     onSaveClick = {
                         profileViewModel.changeProfile(it)
                         navController.navigateUp()
-                    } ,
+                    },
                     onBackPressed = navController::navigateUp
                 )
             }

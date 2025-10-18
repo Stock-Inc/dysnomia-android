@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.ui.screen.profile.composable
+package dev.stock.dysnomia.ui.screen.auth.composable
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape

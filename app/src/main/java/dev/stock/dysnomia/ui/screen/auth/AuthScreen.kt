@@ -1,4 +1,4 @@
-package dev.stock.dysnomia.ui.screen.profile
+package dev.stock.dysnomia.ui.screen.auth
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -40,11 +40,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.stock.dysnomia.R
-import dev.stock.dysnomia.ui.screen.profile.composable.AnimatedErrorCard
+import dev.stock.dysnomia.ui.composable.AnimatedErrorCard
 import dev.stock.dysnomia.ui.composable.DysnomiaButton
-import dev.stock.dysnomia.ui.screen.profile.composable.DysnomiaLogo
 import dev.stock.dysnomia.ui.composable.DysnomiaTextField
-import dev.stock.dysnomia.ui.screen.profile.composable.SecureDysnomiaTextField
+import dev.stock.dysnomia.ui.screen.auth.composable.DysnomiaLogo
+import dev.stock.dysnomia.ui.screen.auth.composable.SecureDysnomiaTextField
 import dev.stock.dysnomia.ui.theme.DysnomiaTheme
 
 @Composable
