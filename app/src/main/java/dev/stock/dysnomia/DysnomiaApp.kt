@@ -165,9 +165,10 @@ fun DysnomiaApp(
 
                     ProfileScreen(
                         profileUiState = profileUiState,
+                        onEditProfileClick = { navController.navigate(Screen.ProfileEdit) },
                         onLogoutClick = profileViewModel::logout,
                         isUserMe = true,
-                        onEditProfileClick = { navController.navigate(Screen.ProfileEdit) }
+                        onRefresh = profileViewModel::refreshProfile
                     )
                 }
             }
@@ -182,7 +183,6 @@ fun DysnomiaApp(
                     onSaveClick = {
                         profileViewModel.changeProfile(it)
                         navController.navigateUp()
-                        profileViewModel.refreshProfile()
                     } ,
                     onBackPressed = navController::navigateUp
                 )

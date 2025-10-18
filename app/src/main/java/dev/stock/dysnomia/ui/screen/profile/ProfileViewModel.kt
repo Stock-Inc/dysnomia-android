@@ -15,6 +15,7 @@ import dev.stock.dysnomia.model.emptyProfile
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,20 +25,18 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import javax.inject.Inject
+import kotlin.coroutines.coroutineContext
 
 data class AuthUiState(
     val isInProgress: Boolean = false,
@@ -47,7 +46,8 @@ data class AuthUiState(
 
 data class ProfileUiState(
     val profile: Profile? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isRefreshing: Boolean = false
 )
 
 data class ProfileEditUiState(
@@ -81,56 +81,29 @@ class ProfileViewModel @Inject constructor(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
+    private val isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val profileUiState = refreshTrigger
         .onStart { emit(Unit) }
+        .onEach { isRefreshing.value = true }
         .flatMapLatest {
             currentName
                 .filterNot { it.isEmpty() }
                 .distinctUntilChanged()
-                .mapLatest { currentName ->
-                    try {
-                        val profile = networkRepository.getProfile(currentName)
-                        ProfileUiState(profile = profile, errorMessage = null)
-                    } catch (e: IOException) {
-                        Timber.d(e)
-                        ProfileUiState(
-                            errorMessage = "No connection with the server"
-                        )
-                    } catch (e: SocketTimeoutException) {
-                        Timber.d(e)
-                        ProfileUiState(
-                            errorMessage = "No connection with the server"
-                        )
-                    } catch (e: HttpException) {
-                        if (e.code() in listOf(401, 404)) {
-                            Timber.d(e)
-                        } else {
-                            Timber.e(e)
-                        }
-                        ProfileUiState(
-                            errorMessage = when (e.code()) {
-                                401 -> "Your session has expired, please log in again to continue"
-                                404 -> "User not found"
-                                500 -> "Error while receiving info, this issue is reported"
-                                else -> e.toString()
-                            }
-                        )
-                    } catch (e: SerializationException) {
-                        Timber.e(e)
-                        ProfileUiState(
-                            errorMessage = "Error while receiving info, this issue is reported"
-                        )
-                    }
-                }
+                .map { name -> fetchProfile(name)}
+                .onEach { isRefreshing.value = false }
+        }
+        .combine(isRefreshing) { state, refreshing ->
+            state.copy(isRefreshing = refreshing)
         }
         .scan(ProfileUiState()) { previous, result ->
-            // If fetch succeeded, result.profile is non-null: use it.
-            // Otherwise, keep previous.profile and only update errorMessage.
-            if (result.profile != null) {
-                result
-            } else {
-                previous.copy(errorMessage = result.errorMessage)
+            when {
+                result.profile != null -> result
+                else -> previous.copy(
+                    errorMessage = result.errorMessage,
+                    isRefreshing = result.isRefreshing
+                )
             }
         }
         .stateIn(
@@ -141,6 +114,56 @@ class ProfileViewModel @Inject constructor(
 
     fun refreshProfile() {
         refreshTrigger.tryEmit(Unit)
+    }
+
+    private suspend fun fetchProfile(name: String): ProfileUiState {
+        return try {
+            val profile = networkRepository.getProfile(name)
+            ProfileUiState(profile = profile, errorMessage = null)
+        } catch (e: Exception) {
+            coroutineContext.ensureActive()
+            when (e) {
+                is IOException -> {
+                    Timber.d(e)
+                    ProfileUiState(errorMessage = "No connection with the server")
+                }
+                is HttpException -> {
+                    ProfileUiState(errorMessage = handleBasicHttpException(e))
+                }
+                else -> {
+                    Timber.e(e)
+                    ProfileUiState(errorMessage = "An unexpected error occurred")
+                }
+            }
+        }
+    }
+
+    private fun handleBasicHttpException(e: HttpException): String {
+        if (e.code() in listOf(401, 404)) {
+            Timber.d(e)
+        } else {
+            Timber.e(e)
+        }
+        return when (e.code()) {
+            401 -> "Your session has expired, please log in again to continue"
+            404 -> "Your requested info is not found"
+            500 -> "Error while receiving info, this issue is reported"
+            else -> "Server error: ${e.code()}"
+        }
+    }
+
+    private fun handleAuthHttpException(e: HttpException): String {
+        if (e.code() == 401) {
+            Timber.d(e)
+        } else {
+            Timber.e(e)
+        }
+        return when (e.code()) {
+            401 -> "Incorrect username or password"
+            404 -> "Your requested info is not found"
+            500 -> "Error while receiving info, this issue is reported"
+            else -> "Server error: ${e.code()}"
+        }
     }
 
     private val profileEditErrorMessage: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -165,25 +188,22 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 networkRepository.changeProfile(changeProfileBody)
-            } catch (e: HttpException) {
-                if (e.code() == 401) {
-                    Timber.d(e)
-                } else {
-                    Timber.e(e)
+                refreshProfile()
+            } catch (e: Exception) {
+                coroutineContext.ensureActive()
+                when (e) {
+                    is IOException -> {
+                        Timber.d(e)
+                        profileEditErrorMessage.value = "No connection with the server"
+                    }
+                    is HttpException -> {
+                        profileEditErrorMessage.value = handleBasicHttpException(e)
+                    }
+                    else -> {
+                        Timber.e(e)
+                        profileEditErrorMessage.value = "An unexpected error occurred"
+                    }
                 }
-                profileEditErrorMessage.value = when (e.code()) {
-                    401 -> "Session expired, please log in and try again"
-                    else -> e.toString()
-                }
-            } catch (e: UnknownHostException) {
-                Timber.d(e)
-                profileEditErrorMessage.value = "No connection with the server"
-            } catch (e: SocketTimeoutException) {
-                Timber.d(e)
-                profileEditErrorMessage.value = "No connection with the server"
-            } catch (e: ConnectException) {
-                Timber.d(e)
-                profileEditErrorMessage.value = "No connection with the server"
             }
         }
     }
@@ -208,44 +228,30 @@ class ProfileViewModel @Inject constructor(
 
                     _authUiState.value = AuthUiState()
                     passwordTextFieldState.clearText()
-                } catch (e: HttpException) {
-                    if (e.code() == 401) {
-                        Timber.d(e)
-                    } else {
-                        Timber.e(e)
-                    }
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = when (e.code()) {
-                                401 -> "Incorrect username or password"
-                                else -> e.toString()
-                            },
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: UnknownHostException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: SocketTimeoutException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: ConnectException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
+                } catch (e: Exception) {
+                    coroutineContext.ensureActive()
+                    when (e) {
+                        is IOException -> {
+                            Timber.d(e)
+                            _authUiState.update {
+                                it.copy(
+                                    errorMessage = "No connection with the server",
+                                    isInProgress = false
+                                )
+                            }
+                        }
+                        is HttpException -> {
+                            _authUiState.update {
+                                it.copy(
+                                    errorMessage = handleAuthHttpException(e),
+                                    isInProgress = false
+                                )
+                            }
+                        }
+                        else -> {
+                            Timber.e(e)
+                            profileEditErrorMessage.value = "An unexpected error occurred"
+                        }
                     }
                 }
             }
@@ -272,44 +278,30 @@ class ProfileViewModel @Inject constructor(
 
                     _authUiState.value = AuthUiState()
                     passwordTextFieldState.clearText()
-                } catch (e: HttpException) {
-                    if (e.code() == 401) {
-                        Timber.d(e)
-                    } else {
-                        Timber.e(e)
-                    }
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = when (e.code()) {
-                                401 -> "Error, check your credentials and try again"
-                                else -> e.toString()
-                            },
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: UnknownHostException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: SocketTimeoutException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
-                    }
-                } catch (e: ConnectException) {
-                    Timber.d(e)
-                    _authUiState.update {
-                        it.copy(
-                            errorMessage = "No connection with the server",
-                            isInProgress = false
-                        )
+                } catch (e: Exception) {
+                    coroutineContext.ensureActive()
+                    when (e) {
+                        is IOException -> {
+                            Timber.d(e)
+                            _authUiState.update {
+                                it.copy(
+                                    errorMessage = "No connection with the server",
+                                    isInProgress = false
+                                )
+                            }
+                        }
+                        is HttpException -> {
+                            _authUiState.update {
+                                it.copy(
+                                    errorMessage = handleAuthHttpException(e),
+                                    isInProgress = false
+                                )
+                            }
+                        }
+                        else -> {
+                            Timber.e(e)
+                            profileEditErrorMessage.value = "An unexpected error occurred"
+                        }
                     }
                 }
             }

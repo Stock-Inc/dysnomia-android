@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.DividerDefaults
@@ -21,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,104 +46,114 @@ fun ProfileScreen(
     onEditProfileClick: () -> Unit,
     onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isUserMe: Boolean = false
+    isUserMe: Boolean = false,
+    onRefresh: () -> Unit
 ) {
-    if (profileUiState.profile == null) {
-        PlaceholderProfileScreen(
-            errorMessage = profileUiState.errorMessage,
-            onLogoutClick = onLogoutClick,
-            modifier = modifier,
-            isUserMe = isUserMe
-        )
-        return
-    }
-    Column(
+    val scrollState = rememberScrollState()
+
+    PullToRefreshBox(
+        isRefreshing = profileUiState.isRefreshing,
+        onRefresh = onRefresh,
         modifier = modifier
-            .padding(8.dp)
-            .fillMaxSize()
     ) {
-        AnimatedErrorCard(profileUiState.errorMessage)
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .height(128.dp)
-                .fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clip(CircleShape)
-                    .height(96.dp)
-                    .aspectRatio(1.0f)
+        if (profileUiState.profile == null) {
+            PlaceholderProfileScreen(
+                errorMessage = profileUiState.errorMessage,
+                onLogoutClick = onLogoutClick,
+                isUserMe = isUserMe,
+                modifier = Modifier.verticalScroll(scrollState)
             )
-            Column(
-                verticalArrangement = Arrangement.spacedBy(
-                    space = 16.dp,
-                    alignment = Alignment.CenterVertically
-                ),
-                modifier = Modifier.fillMaxSize()
+            return@PullToRefreshBox
+        }
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(8.dp)
+                .fillMaxSize()
+        ) {
+            AnimatedErrorCard(profileUiState.errorMessage)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .height(128.dp)
+                    .fillMaxWidth()
             ) {
-                profileUiState.profile.displayName?.let {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .clip(CircleShape)
+                        .height(96.dp)
+                        .aspectRatio(1.0f)
+                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(
+                        space = 16.dp,
+                        alignment = Alignment.CenterVertically
+                    ),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    profileUiState.profile.displayName?.let {
+                        Text(
+                            text = profileUiState.profile.displayName,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                     Text(
-                        text = profileUiState.profile.displayName,
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 2,
+                        text = "@${profileUiState.profile.username}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
+            }
+            if (isUserMe) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    DysnomiaButton(
+                        text = stringResource(R.string.edit_profile),
+                        onClick = onEditProfileClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    DysnomiaButton(
+                        text = stringResource(R.string.logout),
+                        onClick = onLogoutClick,
+                        isOutlined = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+            Box(contentAlignment = Alignment.Center) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(16.dp),
+                    thickness = 4.dp
+                )
                 Text(
-                    text = "@${profileUiState.profile.username}",
-                    style = MaterialTheme.typography.headlineSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    stringResource(R.string.bio),
+                    modifier = Modifier
+                        .background(color = MaterialTheme.colorScheme.surface)
+                        .padding(8.dp)
                 )
             }
-        }
-        if (isUserMe) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(8.dp)
-            ) {
-                DysnomiaButton(
-                    text = stringResource(R.string.edit_profile),
-                    onClick = onEditProfileClick,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                DysnomiaButton(
-                    text = stringResource(R.string.logout),
-                    onClick = onLogoutClick,
-                    isOutlined = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-        Box(contentAlignment = Alignment.Center) {
-            HorizontalDivider(
-                modifier = Modifier.padding(16.dp),
-                thickness = 4.dp
-            )
-            Text(
-                stringResource(R.string.bio),
-                modifier = Modifier
-                    .background(color = MaterialTheme.colorScheme.surface)
-                    .padding(8.dp)
-            )
-        }
-        Spacer(Modifier.height(16.dp))
-        Box(Modifier.padding(start = 16.dp, end = 16.dp)) {
-            if (profileUiState.profile.bio.isNullOrEmpty()) {
-                Text(
-                    text = profileUiState.profile.bio ?: "No bio provided",
-                    modifier = Modifier.alpha(0.5f)
-                )
-            } else {
-                Text(
-                    text = profileUiState.profile.bio
-                )
+            Spacer(Modifier.height(16.dp))
+            Box(Modifier.padding(start = 16.dp, end = 16.dp)) {
+                if (profileUiState.profile.bio.isNullOrEmpty()) {
+                    Text(
+                        text = profileUiState.profile.bio ?: "No bio provided",
+                        modifier = Modifier.alpha(0.5f)
+                    )
+                } else {
+                    Text(
+                        text = profileUiState.profile.bio
+                    )
+                }
             }
         }
     }
@@ -263,7 +276,8 @@ private fun ProfileScreenDarkPreview() {
                 ),
                 isUserMe = true,
                 onLogoutClick = {},
-                onEditProfileClick = {}
+                onEditProfileClick = {},
+                onRefresh = {}
             )
         }
     }
@@ -285,7 +299,8 @@ private fun ProfileScreenLightPreview() {
                     errorMessage = "No connection with the server"
                 ),
                 onLogoutClick = {},
-                onEditProfileClick = {}
+                onEditProfileClick = {},
+                onRefresh = {}
             )
         }
     }
