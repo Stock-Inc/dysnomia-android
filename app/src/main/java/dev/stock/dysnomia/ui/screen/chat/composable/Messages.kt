@@ -210,6 +210,30 @@ private fun ChatItemYoursFirstMessagePreview() {
 
 @Preview
 @Composable
+private fun ChatItemYoursFirstSmallMessageWithSmallReplyPreview() {
+    DysnomiaTheme {
+        Surface {
+            MessageItem(
+                messageEntity = MessageEntity(
+                    name = "t",
+                    message = "t"
+                ),
+                isUserMe = true,
+                isTheFirstMessageFromAuthor = true,
+                onClick = {},
+                onReply = {},
+                repliedMessage = RepliedMessage(
+                    id = 0,
+                    name = "t",
+                    message = "t "
+                )
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
 private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
     DysnomiaTheme {
         Surface {
