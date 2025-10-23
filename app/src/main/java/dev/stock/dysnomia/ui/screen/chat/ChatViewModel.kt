@@ -18,6 +18,7 @@ import dev.stock.dysnomia.utils.ANONYMOUS
 import dev.stock.dysnomia.utils.SHARING_TIMEOUT_MILLIS
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerializationException
 import okio.IOException
 import retrofit2.HttpException
 import timber.log.Timber
@@ -72,13 +72,7 @@ class ChatViewModel @Inject constructor(
     val commandSuggestions = networkRepository.getCommandSuggestionsFlow()
         .retry(3)
         .catch { e ->
-            when (e) {
-                is IOException, is HttpException -> {
-                    Timber.d(e)
-                    emit(emptyList())
-                }
-                else -> throw e
-            }
+            logException(e)
         }
         .stateIn(
             scope = viewModelScope,
@@ -106,13 +100,13 @@ class ChatViewModel @Inject constructor(
 
                     ConnectionState.Connected -> {
                         attempt = 1
-                        setConnectionState(ConnectionState.Connected)
+                        setUiConnectionState(ConnectionState.Connected)
                         Timber.d("Connected. Requesting history...")
                         networkRepository.requestHistory()
                     }
 
                     is ConnectionState.Error -> {
-                        setConnectionState(ConnectionState.Connecting)
+                        setUiConnectionState(ConnectionState.Connecting)
                         val delayMillis = (2.0.pow(attempt) * 1000L).coerceAtMost(maxDelay).toLong()
                         delay(delayMillis)
                         Timber.d("Reconnect attempt $attempt after $delayMillis ms")
@@ -182,13 +176,19 @@ class ChatViewModel @Inject constructor(
                 clearPendingState()
                 cancelReply()
                 Timber.d("Sending message: %s", messageToBeSent.toString())
-                networkRepository.sendMessage(
-                    MessageBody(
-                        name = username.value,
-                        message = message.toString(),
-                        replyId = repliedMessage?.id ?: 0
+                try {
+                    networkRepository.sendMessage(
+                        MessageBody(
+                            name = username.value,
+                            message = message.toString(),
+                            replyId = repliedMessage?.id ?: 0
+                        )
                     )
-                )
+                } catch (e: Exception) {
+                    coroutineContext.ensureActive()
+                    logException(e)
+                    offlineRepository.setFailed(messageToBeSent)
+                }
             }
         }
     }
@@ -213,10 +213,10 @@ class ChatViewModel @Inject constructor(
                             isCommand = true
                         )
                     )
-                } catch (e: IOException) {
-                    apiErrorHandler(e)
-                } catch (e: HttpException) {
-                    apiErrorHandler(e)
+                } catch (e: Exception) {
+                    coroutineContext.ensureActive()
+                    logException(e)
+                    handleApiException(e)
                 } finally {
                     clearPendingState()
                 }
@@ -243,22 +243,9 @@ class ChatViewModel @Inject constructor(
                     val networkMessage = networkRepository.getMessageByMessageId(messageId)
                     flow.value = networkMessage.toRepliedMessage()
                     offlineRepository.addToHistory(networkMessage)
-                } catch (e: IOException) {
-                    Timber.d(e)
-                    flow.value = RepliedMessage(
-                        id = messageId,
-                        name = "Error",
-                        message = "Unable to load reply"
-                    )
-                } catch (e: HttpException) {
-                    Timber.d(e)
-                    flow.value = RepliedMessage(
-                        id = messageId,
-                        name = "Error",
-                        message = "Unable to load reply"
-                    )
-                } catch (e: SerializationException) {
-                    Timber.e(e)
+                } catch (e: Exception) {
+                    coroutineContext.ensureActive()
+                    logException(e)
                     flow.value = RepliedMessage(
                         id = messageId,
                         name = "Error",
@@ -297,7 +284,7 @@ class ChatViewModel @Inject constructor(
         messageTextFieldState.clearText()
     }
 
-    private fun setConnectionState(connectionState: ConnectionState) {
+    private fun setUiConnectionState(connectionState: ConnectionState) {
         if (_chatUiState.value.connectionState == connectionState) return
         _chatUiState.update {
             it.copy(
@@ -306,14 +293,21 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private suspend fun apiErrorHandler(e: Throwable) {
-        Timber.d(e)
+    private suspend fun handleApiException(e: Throwable) {
         offlineRepository.addToHistory(
             MessageEntity(
                 message = "Error connecting to the server:\n$e",
                 isCommand = true
             )
         )
+    }
+
+    private fun logException(e: Throwable) {
+        if (e is IOException || e is HttpException) {
+            Timber.d(e)
+        } else {
+            Timber.e(e)
+        }
     }
 
     override fun onCleared() {

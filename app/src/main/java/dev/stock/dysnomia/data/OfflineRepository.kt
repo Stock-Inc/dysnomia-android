@@ -1,5 +1,6 @@
 package dev.stock.dysnomia.data
 
+import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -11,6 +12,7 @@ interface OfflineRepository {
     fun getAllHistory(): Flow<List<MessageEntity>>
     suspend fun getMessageByMessageId(messageId: Int): MessageEntity?
     suspend fun setDelivered(messageEntity: MessageEntity)
+    suspend fun setFailed(messageEntity: MessageEntity)
     suspend fun deletePendingMessages()
 }
 
@@ -37,6 +39,13 @@ class OfflineRepositoryImpl @Inject constructor(
                     name = messageEntity.name,
                     message = messageEntity.message
                 )
+            )
+        )
+
+    override suspend fun setFailed(messageEntity: MessageEntity) =
+        chatDao.updateMessage(
+            messageEntity.copy(
+                deliveryStatus = DeliveryStatus.FAILED
             )
         )
 
