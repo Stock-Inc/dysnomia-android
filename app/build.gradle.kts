@@ -96,6 +96,10 @@ dependencies {
 
     // Retrofit
     implementation(libs.retrofit)
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.android.compiler)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.android.compiler)
 
     // Converters and serialization
     implementation(libs.converter.scalars)
