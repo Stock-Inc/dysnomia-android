@@ -141,7 +141,7 @@ fun ChatScreen(
                                     copyToClipboard(
                                         context = context,
                                         localClipboard = localClipboard,
-                                        textToCopy = item.message
+                                        textToCopy = "${item.name}\n${item.message}"
                                     )
                                 }
                             },
@@ -153,12 +153,12 @@ fun ChatScreen(
                         if (item.replyId == 0) {
                             MessageItem(
                                 messageEntity = item,
-                                onClick = {
+                                onCopy = {
                                     coroutineScope.launch {
                                         copyToClipboard(
                                             context = context,
                                             localClipboard = localClipboard,
-                                            textToCopy = item.message
+                                            textToCopy = it.message
                                         )
                                     }
                                 },
@@ -171,12 +171,12 @@ fun ChatScreen(
                             MessageItemWithReply(
                                 messageEntity = item,
                                 getRepliedMessageStateFlow = getRepliedMessageStateFlow,
-                                onClick = {
+                                onCopy = {
                                     coroutineScope.launch {
                                         copyToClipboard(
                                             context = context,
                                             localClipboard = localClipboard,
-                                            textToCopy = item.message
+                                            textToCopy = it.message
                                         )
                                     }
                                 },

@@ -16,13 +16,19 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.stock.dysnomia.R
 import dev.stock.dysnomia.model.DeliveryStatus
 import dev.stock.dysnomia.model.MessageEntity
 import dev.stock.dysnomia.model.RepliedMessage
@@ -52,12 +59,12 @@ private val ChatBubbleShapeReversed = RoundedCornerShape(20.dp, 4.dp, 20.dp, 20.
 @Composable
 fun MessageItem(
     messageEntity: MessageEntity,
-    onClick: () -> Unit,
-    onReply: (MessageEntity) -> Unit,
     isUserMe: Boolean,
     isTheFirstMessageFromAuthor: Boolean,
     modifier: Modifier = Modifier,
-    repliedMessage: RepliedMessage? = null
+    repliedMessage: RepliedMessage? = null,
+    onCopy: (MessageEntity) -> Unit = {},
+    onReply: (MessageEntity) -> Unit = {}
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -76,6 +83,8 @@ fun MessageItem(
             anchors = anchors
         )
     }
+
+    var isDropdownShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(draggableState.settledValue) {
         if (draggableState.currentValue == DragValue.Replied) {
@@ -119,7 +128,7 @@ fun MessageItem(
         }
 
         Surface(
-            onClick = onClick,
+            onClick = { isDropdownShown = true },
             color = if (isUserMe) MaterialTheme.colorScheme.primary else Color.Transparent,
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
             border = if (isUserMe) null else CardDefaults.outlinedCardBorder(true),
@@ -151,6 +160,29 @@ fun MessageItem(
                 )
             }
         }
+
+        OptionsPopup(
+            expanded = isDropdownShown,
+            options = listOf(
+                Option(
+                    icon = Icons.Default.ContentCopy,
+                    text = R.string.copy,
+                    onClick = {
+                        onCopy(messageEntity)
+                        isDropdownShown = false
+                    }
+                ),
+                Option(
+                    icon = Icons.AutoMirrored.Filled.Reply,
+                    text = R.string.reply,
+                    onClick = {
+                        onReply(messageEntity)
+                        isDropdownShown = false
+                    }
+                )
+            ),
+            onDismiss = { isDropdownShown = false }
+        )
     }
 }
 
@@ -158,11 +190,11 @@ fun MessageItem(
 fun MessageItemWithReply(
     getRepliedMessageStateFlow: (Int) -> StateFlow<RepliedMessage?>,
     messageEntity: MessageEntity,
-    onClick: () -> Unit,
-    onReply: (MessageEntity) -> Unit,
     isUserMe: Boolean,
     isTheFirstMessageFromAuthor: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCopy: (MessageEntity) -> Unit = {},
+    onReply: (MessageEntity) -> Unit = {}
 ) {
     val repliedMessageFlow = remember {
         getRepliedMessageStateFlow(messageEntity.replyId)
@@ -171,7 +203,7 @@ fun MessageItemWithReply(
 
     MessageItem(
         messageEntity = messageEntity,
-        onClick = onClick,
+        onCopy = onCopy,
         onReply = onReply,
         isUserMe = isUserMe,
         isTheFirstMessageFromAuthor = isTheFirstMessageFromAuthor,
@@ -200,9 +232,7 @@ private fun ChatItemYoursFirstMessagePreview() {
                     message = "some message"
                 ),
                 isUserMe = true,
-                isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {}
+                isTheFirstMessageFromAuthor = true
             )
         }
     }
@@ -220,8 +250,6 @@ private fun ChatItemYoursFirstSmallMessageWithSmallReplyPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "t",
@@ -244,8 +272,6 @@ private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name ".repeat(10),
@@ -268,8 +294,6 @@ private fun ChatItemYoursFirstLargeMessageWithSmallReplyPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name",
@@ -292,8 +316,6 @@ private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name",
@@ -317,8 +339,6 @@ private fun ChatItemYoursFirstMessageWithSmallReplyPendingPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name",
@@ -342,8 +362,6 @@ private fun ChatItemYoursFirstMessageWithSmallReplyFailedPreview() {
                 ),
                 isUserMe = true,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name",
@@ -365,9 +383,7 @@ private fun ChatItemYoursPreview() {
                     message = "some message"
                 ),
                 isUserMe = true,
-                isTheFirstMessageFromAuthor = false,
-                onClick = {},
-                onReply = {}
+                isTheFirstMessageFromAuthor = false
             )
         }
     }
@@ -384,9 +400,7 @@ private fun ChatItemOthersFirstMessagePreview() {
                     message = "some message"
                 ),
                 isUserMe = false,
-                isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {}
+                isTheFirstMessageFromAuthor = true
             )
         }
     }
@@ -404,8 +418,6 @@ private fun ChatItemOthersFirstMessageWithReplyPreview() {
                 ),
                 isUserMe = false,
                 isTheFirstMessageFromAuthor = true,
-                onClick = {},
-                onReply = {},
                 repliedMessage = RepliedMessage(
                     id = 0,
                     name = "Name ".repeat(10),
@@ -427,9 +439,7 @@ private fun ChatItemOthersPreview() {
                     message = "some message"
                 ),
                 isUserMe = false,
-                isTheFirstMessageFromAuthor = false,
-                onClick = {},
-                onReply = {}
+                isTheFirstMessageFromAuthor = false
             )
         }
     }

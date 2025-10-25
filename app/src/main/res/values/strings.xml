@@ -25,4 +25,6 @@
     <string name="change_image">Change image</string>
     <string name="edit_profile">Edit Profile</string>
     <string name="save_changes">Save</string>
+    <string name="copy">Copy</string>
+    <string name="reply">Reply</string>
 </resources>
