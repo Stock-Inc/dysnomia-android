@@ -193,8 +193,8 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun sendCommand(command: String?) {
-        val trimmedCommand = command?.trim() ?: messageTextFieldState.text.trim()
+    fun sendCommand() {
+        val trimmedCommand = messageTextFieldState.text.trim()
 
         if (trimmedCommand.startsWith('/')) {
             viewModelScope.launch {

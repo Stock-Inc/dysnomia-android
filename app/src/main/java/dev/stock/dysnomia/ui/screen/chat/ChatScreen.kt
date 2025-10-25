@@ -73,7 +73,7 @@ fun ChatScreen(
     currentName: String,
     commandSuggestions: List<CommandSuggestion>,
     onSendMessage: () -> Unit,
-    onSendCommand: (String?) -> Unit,
+    onSendCommand: () -> Unit,
     onReply: (MessageEntity) -> Unit,
     onCancelReply: () -> Unit,
     onNavigateUp: () -> Unit,
@@ -95,6 +95,7 @@ fun ChatScreen(
             if (isMessageACommand) {
                 commandSuggestions
                     .filter { suggestion ->
+                        suggestion.command != messageTextFieldState.text.drop(1) &&
                         suggestion.command.contains(
                             messageTextFieldState.text.drop(1),
                             ignoreCase = true
@@ -217,7 +218,9 @@ fun ChatScreen(
                             CommandSuggestionItem(
                                 command = it.command,
                                 result = it.description ?: "",
-                                onClick = { onSendCommand("/${it.command}") }
+                                onClick = {
+                                    messageTextFieldState.setTextAndPlaceCursorAtEnd("/${it.command} ")
+                                }
                             )
                         }
                 }
@@ -247,7 +250,7 @@ fun ChatScreen(
                             textFieldFocusRequester.requestFocus()
                         }
                     } else if (isMessageACommand) {
-                        { onSendCommand(null) }
+                        { onSendCommand() }
                     } else {
                         { onSendMessage() }
                     },
