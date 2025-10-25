@@ -122,7 +122,7 @@ fun MessageItem(
             onClick = onClick,
             color = if (isUserMe) MaterialTheme.colorScheme.primary else Color.Transparent,
             shape = if (isUserMe) ChatBubbleShapeReversed else ChatBubbleShape,
-            border = CardDefaults.outlinedCardBorder(true),
+            border = if (isUserMe) null else CardDefaults.outlinedCardBorder(true),
             modifier = Modifier.width(IntrinsicSize.Max)
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
@@ -192,7 +192,7 @@ private fun getLocalDateTime(unixTimeMs: Long, context: Context): String {
 @Preview
 @Composable
 private fun ChatItemYoursFirstMessagePreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -211,7 +211,7 @@ private fun ChatItemYoursFirstMessagePreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstSmallMessageWithSmallReplyPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -235,7 +235,7 @@ private fun ChatItemYoursFirstSmallMessageWithSmallReplyPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -259,7 +259,7 @@ private fun ChatItemYoursFirstMessageWithLargeReplyPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstLargeMessageWithSmallReplyPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -283,7 +283,7 @@ private fun ChatItemYoursFirstLargeMessageWithSmallReplyPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -307,7 +307,7 @@ private fun ChatItemYoursFirstMessageWithSmallReplyPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstMessageWithSmallReplyPendingPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -332,7 +332,7 @@ private fun ChatItemYoursFirstMessageWithSmallReplyPendingPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursFirstMessageWithSmallReplyFailedPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -357,7 +357,7 @@ private fun ChatItemYoursFirstMessageWithSmallReplyFailedPreview() {
 @Preview
 @Composable
 private fun ChatItemYoursPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -376,7 +376,7 @@ private fun ChatItemYoursPreview() {
 @Preview
 @Composable
 private fun ChatItemOthersFirstMessagePreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -395,7 +395,7 @@ private fun ChatItemOthersFirstMessagePreview() {
 @Preview
 @Composable
 private fun ChatItemOthersFirstMessageWithReplyPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
@@ -419,7 +419,7 @@ private fun ChatItemOthersFirstMessageWithReplyPreview() {
 @Preview
 @Composable
 private fun ChatItemOthersPreview() {
-    DysnomiaTheme {
+    DysnomiaTheme(darkTheme = true) {
         Surface {
             MessageItem(
                 messageEntity = MessageEntity(
