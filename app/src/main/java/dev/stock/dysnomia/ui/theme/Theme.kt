@@ -1,6 +1,7 @@
 package dev.stock.dysnomia.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -91,8 +92,7 @@ private val darkScheme = darkColorScheme(
 
 @Composable
 fun DysnomiaTheme(
-    darkTheme: Boolean = true, // isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
