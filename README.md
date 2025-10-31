@@ -1,6 +1,6 @@
 # Dysnomia
 
-Free and open-source chat application
+An android client for an open-source project aimed at full transparency for users.
 
 ## Features
 * Jetpack Compose
