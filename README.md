@@ -7,7 +7,7 @@ Free and open-source chat application
 * MVVM Architecture
 * Navigation with NavHost
 * Retrofit as HTTP client
-* Stomp over Websockets
+* Stomp over Websockets with Krossbow
 * Message serialization with kotlinx.serialization
 * Notifications with FCM
 * Room for storing conversations
@@ -15,4 +15,5 @@ Free and open-source chat application
 * DataStore Preferences for saving settings
 
 ## Screenshots
-
+| <img src="assets/screenshot1.png"> | <img src="assets/screenshot2.png"> |
+|------------------------------------|------------------------------------|
